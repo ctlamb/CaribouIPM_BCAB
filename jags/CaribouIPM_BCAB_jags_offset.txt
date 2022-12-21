@@ -76,8 +76,8 @@ model{
 		
 		for(yr in 1:nyr){
 			sight_yr_sg[yr, sg] ~ dnorm(0, sight_tau_yr_sg[sg])T(-5, 5)
-			}
 		}
+	}
 	
 	# Sightability
 	for(sg in 1:nsight_grp){	
@@ -94,10 +94,10 @@ model{
 		}
 
   #sex ratio
-  	for(h in 1:nherd){	
-   for(yr in first[h]:nyr){
+  for(h in 1:nherd){	
+    for(yr in first[h]:nyr){
       sexratio[h,yr] ~ dnorm(meansr[1,1], meansr[1,2])T(0,1)
-  }
+    }
   }
 
 	# First year population size
@@ -200,20 +200,21 @@ model{
 		pred_N[h,1:treatment_start[h],2]<-N[h,1:treatment_start[h],2]
 		pred_N[h,1:treatment_start[h],3]<-N[h,1:treatment_start[h],3]
 
-		pred_totAdults[h,1:treatment_start[h]]<-totAdults[h,1:treatment_start[h]]
-		pred_totN[h,1:treatment_start[h]]<-totN[h,1:treatment_start[h]]
-		pred_totAdultsMF[h,1:treatment_start[h]]<-totAdultsMF[h,1:treatment_start[h]]
-		pred_totCalvesMF[h,1:treatment_start[h]]<-totCalvesMF[h,1:treatment_start[h]]
-		pred_totNMF[h,1:treatment_start[h]]<-totNMF[h,1:treatment_start[h]]
+		pred_totAdults[h,1:treatment_start[h]] <- totAdults[h,1:treatment_start[h]]
+		pred_totN[h,1:treatment_start[h]] <- totN[h,1:treatment_start[h]]
+		pred_totAdultsMF[h,1:treatment_start[h]] <- totAdultsMF[h,1:treatment_start[h]]
+		pred_totCalvesMF[h,1:treatment_start[h]] <- totCalvesMF[h,1:treatment_start[h]]
+		pred_totNMF[h,1:treatment_start[h]] <- totNMF[h,1:treatment_start[h]]
 
-	     for(yr in (treatment_start[h]+1):nyr){
+    for(yr in (treatment_start[h]+1):nyr){
 			
     #  Calves
-			pred_nMu[h,yr,1] <- (pred_totAdultsMF[h,yr] * mean_R[h]) * 0.5
-			pred_N[h,yr,1] ~ dnorm(pred_nMu[h,yr,1], 1/abs(pred_nMu[h,yr,1]))
+		pred_nMu[h,yr,1] <- (pred_totAdultsMF[h,yr] * mean_R[h]) * 0.5
+		pred_N[h,yr,1] ~ dnorm(pred_nMu[h,yr,1], 1/abs(pred_nMu[h,yr,1]))
+		
 		#  SubAdults
-			pred_nMu[h,yr,2] <- (pred_N[h,yr-1,1] * mean_S[h])
-			pred_nTau[h,yr,2] <- 1/(abs((pred_N[h,yr-1,1] + 1) * mean_S[h] * (1 - mean_S[h])) + 0.001)
+		pred_nMu[h,yr,2] <- (pred_N[h,yr-1,1] * mean_S[h])
+		pred_nTau[h,yr,2] <- 1/(abs((pred_N[h,yr-1,1] + 1) * mean_S[h] * (1 - mean_S[h])) + 0.001)
 			pred_N[h,yr,2] ~ dnorm(pred_nMu[h,yr,2], pred_nTau[h,yr,2])T(0,)
 		#  Adults
 			pred_nMu[h,yr,3] <-((pred_N[h,yr-1,3] + pred_N[h,yr-1,2]) * mean_S[h])
@@ -269,9 +270,4 @@ model{
 		srdat[i,3] ~ dnorm(sexratio[srdat[i,1], srdat[i,2]], srdat[i,4])T(0,1)
 		#sexratio[h,yr]
 		}
-
-
-
-
-
 	}

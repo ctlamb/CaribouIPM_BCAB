@@ -1,0 +1,507 @@
+---
+title: "BC AB Caribou IPM run, code refactor"
+author: "Josh Nowak"
+date: '`r format(Sys.time(), "%d %B, %Y")`'
+output: html_document
+---
+
+This document is intended to demonstrate an opinionated refactoring of the code. No efforts were taken to ensure that the results are correct, but rather we focus on techniques that can reduce the amount of code, errors, and hopefully increase readability.
+
+## Load Data
+```{r Load packages and data, results='hide', message=FALSE, warning=FALSE}
+library(MCMCvis)
+library(tidybayes)
+library(ggmcmc)
+library(hrbrthemes)
+library(tidylog)
+library(tidyverse)
+
+# Load data ---------------------------------------------------------------
+# Preference for readr and not sure the role of the package here, but it is not
+# something we routinely use
+
+# I will change this one and leave the rest. The point is to be explicit about
+# missing values, column types, and to use tibbles, not data.frames. 
+# Working directory is review because file is saved there, so go up one level
+# before using relative path to file
+hd <- readr::read_csv(
+  "../data/clean/blueprint.csv",
+  col_types = "ciiii",
+  na = c("", " ", "NA")
+)
+
+hn <- hd %>%
+	dplyr::select(herd, herd_num)
+
+sgt <- read.csv(here::here("data/clean/herd_sightability.csv")) %>%
+	dplyr::arrange(herd) %>%
+	dplyr::left_join(hn, by = "herd")
+
+afs <- read.csv(here::here("data/clean/survival.csv")) %>%
+	arrange(herd) %>%
+	left_join(hn, by = "herd")
+
+afr <- read.csv(here::here("data/clean/recruitment.csv")) %>%
+	arrange(herd) %>%
+	left_join(hn, by = "herd")
+
+counts <- read.csv(here::here("data/clean/counts.csv")) %>%
+	arrange(herd) %>%
+	left_join(hn, by = "herd")
+
+trt <- read.csv(here::here("data/clean/treatments.csv")) %>%
+	arrange(herd) %>%
+	left_join(hn, by = "herd")
+
+ecotype <- read.csv(here::here("data/raw/treatment.csv")) %>%
+  dplyr::select(
+    herd = Herd, ECCC = ECCC_Recov_Grp, COSEWIC = COSEWIC_Grp, 
+    Heard_Vagt1998 = Heard.and.Vagt.1998.grouping
+  )%>%
+  dplyr::distinct()
+
+sexratios <-  read.csv(here::here("data/clean/sexratios.csv")) %>%
+  arrange(herd) %>%
+  left_join(hn, by = "herd")
+
+sexratio_summary <-  read.csv(here::here("data/clean/sexratio_summary.csv"))
+
+# 0 = treatment did not occur for that herd in that year
+# 1 = treatment did occur
+# NA = herd not monitored? Possibly change to 0s
+#trt$applied[is.na(trt$applied)] <- 0
+```
+
+
+
+
+## Prep data for IPM
+```{r Prep data for IPM, results='hide', message=FALSE, warning=FALSE}
+
+# Herds and herd number
+herds <- unique(hd$herd)
+nherd <- length(herds)
+nsight_grp <- dplyr::n_distinct(hd$sight_grp)
+ndemog_grp <- dplyr::n_distinct(hd$demog_grp)
+
+# Index for herd per demog group
+nhd_per_demog_grp <- hd %>%
+	dplyr::group_by(demog_grp) %>%
+	dplyr::summarize(hd_per_dg = n())
+
+# nhd_per_demog_grp <- hd %>%
+# 	dplyr::select(demog_grp, hd_per_dg) %>%
+# 	group_by(demog_grp) %>%
+# 	mutate(max_hd_num = max(hd_per_dg)) %>%
+# 	slice(1) %>%
+# 	as.data.frame()
+	
+
+#  Years of study
+# yrs <-  seq(from = min(trt$year), to = max(trt$year), by = 1)
+# nyr <- length(yrs)
+# yr_idx <- seq(from = 1, to = nyr, by = 1)
+# yr_df <- as.data.frame(cbind(yrs, yr_idx))
+min_yr <- min(trt$year)
+
+yr_df <- tibble::tibble(
+  yrs = min_yr:max(trt$year),
+  yr_idx = yrs - min_yr + 1
+)
+
+nyr <- dplyr::n_distinct(yr_df$yrs)
+
+# Age classes
+nage <- 3
+
+# Restrict year range for trouble shooting
+rest_yr <- nyr
+
+ntrt <- length(unique(trt$treatment))
+
+# Generate treatment matrices
+trt_fun <- function(x, treat_chr) {
+  x %>%
+  	dplyr::filter(treatment == treat_chr) |> 
+  	left_join(yr_df, by = c("year" = "yrs")) |> 
+  	dplyr::select(herd_num, yr_idx, applied) |> 
+    tidyr::replace_na(
+      list(applied = 0)
+    ) |> 
+    dplyr::arrange(herd_num) |> 
+    tidyr::pivot_wider(
+      names_from = yr_idx,
+      values_from = applied
+    ) |> 
+    dplyr::select(-1)
+}
+
+# Example call
+#mtrt <- trt_fun(trt, "reduce moose")
+# Do all at once
+trts <- unique(trt$treatment) |> 
+  setNames(substr(gsub("^reduce ", "", trts), 1, 1))
+
+treat_obs <- purrr::imap(
+    trts,
+    ~ trt_fun(trt, .x)
+  ) |> 
+  setNames(paste0(names(trts), "trt"))
+
+# Matrix to vector position and indicators of which vector position belongs
+# to which treatment group
+place_vec <- matrix(nrow = nherd, ncol = nyr)
+place_vec[] <- seq(from = 1, to = nherd*nyr, by = 1)
+
+# observation data
+obs_fun <- function(x, age, sex, prefix = "r") {
+  row_nm <- paste0("n", prefix)
+  dat_nm <- paste0(prefix, "dat")
+  
+  obs <- x %>%
+  	dplyr::transmute(
+  	  herd = herd_num,
+  	  year = year - min_yr + 1,
+  		age = age, 
+  		sex = sex,
+  		mu = est,
+  		tau = 1/sd^2,
+  		tau = replace(tau, is.infinite(tau), mean(tau[is.finite(tau)]))
+  	) %>%
+  	dplyr::filter(is.finite(mu), year <= rest_yr) %>%
+  	dplyr::arrange(herd, year)
+  
+  list(
+      nrow(obs),
+      obs
+    ) |> 
+    setNames(c(row_nm, dat_nm))
+}
+
+# Example call
+obs_r <- obs_fun(afr, NA_integer_, 1, "r")
+obs_s <- obs_fun(afs, 3, 1, "s") # Need truncation added
+
+#sdat$mu[sdat$mu == 1.0000000] <- 0.999
+
+grp_p <- sgt %>% 
+	dplyr::left_join(hd, by = c("herd", "herd_num")) %>%
+	dplyr::group_by(sight_grp) %>%
+	dplyr::summarise(
+	  mean_grp_p = mean(est, na.rm = TRUE), 
+	  mean_grp_psd = mean(sd, na.rm = TRUE), 
+	  mean_grp_ptau = 1/mean_grp_psd^2,
+	  .groups = "drop"
+	)
+
+# Survey counts
+cdat <- counts |> 
+  dplyr::filter(!is.na(Sightability)) |> 
+  dplyr::mutate(
+    sd = 0.2,
+    sd = replace(sd, count == 0, sqrt(1/10)),
+    est = count
+  ) |> 
+  obs_fun(NA_integer_, NA_integer_, "c")
+
+# Sightability data 
+pdat <- counts %>% 
+	dplyr::filter(!is.na(Sightability)) |> 
+  dplyr::mutate(est = count) |> 
+  obs_fun(NA_integer_, NA_integer_, "p")
+
+# Estimates
+edat <- counts %>%
+  dplyr::filter(is.na(Sightability)) |> 
+  dplyr::mutate(
+    est = count,
+    sd = 0.2,
+    sd = replace(sd, count == 0, sqrt(1/10))
+  ) |> 
+  obs_fun(NA_integer_, NA_integer_, "p")
+
+# Survey timing: most are in March. Those NOT in March:
+# 1 = March (reference), 2 = Fall, 3 = Spring
+survey_timing <- afr |> 
+  dplyr::transmute(
+    herd = herd_num,
+    year = year - min_yr + 1,
+    season_int = season_int
+  ) |> 
+  tidyr::complete(
+    herd = unique(hn$herd_num), 
+    year = unique(yr_df$yr_idx),
+    fill = list(season_int = 0)
+  ) |> 
+  tidyr::pivot_wider(
+    names_from = year,
+    values_from = season_int,
+    values_fill = 0
+  ) |> 
+  dplyr::select(-1)
+
+spring_ind <- survey_timing |> 
+  dplyr::mutate(
+    across(everything(), function(x) as.integer(x == 3))
+  )
+fall_ind <- survey_timing |> 
+  dplyr::mutate(
+    across(everything(), function(x) as.integer(x == 2))
+  )
+
+########## UPDATE 11/2/22
+# Calves born in May
+# May/Jun survey = Spring survey (age = 1 month) --- season_int = 3
+# Oct survey = Fall survey (age = 5 months) ---- season_int = 2
+# Mar survey = winter survey (age = 10 months) ---- season_int = 1
+
+# This is different, the original NA's are 0 and will remain so, but now it is
+# a continuous covariate
+month_offset <- survey_timing |> 
+  dplyr::mutate(
+    dplyr::across(
+      dplyr::everything(), 
+      function(x) dplyr::recode(x, `1` = 0, `2` = 5, `3` = 9)
+    )
+  )
+
+
+#####################  Adding a few comments below this point, but not refactoring
+
+
+# # Starting population size of each herd
+#take average of all counts that occured within 3 years of first count per herd
+#   Using the "Est_CL" column 
+# Starting population size of each herd
+meancount <- counts %>%
+	arrange(herd_num, year) %>%
+	group_by(herd_num) %>%
+	mutate(keep = year - min(year)) %>%
+	dplyr::filter(keep < 4) %>% # This means 5 as min - min is 0
+	mutate(n1_mean = mean(Est_CL, na.rm = TRUE)) %>% # Pretty sure a summarize is desired here
+	slice(1) %>%
+	as.data.frame() %>% # Not sure why this would be an advantage, seems like a bad idea
+	dplyr::select(herd, herd_num, n1_mean) %>%
+	right_join(hd, by = c("herd", "herd_num")) %>%  # Likely all the info is already in the data
+	mutate(n1_mean = ifelse(is.na(n1_mean), mean(n1_mean, na.rm = TRUE), n1_mean)) %>% # I hate ifelse with a passion, be careful with it, ifelse(T, Sys.time(), 2)
+	arrange(herd_num)
+n1s <- meancount$n1_mean
+
+##starting age class distribution (sensitivity tested this in McNay et al. 2022 and it doesnt have a meaningful effect even if substantially changed)
+n1 <- matrix(NA, nrow = nherd, ncol = 3)
+for(h in 1:nherd){
+	n1[h,1] <- (n1s[h]*0.5)*0.15
+	n1[h,2] <- (n1s[h]*0.64)*0.1
+	n1[h,3] <- (n1s[h]*0.64)*0.75 
+	}
+
+
+# Sex ratio
+srdat <- sexratios%>%
+  mutate(herd = herd_num,
+         mu = sratio,
+         tau = 1/(sratio.sd*sratio.sd)) %>%
+  left_join(yr_df, by = c("year" = "yrs")) %>%
+  dplyr::filter(!is.na(mu)) %>%
+  dplyr::filter(mu != "Inf") %>% # Reusing filter, mutate and the like do not instill confidence, there is no reason these can't be one statement
+  dplyr::select(herd, year = yr_idx, mu, tau) %>%
+  dplyr::filter(year <= rest_yr) %>%
+  arrange(herd, year)%>%
+  distinct(herd,year, .keep_all=TRUE) # I have a hard time thinking of a scenario where .keep_all is reasonable if we want distinct then there is one entry per combination
+
+nsr <- nrow(srdat)	
+
+meansr <- array(NA, c(1,2))
+meansr[1,1] <- sexratio_summary[1,1]
+meansr[1,2] <- 1/(sexratio_summary[1,2]^2)
+
+
+#  First year of data for each herd
+first_s <- sdat %>% # Write a function for this portion as well
+	group_by(herd) %>%
+	arrange(year) %>%
+	slice(1) %>%  # Summarize seems much safer and robust here
+	as.data.frame() %>% # Not sure why this is a good idea
+	dplyr::select(herd, first_s_year = year) 
+first_r <- rdat %>%
+	group_by(herd) %>%
+	arrange(year) %>%
+	slice(1) %>%
+	as.data.frame() %>%
+	dplyr::select(herd, first_r_year = year)	
+first_c <- cdat %>%
+	group_by(herd) %>%
+	arrange(year) %>%
+	slice(1) %>%
+	as.data.frame() %>%
+	dplyr::select(herd, first_c_year = year)	
+first_e <- edat %>%
+	group_by(herd) %>%
+	arrange(year) %>%
+	slice(1) %>%
+	as.data.frame() %>%
+	dplyr::select(herd, first_e_year = year)
+
+first_per_herd <- first_s %>%
+	full_join(first_r, by = "herd") %>%
+	full_join(first_c, by = "herd") %>%
+	full_join(first_e, by = "herd") %>%
+	rowwise(.) %>% # FYI won't work if you update to base pipe operator
+	mutate(first_yr = min(first_s_year, first_r_year, first_c_year, first_e_year, na.rm = TRUE)) %>% # Good place to use across
+	as.data.frame() %>%
+	arrange(herd)%>%
+  left_join(hd%>%select(name=herd,herd=herd_num))%>%
+  left_join(yr_df%>%select(first_yr=yr_idx, yrs))
+first <- first_per_herd$first_yr
+
+first <- rep(1,nherd)
+
+
+#  First year of treatment for each herd
+treatment_start<- trt%>%
+  filter(applied==1 & !treatment%in%c("transplant","reduce moose"))%>%
+  group_by(herd_num)%>%
+  summarize(yr=min(year)-1)%>% ##year before trt starts
+  full_join(tibble(herd_num=1:nherd,
+                    yr_fill=2021),
+             by="herd_num")%>%
+  left_join(hd%>%select(name=herd,herd_num))%>%
+  mutate(yrs=case_when(is.na(yr)~yr_fill,
+                       name%in%"Columbia North"~2004, ##CN reduce moose did work so keep this one
+                      TRUE~yr))%>%
+  left_join(yr_df)%>%
+  arrange(herd_num)%>%
+  pull(yr_idx)
+
+startmean <- first_per_herd$first_yr
+
+	
+nyr <- rest_yr
+```
+
+
+
+## Gather data inputs in a list
+```{r Gather data inputs in a list, results='hide', message=FALSE, warning=FALSE}
+ipm_dat <- list(
+	nherd = nherd,
+	nyr = nyr,
+	first = first,
+	
+	
+	month_offset = month_offset,
+	treatment_start=treatment_start,
+	
+	nc = nc, 
+	ne = ne,
+	ns = ns,
+	nr = nr,
+	nsr = nsr,
+	
+	nsight_grp = nsight_grp,
+	
+	sight_grp = hd$sight_grp,
+	
+	mean_grp_p = mean_grp_p,
+	mean_grp_ptau = mean_grp_ptau,
+	meansr = meansr,
+	
+	n1 = n1, 
+	cdat = cdat,
+	edat = edat,
+	sdat = sdat,
+	srdat = srdat,
+	pdat = pdat,
+	rdat = rdat,
+	
+	place_vec = place_vec,
+
+	mtrt = mtrt, 
+	wtrt = wtrt,
+	ptrt = ptrt, 
+	ftrt = ftrt,
+	strt = strt,
+	ttrt = ttrt,
+	
+	fall_ind=fall_ind,
+	spring_ind=spring_ind)
+	
+	
+#  Initial values for N to avoid parent node erros
+Nst <- array(10, c(nherd, nyr, nage))
+for(i in 1:nrow(Nst)){
+	Nst[i,1:first[i],1:3] <- NA
+	}
+	
+
+ipm_inits <- function(){ 
+		list(N = Nst)}
+
+
+
+
+#  Model parameters to monitor
+model_parms <- c(
+	"adj_totN", "totN", "N", 
+	"totCalves", "totAdults", "totAdultsMF", "totCalvesMF", "totNMF", 
+
+	"lambda", "lambdav", 
+	
+	"S", "R", 	"R.ad", "R_adj",
+	"p_mu", "sight_est", "p",
+	
+	"s_mu", "r_mu",
+	"eps_s", "eps_r",
+	
+	#"surv_yr_dg", "recruit_yr_dg",
+	#"surv_tau_yr_dg", "recruit_tau_yr_dg",
+	#"sight_yr",
+	#"surv_hd", "recruit_hd",
+	
+	#"bTiming_R",
+	"offset",
+	
+	"mtrt_eff_s", "mtrt_eff_r",
+	"wtrt_eff_s", "wtrt_eff_r",
+	"ptrt_eff_s", "ptrt_eff_r",
+	"ftrt_eff_s", "ftrt_eff_r",
+	"strt_eff_s", "strt_eff_r",
+	"ttrt_eff_s", "ttrt_eff_r",
+	
+	"pred_totNMF",
+	"pred_totCalvesMF",
+	"pred_totAdultsMF",
+	"mean_R",
+	"mean_S",
+	"sexratio"
+)
+```
+
+
+## Run IPM
+```{r Run IPM, results='hide', message=FALSE, warning=FALSE, eval=FALSE}
+nth <- 50
+nbu <- 100000 
+nch <- 3
+nad <- 10000
+nit <- 250000 
+
+out <- jagsUI::jags(ipm_dat, 
+	inits = ipm_inits,
+	model_parms,
+	model.file = here::here("jags/CaribouIPM_BCAB_jags_offset.txt"),
+	n.chains = nch,
+	n.cores = nch,
+	n.iter = nit,
+	n.burnin = nbu,
+	n.thin = nth,
+	n.adapt = nad,
+	seed=2022)
+```
+
+
+## Save outputs
+```{r Save outputs, results='hide', message=FALSE, warning=FALSE, eval=FALSE}
+#mcmcplots::mcmcplot(out$samples, par = c("S", "R", "totNMF")) 
+saveRDS(out, file = here::here("jags/output/BCAB_CaribouIPM_posteriors.rds"))
+```
