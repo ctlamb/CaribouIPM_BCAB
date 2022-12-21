@@ -1350,6 +1350,8 @@ herds <- st_read(here::here("data/Spatial/herds/u_bc_herds_2021_CL.shp"))%>%
   st_simplify(preserveTopology = FALSE, 
               dTolerance = 1000)
 
+
+
 dist.herd <- read_csv("data/Spatial/disturbance/from_Emily/2022-01-27/herds_propdist_20220126_forCL.csv")%>%
   mutate(herd=case_when(herd%in%c("Hart South","Hart North")~"Hart Ranges",
                         herd%in%"Narraway BC"~"Bearhole Redwillow",
@@ -1390,7 +1392,7 @@ herds <- dist.herd%>%
   st_as_sf()%>%
   st_transform(4326)
 
-
+st_write(herds, here::here("data/Spatial/herds/ipm_herds.shp"), delete_dsn = TRUE)
 # mapview(herds,zcol="human")
 # mapview(herds,zcol="lambda.class2")
 
@@ -1787,7 +1789,7 @@ ggsave(here::here("plots","appendix","ind.trt_eff_boxplot_ecotype.png"), width=8
 
 ##Gather draws
 pc <- out %>%
-  gather_draws(S[i,j],R_adj[i,j],totAdultsMF[i,j])%>%
+  gather_draws(S[i,j],R_adj[i,j],totNMF[i,j],totAdultsMF[i,j])%>%
   ungroup%>%
   pivot_wider(names_from=.variable, values_from=.value)
 
@@ -1812,6 +1814,16 @@ pc  <- pc %>%
   arrange(yrs)%>%
   slice(-1)%>%
   ungroup
+
+##export for Ian Adams
+write_csv(pc%>%group_by(herd,yrs)%>%
+            select(herd,yrs,totNMF,totAdultsMF)%>%
+            summarise(across(totNMF:totAdultsMF,
+                       list(median=median, lower90=~quantile(., probs = 0.05),upper90=~quantile(., probs = 0.95)), 
+                       .names = "{.col}.{.fn}"))%>%
+            group_by(herd)%>%
+            arrange(-yrs)%>%slice(1),"IPM_posteriors_Adams.csv")
+
 
 
 ##filter herds to a period where not extirpated
@@ -1843,6 +1855,12 @@ pc <- pc%>%
 ##export for Tal
 write_csv(pc%>%filter(herd%in%c("A La Peche", "Brazeau", "Maligne","Tonquin"),
                       yrs>=2000)%>%select(.draw:intensity),"IPM_posteriors_AB.csv")
+
+
+
+
+
+
 
 ```
 
