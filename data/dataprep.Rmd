@@ -137,12 +137,12 @@ surv.day <- surv%>%
 
 surv.yr <- surv.day%>%
   group_by(id,herd,year)%>%
-  summarise(enter.date=min(DateExit.bio),
+  summarise(enter.date=min(DateEntry.bio),
           exit.date=max(DateExit.bio)-1,
           event=max(dead))%>%
   mutate(enter=month(enter.date)-1,
          exit=month(exit.date),
-         time=(exit.date-enter.date)%>%as.numeric)
+         time=(exit.date-enter.date)%>%as.numeric())
 
   
 ##keep only years we are interested in

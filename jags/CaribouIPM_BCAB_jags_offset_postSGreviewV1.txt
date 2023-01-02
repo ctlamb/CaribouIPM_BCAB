@@ -1,0 +1,273 @@
+model{
+
+	##########################################################################
+	#  Priors 
+	for(h in 1:nherd){
+		
+		#  Survival and recruitment intercepts....per herd
+		s_x[h] ~ dunif(0.4,1)
+		s_mu[h] <- logit(s_x[h])
+		r_x[h] ~ dunif(0,0.6)
+		r_mu[h] <- logit(r_x[h])
+		
+		#  Residuals ###AS TAKEN FROM XYZ
+		s_sd[h] ~ dunif(0.05,2)  
+		s_tau[h] <- pow(s_sd[h],-2) 
+		r_sd[h] ~ dunif(0.05,2)  
+		r_tau[h] <- pow(r_sd[h],-2) 
+	
+		for(yr in 1:nyr){
+			eps_s[h, yr] ~ dnorm(0,s_tau[h])
+			eps_r[h, yr] ~ dnorm(0,r_tau[h])
+			}
+		}
+
+	# Treatment fixed effects
+	# Year, Age, Pop unit
+	mtrt_eff_s ~ dnorm(0, 0.001)T(-3, 3)
+	mtrt_eff_r ~ dnorm(0, 0.001)T(-3, 3)
+	wtrt_eff_s ~ dnorm(0, 0.001)T(-3, 3)
+	wtrt_eff_r ~ dnorm(0, 0.001)T(-3, 3)
+	ptrt_eff_s ~ dnorm(0, 0.001)T(-3, 3)
+	ptrt_eff_r ~ dnorm(0, 0.001)T(-3, 3)
+	ftrt_eff_s ~ dnorm(0, 0.001)T(-3, 3)
+	ftrt_eff_r ~ dnorm(0, 0.001)T(-3, 3)
+	strt_eff_s ~ dnorm(0, 0.001)T(-3, 3)
+	strt_eff_r ~ dnorm(0, 0.001)T(-3, 3)
+	ttrt_eff_s ~ dnorm(0, 0.001)T(-3, 3)
+	ttrt_eff_r ~ dnorm(0, 0.001)T(-3, 3)
+
+	## Survey timing offset, for surveys not during March
+	#bTiming_R[1] <- 0       # First level is reference category (March) (calves ~ 10 mo)
+	#bTiming_R[2] ~ dunif(-5,5) # Difference between Fall and March survey (calves ~ 5 mo)
+	#bTiming_R[3] ~ dunif(-5,5) # Difference between Spring and March survey (calves ~ 1 mo)
+	
+	offset ~ dnorm(0, 0.001) 
+	
+	# Linear predictor for S and R
+	for(h in 1:nherd){
+		for(yr in first[h]:nyr){
+			logit(S[h,yr]) <- s_mu[h] + 
+				mtrt_eff_s*mtrt[h,yr] + 
+				wtrt_eff_s*wtrt[h,yr] + 
+				ptrt_eff_s*ptrt[h,yr] +
+				ftrt_eff_s*ftrt[h,yr] +
+				strt_eff_s*strt[h,yr] +
+				ttrt_eff_s*ttrt[h,yr] +
+				eps_s[h,yr]  
+			
+			logit(R[h,yr]) <- r_mu[h] + 
+				mtrt_eff_r*mtrt[h,yr] + 
+				wtrt_eff_r*wtrt[h,yr] + 
+				ptrt_eff_r*ptrt[h,yr] +
+				ftrt_eff_r*ftrt[h,yr] +
+				strt_eff_r*strt[h,yr] +				
+				ttrt_eff_r*ttrt[h,yr] +			
+				#bTiming_R[survey_timing[h,yr]]  +
+				offset*month_offset[h,yr]  +
+				eps_r[h,yr] 
+			}
+		}
+
+	# Random effect for year-SG
+	for(sg in 1:nsight_grp){	
+		sight_tau_yr_sg[sg] <- 1/(sight_sd_yr_sg[sg]^2)
+		sight_sd_yr_sg[sg] ~ dunif(0, 10)
+		
+		for(yr in 1:nyr){
+			sight_yr_sg[yr, sg] ~ dnorm(0, sight_tau_yr_sg[sg])T(-5, 5)
+		}
+	}
+	
+	# Sightability
+	for(sg in 1:nsight_grp){	
+		p_mu[sg] ~ dnorm(mean_grp_p[sg], mean_grp_ptau[sg])T(0,1)
+		}
+
+	# Linear predictor for sightability
+	#  p is only used in observation model for surveys that *do not* have their own
+	#   sightability estimate
+	for(h in 1:nherd){	
+		for(yr in first[h]:nyr){
+			logit(p[h, yr]) <- p_mu[sight_grp[h]] + sight_yr_sg[yr,sight_grp[h]]
+			}
+		}
+
+  #sex ratio
+  for(h in 1:nherd){	
+    for(yr in first[h]:nyr){
+      sexratio[h,yr] ~ dnorm(meansr[1,1], meansr[1,2])T(0,1)
+    }
+  }
+
+	# First year population size
+	for(h in 1:nherd){	
+
+		N[h,first[h],1] ~ dnorm(n1[h,1], 0.001)T(0,) 
+		N[h,first[h],2] ~ dnorm(n1[h,2], 0.001)T(0,)
+		N[h,first[h],3] ~ dnorm(n1[h,3], 0.001)T(0,)
+
+		totCalves[h,first[h]] <- N[h,first[h],1] 
+		totAdults[h,first[h]] <- N[h,first[h],2] + N[h,first[h],3]
+		#totN[h,first[h]] <- N[h,1,1] + N[h,1,2] + N[h,1,3]
+		totN[h,first[h]] <- totCalves[h,first[h]] + totAdults[h,first[h]]
+
+		#  Apply sex ratio to get full population size
+		totAdultsMF[h,first[h]] <- totAdults[h,first[h]]/sexratio[h,first[h]]
+		totCalvesMF[h,first[h]] <- totCalves[h,first[h]]/0.5
+		totNMF[h,first[h]] <- totAdultsMF[h,first[h]] + totCalvesMF[h,first[h]] 
+
+		lambda[h,first[h]] <- 1
+		lambdav[h] <- 1
+		R.ad[h,first[h]] <- 0.1
+		R_adj[h,first[h]] <- 0.1
+		
+		adj_totN[h,first[h]] <- totN[h,first[h]]
+		}
+		
+# mean response for 10 years before treatment
+ for(h in 1:nherd){
+            mean_R[h] <- mean(R_adj[h, (treatment_start[h]-10): treatment_start[h]]) 
+            mean_S[h] <- mean(S[h, (treatment_start[h]-10): treatment_start[h]])
+            }
+
+	##########################################################################
+	#  Process model - multiple herds, 3 ages
+
+	for(h in 1:nherd){	
+		for(yr in (first[h]+1):nyr){
+			#  Calves - Normal approximation of Poisson
+			# Recruitment is calves/adults
+			nMu[h,yr,1] <- (totAdultsMF[h,yr] * R[h,yr]) * 0.5 
+			N[h,yr,1] ~ dnorm(nMu[h,yr,1], 1/abs(nMu[h,yr,1]))T(0,)
+
+			#  SubAdults - Normal approximation of Binomial
+			# Individuals that are 9 months old and survive to 21 months
+			nMu[h,yr,2] <- (N[h,yr-1,1] * S[h,yr-1])
+			nTau[h,yr,2] <- 1/(abs((N[h,yr-1,1] + 1) * S[h,yr-1] * (1 - S[h,yr-1])) + 0.001)
+			# +0.001 avoids diividing by zero in estimates with large variance
+			#nTau[h,yr,2] <- 1/abs((N[h,yr-1,1] + 1) * S[h,yr-1] * (1 - S[h,yr-1]))
+			N[h,yr,2] ~ dnorm(nMu[h,yr,2], nTau[h,yr,2])T(0,)
+
+			#  Adults - Normal approximation of Binomial
+			# Individuals that are 21 months old and survived to 33 months old + all individuals older than 33 months
+			nMu[h,yr,3] <-((N[h,yr-1,3] + N[h,yr-1,2]) * S[h,yr-1])
+			nTau[h,yr,3] <- 1/(abs(((N[h,yr-1,3] + N[h,yr-1,2]) * S[h,yr-1] * (1 - S[h,yr-1]))) + 0.001) 
+			# +0.001 avoids diividing by zero in estimates with large variance
+			#nTau[h,yr,3] <- 1/abs(((N[h,yr-1,3] + N[h,yr-1,2]) * S[h,yr-1] * (1 - S[h,yr-1]))) 
+			N[h,yr,3] ~ dnorm(nMu[h,yr,3], nTau[h,yr,3])T(0,)
+
+			#  Totals in each year - females only
+			totCalves[h,yr] <- N[h,yr,1] 
+			totAdults[h,yr] <- N[h,yr,2] + N[h,yr,3]
+			totN[h,yr] <- totCalves[h,yr] + totAdults[h,yr]
+
+			#  Apply sex ratio to get full population size
+			totAdultsMF[h,yr] <- totAdults[h,yr]/sexratio[h,yr]
+			totCalvesMF[h,yr] <- totCalves[h,yr]/0.5
+			totNMF[h,yr] <- totAdultsMF[h,yr] + totCalvesMF[h,yr]
+
+		
+		##Derived parameters
+		# adult R
+		R.ad[h,yr] <- N[h,yr,1] /(N[h,yr-1,3]  * S[h,yr-1])
+		#logit(R_adj[h,yr]) <- logit(R[h,yr]) - bTiming_R[2]*fall_ind[h,yr] -  bTiming_R[3]*spring_ind[h,yr]
+		logit(R_adj[h,yr]) <- logit(R[h,yr]) - offset*month_offset[h,yr]
+		
+		
+		# Adjust totN for very small population 
+		adj_totN[h,yr] <- ifelse(totN[h,yr]<1, 0, totN[h,yr])
+				
+		# Lambda
+		# lambda[h,yr] <- (totN[h,yr] + 0.001)/abs(totN[h,yr-1] + 0.001)
+		lambda[h,yr] <- (adj_totN[h,yr] + 0.001)/abs(adj_totN[h,yr-1] + 0.001)
+		logla[h,yr] <- log(ifelse(lambda[h,yr] < 0.0001, 0.01, lambda[h,yr]))
+		
+		# Put lambda value into vector
+		lambdav[place_vec[h,yr]] <- lambda[h,yr]
+		#loglav[place_vec[h,yr]] <- logla[h,yr]
+		}
+		}
+		
+		
+		
+
+	##########################################################################
+	#  Simulate no action
+
+ for(h in 1:nherd){
+		pred_N[h,1:treatment_start[h],1]<-N[h,1:treatment_start[h],1]
+		pred_N[h,1:treatment_start[h],2]<-N[h,1:treatment_start[h],2]
+		pred_N[h,1:treatment_start[h],3]<-N[h,1:treatment_start[h],3]
+
+		pred_totAdults[h,1:treatment_start[h]] <- totAdults[h,1:treatment_start[h]]
+		pred_totN[h,1:treatment_start[h]] <- totN[h,1:treatment_start[h]]
+		pred_totAdultsMF[h,1:treatment_start[h]] <- totAdultsMF[h,1:treatment_start[h]]
+		pred_totCalvesMF[h,1:treatment_start[h]] <- totCalvesMF[h,1:treatment_start[h]]
+		pred_totNMF[h,1:treatment_start[h]] <- totNMF[h,1:treatment_start[h]]
+
+    for(yr in (treatment_start[h]+1):nyr){
+			
+    #  Calves
+		pred_nMu[h,yr,1] <- (pred_totAdultsMF[h,yr] * mean_R[h]) * 0.5
+		pred_N[h,yr,1] ~ dnorm(pred_nMu[h,yr,1], 1/abs(pred_nMu[h,yr,1]))
+		
+		#  SubAdults
+		pred_nMu[h,yr,2] <- (pred_N[h,yr-1,1] * mean_S[h])
+		pred_nTau[h,yr,2] <- 1/(abs((pred_N[h,yr-1,1] + 1) * mean_S[h] * (1 - mean_S[h])) + 0.001)
+			pred_N[h,yr,2] ~ dnorm(pred_nMu[h,yr,2], pred_nTau[h,yr,2])T(0,)
+		#  Adults
+			pred_nMu[h,yr,3] <-((pred_N[h,yr-1,3] + pred_N[h,yr-1,2]) * mean_S[h])
+			pred_nTau[h,yr,3] <- 1/(abs(((pred_N[h,yr-1,3] + pred_N[h,yr-1,2]) * mean_S[h] * (1 - mean_S[h]))) + 0.001)
+			pred_N[h,yr,3] ~ dnorm(pred_nMu[h,yr,3], pred_nTau[h,yr,3])T(0,)
+    #  Totals in each year - females only
+      pred_totCalves[h,yr] <- pred_N[h,yr,1]
+			pred_totAdults[h,yr] <- pred_N[h,yr,2] + pred_N[h,yr,3]
+			pred_totN[h,yr] <- pred_totCalves[h,yr] + pred_totAdults[h,yr]
+		#  Apply sex ratio to get full population size
+			pred_totAdultsMF[h,yr] <- pred_totAdults[h,yr]/sexratio[h,yr]
+			pred_totCalvesMF[h,yr] <- pred_totCalves[h,yr]/0.5
+			pred_totNMF[h,yr] <- pred_totAdultsMF[h,yr] + pred_totCalvesMF[h,yr]
+			}
+			}
+
+
+	##########################################################################
+	#  Observation Models
+	#  Indexing/columns of data inputs:
+	#  Herd, Year, Age, Sex, Mean, Tau (we only have Sex 1)
+
+
+	### Is uncertainty from pdat being propogated through to cdat????
+	#  Need to confirm what cdat[i,6] shoud be in the data
+	#  Survey observations -- counts indicate survey counts that **have** a sightability value
+	for(i in 1:nc){
+		sight_est[i] ~ dnorm(pdat[i,5], pdat[i,6])T(0,1) 
+		cdat[i,5] ~ dnorm(totNMF[cdat[i,1], cdat[i,2]] * sight_est[i], cdat[i,6])T(0,) 
+		#totNMF[h,yr]		
+		}
+	
+	# Estimate observations (herd-years that don't have sightability)
+	for(i in 1:ne){
+		edat[i,5] ~ dnorm(totNMF[edat[i,1], edat[i,2]] * p[edat[i,1], edat[i,2]], edat[i,6])T(0,) 
+		#totNMF[h,yr]
+		}
+
+	#  Survival Observations 
+	for(i in 1:ns){
+		sdat[i,5] ~ dnorm(S[sdat[i,1], sdat[i,2]], sdat[i,6])T(0,1)
+		#S[h, yr]
+		}
+
+	#  Recruitment Observations
+	for(i in 1:nr){
+		rdat[i,5] ~ dnorm(R[rdat[i,1], rdat[i,2]], rdat[i,6])T(0,1)
+		#R[h,yr]
+		}
+		
+	# Sex ratio
+	for(i in 1:nsr){
+		srdat[i,3] ~ dnorm(sexratio[srdat[i,1], srdat[i,2]], srdat[i,4])T(0,1)
+		#sexratio[h,yr]
+		}
+	}

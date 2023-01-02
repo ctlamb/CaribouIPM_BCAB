@@ -68,6 +68,7 @@ trt <- read.csv("data/clean/treatments.csv") %>%
 ecotype <- read.csv("data/raw/treatment.csv") %>%
   dplyr::select(herd=Herd,ECCC=ECCC_Recov_Grp, COSEWIC=COSEWIC_Grp, Heard_Vagt1998=Heard.and.Vagt.1998.grouping)%>%
   distinct()
+labels <- read.csv("data/clean/labels.csv")
 
 #  Years of study
 yrs <-  seq(from = min(trt$year), to = max(trt$year), by = 1)
@@ -215,20 +216,272 @@ ext.yr <- sims%>%
          viable=max(viable))%>%
   filter(round(totAdults,0)<=8 | round(totNMF,0)<=20, viable==0)%>% ##pull if 8 or fewer females present, or 20 or fewer total
   filter(yrs==(min(yrs)))%>%
-  left_join(sims.plot%>%filter(.variable%in%"Observed")%>%select(yrs,.value))
+  left_join(sims.plot%>%filter(.variable%in%"Observed")%>%select(yrs,.value))%>%
+  left_join(labels, by="herd")%>%
+  mutate(herd2=paste0(number_label,".",herd," (",human,"%)"))
 
 ##Herd Abundance
 ggplot() +
-  geom_ribbon(data=demog,aes(x=yrs, y=totNMF, ymin=totNMF.lower, ymax=totNMF.upper),alpha=0.4, color=NA, fill=cols[3])+
-  geom_line(data=demog,aes(x=yrs, y=totNMF, ymin=totNMF.lower, ymax=totNMF.upper),size=1, color=cols[3]) +
-  geom_rug(data=rbind(afr%>%select(herd,year,est)%>%mutate(type="Recruit"),afs%>%select(herd,year,est)%>%mutate(type="Surv"),counts%>%select(herd,year,est=Est_CL)%>%mutate(type="Count")),
+  geom_ribbon(data=demog%>%
+                  ungroup%>%
+                left_join(labels, by="herd")%>%
+                mutate(herd=paste0(number_label,".",herd," (",human,"%)")%>%
+                         fct_reorder(.f=., .x=number_label, .fun=max)),
+              aes(x=yrs, y=totNMF, ymin=totNMF.lower, ymax=totNMF.upper),alpha=0.4, color=NA, fill=cols[3])+
+  geom_line(data=demog%>%
+                ungroup%>%
+              left_join(labels, by="herd")%>%
+              mutate(herd=paste0(number_label,".",herd," (",human,"%)")%>%
+                         fct_reorder(number_label)),
+            aes(x=yrs, y=totNMF, ymin=totNMF.lower, ymax=totNMF.upper),size=1, color=cols[3]) +
+  geom_rug(data=rbind(
+    afr%>%select(herd,year,est)%>%mutate(type="Recruit"),
+    afs%>%select(herd,year,est)%>%mutate(type="Surv"),
+    counts%>%select(herd,year,est=Est_CL)%>%mutate(type="Count"))%>%
+        ungroup%>%
+      left_join(labels, by="herd")%>%
+      mutate(herd=paste0(number_label,".",herd," (",human,"%)")%>%
+                         fct_reorder(number_label)),
            aes(x=year), sides = "t",length = unit(0.05, "npc"),alpha=0.5)+
   theme_ipsum()+
   theme(legend.position = "none")+
-  ylab("")+
-  xlab("Year")+
-  facet_wrap(vars(herd), scales="free_y", ncol=8)+
-  labs(x="Year",title="Abundance")+
+  facet_wrap(vars(herd), scales="free_y", ncol=7)+
+  labs(x="", y="", title="Abundance")+
+  expand_limits(y=0)+
+  scale_x_continuous(    limits = c(1974, 2026),
+                         breaks = seq(1980, 2020, by = 20))+
+  theme(axis.title.x = element_text(size=15),
+        axis.title.y = element_text(size=15),
+        strip.text = element_textbox_highlight(
+          size = 14,
+          fill = "white", box.color = "white", 
+          halign = .5, linetype = 1, r = unit(0, "pt"), width = unit(1, "npc"),
+          padding = margin(4, 0, 4, 0), margin = margin(4, 1, 4, 1),
+          hi.labels = ext.yr$herd2, 
+          hi.fill = "firebrick", hi.box.col = "firebrick", hi.col = "white"
+        ),
+        legend.text = element_text(size=13),
+        legend.title=element_text(size=15))+
+  geom_point(data=counts%>%
+                 ungroup%>%
+               left_join(labels, by="herd")%>%
+               mutate(herd=paste0(number_label,".",herd," (",human,"%)")%>%
+                         fct_reorder(number_label)),
+             aes(x=year, y=Est_CL),size=0.5, alpha=0.7)+
+  geom_linerange(data=counts%>%
+                     ungroup%>%
+                   mutate(Est_CL.max=case_when(Est_CL.max>5000~5000,TRUE~Est_CL.max))%>%
+                   left_join(labels, by="herd")%>%mutate(herd=paste0(number_label,".",herd," (",human,"%)")%>%
+                         fct_reorder(number_label)),
+                 aes(x=year, ymin=Est_CL.min,  ymax=Est_CL.max),alpha=0.5)+
+  geom_point(data=trt.plot%>%
+                 ungroup%>%
+               left_join(labels, by="herd")%>%
+               mutate(herd=paste0(number_label,".",herd," (",human,"%)")%>%
+                         fct_reorder(number_label)),
+             aes(x=year, y=y, group=treatment),size=0.5)+
+  scale_color_manual(values=cols[-4])+
+  geom_text(data = trt.plot%>%
+                ungroup%>%
+              distinct(herd,treatment,y)%>%
+              mutate(t=str_remove(treatment,"reduce ")%>%str_sub(1,1))%>%
+              left_join(labels, by="herd")%>%mutate(herd=paste0(number_label,".",herd," (",human,"%)")%>%
+                         fct_reorder(number_label)),
+            aes(label = t, x = 2025, y = y),
+                           direction = "y")+
+  coord_cartesian(clip = "off")
+
+
+ggsave(here::here("plots","abundance.png"), width=15, height=11, bg="white")
+
+
+##split into two
+
+
+## TOP
+ggplot() +
+  geom_ribbon(data=demog%>%
+                  ungroup%>%
+                left_join(labels, by="herd")%>%
+                mutate(herd=paste0(number_label,".",herd," (",human,"%)")%>%
+                         fct_reorder(.f=., .x=number_label, .fun=max))%>%
+                filter(number_label<=29),
+              aes(x=yrs, y=totNMF, ymin=totNMF.lower, ymax=totNMF.upper),alpha=0.4, color=NA, fill=cols[3])+
+  geom_line(data=demog%>%
+                ungroup%>%
+              left_join(labels, by="herd")%>%
+              mutate(herd=paste0(number_label,".",herd," (",human,"%)")%>%
+                         fct_reorder(number_label))%>%
+                filter(number_label<=29),
+            aes(x=yrs, y=totNMF, ymin=totNMF.lower, ymax=totNMF.upper),size=1, color=cols[3]) +
+  geom_rug(data=rbind(
+    afr%>%select(herd,year,est)%>%mutate(type="Recruit"),
+    afs%>%select(herd,year,est)%>%mutate(type="Surv"),
+    counts%>%select(herd,year,est=Est_CL)%>%mutate(type="Count"))%>%
+        ungroup%>%
+      left_join(labels, by="herd")%>%
+      mutate(herd=paste0(number_label,".",herd," (",human,"%)")%>%
+                         fct_reorder(number_label))%>%
+                filter(number_label<=29),
+           aes(x=year), sides = "t",length = unit(0.05, "npc"),alpha=0.5)+
+  theme_ipsum()+
+  theme(legend.position = "none")+
+  facet_wrap(vars(herd), scales="free_y", ncol=7)+
+  labs(x="", y="", title="Abundance")+
+  expand_limits(y=0)+
+  scale_x_continuous(    limits = c(1974, 2026),
+                         breaks = seq(1980, 2020, by = 20))+
+  theme(axis.title.x = element_text(size=15),
+        axis.title.y = element_text(size=15),
+        strip.text = element_textbox_highlight(
+          size = 14,
+          fill = "white", box.color = "white", 
+          halign = .5, linetype = 1, r = unit(0, "pt"), width = unit(1, "npc"),
+          padding = margin(4, 0, 4, 0), margin = margin(4, 1, 4, 1),
+          hi.labels = ext.yr$herd2, 
+          hi.fill = "firebrick", hi.box.col = "firebrick", hi.col = "white"
+        ),
+        legend.text = element_text(size=13),
+        legend.title=element_text(size=15))+
+  geom_point(data=counts%>%
+                 ungroup%>%
+               left_join(labels, by="herd")%>%
+               mutate(herd=paste0(number_label,".",herd," (",human,"%)")%>%
+                         fct_reorder(number_label))%>%
+                filter(number_label<=29),
+             aes(x=year, y=Est_CL),size=0.5, alpha=0.7)+
+  geom_linerange(data=counts%>%
+                     ungroup%>%
+                   mutate(Est_CL.max=case_when(Est_CL.max>5000~5000,TRUE~Est_CL.max))%>%
+                   left_join(labels, by="herd")%>%mutate(herd=paste0(number_label,".",herd," (",human,"%)")%>%
+                         fct_reorder(number_label))%>%
+                filter(number_label<=29),
+                 aes(x=year, ymin=Est_CL.min,  ymax=Est_CL.max),alpha=0.5)+
+  geom_point(data=trt.plot%>%
+                 ungroup%>%
+               left_join(labels, by="herd")%>%
+               mutate(herd=paste0(number_label,".",herd," (",human,"%)")%>%
+                         fct_reorder(number_label))%>%
+                filter(number_label<=29),
+             aes(x=year, y=y, group=treatment),size=0.5)+
+  scale_color_manual(values=cols[-4])+
+  geom_text(data = trt.plot%>%
+                ungroup%>%
+              distinct(herd,treatment,y)%>%
+              mutate(t=str_remove(treatment,"reduce ")%>%str_sub(1,1))%>%
+              left_join(labels, by="herd")%>%mutate(herd=paste0(number_label,".",herd," (",human,"%)")%>%
+                         fct_reorder(number_label))%>%
+                filter(number_label<=29),
+            aes(label = t, x = 2025, y = y),
+                           direction = "y")+
+  coord_cartesian(clip = "off")
+
+
+ggsave(here::here("plots","abundance_top.png"), width=15, height=8, bg="white")
+
+
+
+## BOTTOM
+ggplot() +
+  geom_ribbon(data=demog%>%
+                  ungroup%>%
+                left_join(labels, by="herd")%>%
+                mutate(herd=paste0(number_label,".",herd," (",human,"%)")%>%
+                         fct_reorder(.f=., .x=number_label, .fun=max))%>%
+                filter(number_label>29),
+              aes(x=yrs, y=totNMF, ymin=totNMF.lower, ymax=totNMF.upper),alpha=0.4, color=NA, fill=cols[3])+
+  geom_line(data=demog%>%
+                ungroup%>%
+              left_join(labels, by="herd")%>%
+              mutate(herd=paste0(number_label,".",herd," (",human,"%)")%>%
+                         fct_reorder(number_label))%>%
+                filter(number_label>29),
+            aes(x=yrs, y=totNMF, ymin=totNMF.lower, ymax=totNMF.upper),size=1, color=cols[3]) +
+  geom_rug(data=rbind(
+    afr%>%select(herd,year,est)%>%mutate(type="Recruit"),
+    afs%>%select(herd,year,est)%>%mutate(type="Surv"),
+    counts%>%select(herd,year,est=Est_CL)%>%mutate(type="Count"))%>%
+        ungroup%>%
+      left_join(labels, by="herd")%>%
+      mutate(herd=paste0(number_label,".",herd," (",human,"%)")%>%
+                         fct_reorder(number_label))%>%
+                filter(number_label>29),
+           aes(x=year), sides = "t",length = unit(0.05, "npc"),alpha=0.5)+
+  theme_ipsum()+
+  theme(legend.position = "none")+
+  facet_wrap(vars(herd), scales="free_y", ncol=4)+
+  labs(x="", y="")+
+  expand_limits(y=0)+
+  scale_x_continuous(    limits = c(1974, 2026),
+                         breaks = seq(1980, 2020, by = 20))+
+  theme(axis.title.x = element_text(size=15),
+        axis.title.y = element_text(size=15),
+        strip.text = element_textbox_highlight(
+          size = 14,
+          fill = "white", box.color = "white", 
+          halign = .5, linetype = 1, r = unit(0, "pt"), width = unit(1, "npc"),
+          padding = margin(4, 0, 4, 0), margin = margin(4, 1, 4, 1),
+          hi.labels = ext.yr$herd2, 
+          hi.fill = "firebrick", hi.box.col = "firebrick", hi.col = "white"
+        ),
+        legend.text = element_text(size=13),
+        legend.title=element_text(size=15))+
+  geom_point(data=counts%>%
+                 ungroup%>%
+               left_join(labels, by="herd")%>%
+               mutate(herd=paste0(number_label,".",herd," (",human,"%)")%>%
+                         fct_reorder(number_label))%>%
+                filter(number_label>29),
+             aes(x=year, y=Est_CL),size=0.5, alpha=0.7)+
+  geom_linerange(data=counts%>%
+                     ungroup%>%
+                   mutate(Est_CL.max=case_when(Est_CL.max>5000~5000,TRUE~Est_CL.max))%>%
+                   left_join(labels, by="herd")%>%mutate(herd=paste0(number_label,".",herd," (",human,"%)")%>%
+                         fct_reorder(number_label))%>%
+                filter(number_label>29),
+                 aes(x=year, ymin=Est_CL.min,  ymax=Est_CL.max),alpha=0.5)+
+  geom_point(data=trt.plot%>%
+                 ungroup%>%
+               left_join(labels, by="herd")%>%
+               mutate(herd=paste0(number_label,".",herd," (",human,"%)")%>%
+                         fct_reorder(number_label))%>%
+                filter(number_label>29),
+             aes(x=year, y=y, group=treatment),size=0.5)+
+  scale_color_manual(values=cols[-4])+
+  geom_text(data = trt.plot%>%
+                ungroup%>%
+              distinct(herd,treatment,y)%>%
+              mutate(t=str_remove(treatment,"reduce ")%>%str_sub(1,1))%>%
+              left_join(labels, by="herd")%>%mutate(herd=paste0(number_label,".",herd," (",human,"%)")%>%
+                         fct_reorder(number_label))%>%
+                filter(number_label>29),
+            aes(label = t, x = 2025, y = y),
+                           direction = "y")+
+  coord_cartesian(clip = "off")
+
+
+ggsave(here::here("plots","abundance_bottom.png"), width=9, height=6, bg="white")
+
+
+
+##Herd Abundance legend
+
+##Herd Abundance
+ggplot() +
+  geom_ribbon(data=demog%>%filter(herd%in%"Klinse-Za")%>%mutate(herd="1.Subpopulation (X%)"),
+              aes(x=yrs, y=totNMF, ymin=totNMF.lower, ymax=totNMF.upper),alpha=0.4, color=NA, fill=cols[3])+
+  geom_line(data=demog%>%filter(herd%in%"Klinse-Za")%>%mutate(herd="1.Subpopulation (X%)"),
+            aes(x=yrs, y=totNMF, ymin=totNMF.lower, ymax=totNMF.upper),size=1, color=cols[3]) +
+  geom_rug(data=rbind(
+    afr%>%select(herd,year,est)%>%mutate(type="Recruit"),
+    afs%>%select(herd,year,est)%>%mutate(type="Surv"),
+    counts%>%select(herd,year,est=Est_CL)%>%mutate(type="Count"))%>%
+      filter(herd%in%"Klinse-Za")%>%mutate(herd="1.Subpopulation (X%)"),
+           aes(x=year), sides = "t",length = unit(0.05, "npc"),alpha=0.5)+
+  theme_ipsum()+
+  theme(legend.position = "none")+
+  facet_wrap(vars(herd), scales="free_y", ncol=7)+
+  labs(x="Year", y="Abundance", title="Legend")+
   expand_limits(y=0)+
   scale_x_continuous(    limits = c(1974, 2026),
                          breaks = seq(1980, 2020, by = 20))+
@@ -244,16 +497,26 @@ ggplot() +
         ),
         legend.text = element_text(size=13),
         legend.title=element_text(size=15))+
-  geom_point(data=counts,aes(x=year, y=Est_CL),size=0.5, alpha=0.7)+
-  geom_linerange(data=counts%>%mutate(Est_CL.max=case_when(Est_CL.max>5000~5000,TRUE~Est_CL.max)),aes(x=year, ymin=Est_CL.min,  ymax=Est_CL.max),alpha=0.5)+
-  geom_point(data=trt.plot,aes(x=year, y=y, group=treatment, color=treatment),size=0.5)+
+  geom_point(data=counts%>%filter(herd%in%"Klinse-Za")%>%mutate(herd="1.Subpopulation (X%)"),
+             aes(x=year, y=Est_CL),size=0.5, alpha=0.7)+
+  geom_linerange(data=counts%>%filter(herd%in%"Klinse-Za")%>%mutate(herd="1.Subpopulation (X%)"),
+                 aes(x=year, ymin=Est_CL.min,  ymax=Est_CL.max),alpha=0.5)+
+  geom_point(data=trt.plot%>%filter(herd%in%"Klinse-Za")%>%mutate(herd="1.Subpopulation (X%)"),
+             aes(x=year, y=y, group=treatment),size=0.5)+
   scale_color_manual(values=cols[-4])+
-  geom_text(data = trt.plot%>%distinct(herd,treatment,y)%>%mutate(t=str_remove(treatment,"reduce ")%>%str_sub(1,1)), aes(label = t, colour = treatment, x = 2025, y = y),
+  geom_text(data = trt.plot%>%
+                ungroup%>%
+              distinct(herd,treatment,y)%>%
+              mutate(t=str_remove(treatment,"reduce ")%>%str_sub(1,1))%>%
+              filter(herd%in%"Klinse-Za")%>%mutate(herd="1.Subpopulation (X%)"),
+            aes(label = t, x = 2025, y = y),
                            direction = "y")+
   coord_cartesian(clip = "off")
 
 
-ggsave(here::here("plots","abundance.png"), width=15, height=11, bg="white")
+ggsave(here::here("plots","abundance_legend.png"), width=2.7, height=3, bg="transparent")
+
+
 ```
 
 ## Plot Abundance across Herds
@@ -1353,8 +1616,7 @@ herds <- st_read(here::here("data/Spatial/herds/u_bc_herds_2021_CL.shp"))%>%
 
 
 dist.herd <- read_csv("data/Spatial/disturbance/from_Emily/2022-01-27/herds_propdist_20220126_forCL.csv")%>%
-  mutate(herd=case_when(herd%in%c("Hart South","Hart North")~"Hart Ranges",
-                        herd%in%"Narraway BC"~"Bearhole Redwillow",
+  mutate(herd=case_when(herd%in%"Narraway BC"~"Bearhole Redwillow",
                         herd%in%"Central Selkirks"~"Nakusp",
                         TRUE~herd))%>%
   group_by(herd)%>%
@@ -1371,8 +1633,6 @@ herds <- dist.herd%>%
                         TRUE~herd))%>%
   left_join(demog.draws %>%
               filter(trt%in%c("Reference"))%>% 
-              mutate(herd=case_when(herd%in%c("Hart South","Hart North")~"Hart Ranges",
-                                    TRUE~herd))%>%
               group_by(herd)%>%
               filter(yrs%in%(max(yrs)-19):max(yrs))%>%
               summarise(lambda=exp(mean(log(lambda)))))%>% ##geo mean per herd
@@ -1395,6 +1655,16 @@ herds <- dist.herd%>%
 st_write(herds, here::here("data/Spatial/herds/ipm_herds.shp"), delete_dsn = TRUE)
 # mapview(herds,zcol="human")
 # mapview(herds,zcol="lambda.class2")
+herds%>%
+  cbind(st_centroid(.)%>%st_coordinates())%>%
+  tibble()%>%
+  arrange(-Y)%>%
+  mutate(number_label=1:n())%>%
+  select(herd,human,number_label)%>%
+  write_csv(here::here("data","clean","labels.csv"))
+
+herds<-herds%>%
+  left_join(labels%>%select(herd,number_label),by="herd")
 
 ##Prep inset map
 ##Cities
@@ -1452,11 +1722,13 @@ bmap.big <- basemap_raster(ext=herds%>%st_buffer(200000)%>%st_transform(3857),
 
 map <- ggRGB(bmap.big , r=1, g=2, b=3)+
   theme_bw()+
-  geom_sf(data = pnw%>%st_transform(cust.crs),size=1, fill=NA, linetype="dashed") +
+  geom_sf(data = pnw%>%
+            st_transform(cust.crs),size=1, fill=NA, linetype="dashed") +
   geom_sf(data=herds,aes(fill=lambda.class2),inherit.aes = FALSE, alpha=0.7)+
-  geom_sf(data=herds%>%filter(ext%in%1),aes(color="Extirpated"),fill=NA,inherit.aes = FALSE, alpha=0.7)+
-  geom_sf_text(data=st_centroid(herds),aes(label = human),inherit.aes = FALSE,size=2.5, color="white")+
-  geom_sf_text(data=st_centroid(herds%>%filter(lambda.class2=="stable")),aes(label = human),inherit.aes = FALSE,size=2.5, color="black")+
+  geom_sf(data=herds%>%
+            filter(ext%in%1),aes(color="Extirpated"),fill=NA,inherit.aes = FALSE, alpha=0.7)+
+  geom_sf_text(data=st_centroid(herds),aes(label = number_label),inherit.aes = FALSE,size=2.5, color="white")+
+  geom_sf_text(data=st_centroid(herds%>%filter(lambda.class2=="stable")),aes(label = number_label),inherit.aes = FALSE,size=2.5, color="black")+
   geom_sf(data=cities%>%st_transform(cust.crs), inherit.aes = FALSE, size=3,pch=21, fill="white", color="black")+
   geom_sf_text(data=cities%>%filter(!Name%in%c("Fort St John","Prince George"))%>%st_transform(cust.crs), aes(label=Name),inherit.aes = FALSE, size=3,hjust = -0.1, vjust = -1, color="white")+
   geom_sf_text(data=cities%>%filter(Name%in%c("Fort St John","Prince George"))%>%st_transform(cust.crs), aes(label=Name),inherit.aes = FALSE, size=3,hjust = 0.6, vjust = -1, color="white")+
