@@ -254,9 +254,6 @@ ext.yr <- demog %>%
     by="yrs")%>%
   ungroup()
 
-sims.plot <- sims.plot%>%
-  filter(.variable%in% c("totNMF","pred_totNMF"))
-
 ## Herd Abundance
 ggplot() +
   geom_ribbon(
@@ -724,7 +721,7 @@ abundance.all.plot <- ggplot(data = sims.plot) +
     geom = "curve", x = 1976, y = 1200, xend = 1985, yend = 300,
     curvature = .3, arrow = arrow(length = unit(2, "mm"))
   ) +
-  annotate(geom = "text", x = 1985, y = 10500, label = "Subpopulation\nextirpation event", hjust = "left") +
+  annotate(geom = "text", x = 1985, y = 10500, label = "Extirpation\nevent", hjust = "left") +
   annotate(
     geom = "curve", x = 1985, y = 10500, xend = (ext.yr %>% ungroup() %>% filter(yrs == min(yrs)) %>% pull(yrs)) + 1, yend = (ext.yr %>% ungroup() %>% filter(yrs == min(yrs)) %>% pull(mean)) + 100,
     curvature = .3, arrow = arrow(length = unit(2, "mm"))
@@ -736,6 +733,209 @@ abundance.all.plot
 
 ggsave(plot = abundance.all.plot, here::here("plots", "abundance_all.png"), width = 6, height = 6, bg = "white")
 ```
+
+## Plot Abundance by ECCC Ecotype
+```{r Plot total abundance ecotype, message=FALSE, warning=FALSE,eval=FALSE,include=FALSE}
+sims.plot.grp <- sims %>%
+  filter(.variable %in% c("pred_totNMF", "totNMF")) %>%
+  left_join(ecotype, by="herd") %>%
+  dplyr::group_by(yrs, .variable, .draw, ECCC) %>%
+  dplyr::summarize(
+    mean = sum(.value),
+    .groups = "drop"
+  ) %>%
+    dplyr::group_by(yrs, .variable,ECCC) %>%
+  dplyr::summarize(
+    LCL = quantile(mean, 0.05),
+    UCL = quantile(mean, 0.95),
+    mean = mean(mean),
+    .groups = "drop"
+  )%>%
+  mutate(.variable = case_when(
+    .variable %in% "pred_totNMF" ~ "Status quo*",
+    TRUE ~ "Observed"
+  )) %>%
+  ungroup() %>%
+  mutate(
+    .variable = fct_relevel(.variable, "Status quo*", "Observed"),
+    ECCC = fct_relevel(ECCC, "Southern Group", "Central Group", "Northern Group")
+  )
+
+
+ext.yr.grp <- ext.yr%>%
+  select(-mean)%>%
+    left_join(ecotype,by="herd") %>%
+  left_join(sims.plot.grp %>% filter(.variable %in% "Observed") %>% select(yrs, mean), by="yrs") %>%
+  select(herd, yrs, mean, ECCC) %>%
+  ungroup() %>%
+  mutate(ECCC = fct_relevel(ECCC, "Southern Group", "Central Group", "Northern Group"))
+
+
+ggplot(data = sims.plot.grp) +
+  geom_ribbon(alpha = 0.3, aes(x = yrs, y = mean, ymin = UCL, ymax = LCL, fill = .variable), color = NA) +
+  geom_path(size = 1, aes(x = yrs, y = mean, ymin = UCL, ymax = LCL, color = .variable, fill = .variable)) +
+  geom_text(data = sims.plot.grp %>% filter(yrs == 2021), aes(label = .variable, colour = .variable, x = Inf, y = mean), hjust = 0) +
+  theme_ipsum() +
+  theme(legend.position = "none") +
+  ylab("") +
+  xlab("Year") +
+  labs(
+    x = "Year", y = "Abundance", title = "SMC Population Trend",
+    subtitle = paste0("", p.decline, "% decline since 1974, +", n.recovery, " caribou from recovery measures"),
+    caption = "*Predicted population trend under a status quo scenario where no recovery measures were implemented"
+  ) +
+  expand_limits(y = 0) +
+  scale_y_continuous(expand = c(0, 100)) +
+  scale_x_continuous(breaks = seq(1980, 2020, by = 20)) +
+  theme(
+    axis.title.x = element_text(size = 15),
+    axis.title.y = element_text(size = 15),
+    strip.text.x = element_text(size = 12),
+    strip.text.y = element_text(size = 15),
+    plot.caption = element_text(color = cols[c(3)], size = 12),
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 15),
+    plot.margin = unit(c(1, 5, 1, 1), "lines")
+  ) +
+  geom_rug(data = trt %>% left_join(ecotype) %>% filter(applied %in% 1), aes(x = year), sides = "b", length = unit(0.05, "npc"), alpha = 0.05) +
+  scale_color_manual(values = cols[c(3, 1)]) +
+  geom_text(data = tibble(lab = "Recovery\nmeasures", yrs = 1990, .value = 1300, ECCC = "Northern Group"), aes(x = yrs, y = .value, label = "Recovery\nmeasures"), hjust = "left") +
+  geom_curve(
+    data = tibble(x = 2002, y = 1000, xend = 2010, yend = 500, ECCC = "Northern Group"),
+    aes(x = x, y = y, yend = yend, xend = xend), inherit.aes = FALSE, curvature = -.3, arrow = arrow(length = unit(2, "mm"))
+  ) +
+  coord_cartesian(
+    clip = "off"
+  ) +
+  facet_wrap(vars(ECCC), scales = "free_y")
+
+
+ggsave(here::here("plots", "abundance_bygroup.png"), width = 13, height = 6, bg = "white")
+```
+
+
+
+
+## Plot Vital Rates
+```{r Plot vital rates, message=FALSE, warning=FALSE,eval=FALSE,include=FALSE}
+#### Survival####
+ggplot() +
+  geom_ribbon(data = demog, aes(x = yrs, y = S, ymin = S.lower, ymax = S.upper, fill = herd), alpha = 0.4) +
+  geom_point(data = demog, aes(x = yrs, y = S, ymin = S.lower, ymax = S.upper, fill = herd), alpha = 0.7) +
+  theme_ipsum() +
+  theme(legend.position = "none") +
+  ylab("") +
+  xlab("Year") +
+  facet_wrap(vars(herd), scales = "free_y") +
+  labs(x = "Year", title = "Survival") +
+  # expand_limits(y=0)+
+  scale_x_continuous(breaks = seq(1980, 2020, by = 20)) +
+  theme(
+    axis.title.x = element_text(size = 15),
+    axis.title.y = element_text(size = 15),
+    strip.text.x = element_text(size = 15),
+    strip.text.y = element_text(size = 15),
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 15)
+  ) +
+  geom_point(data = afs, aes(x = year, y = est, color = herd), alpha = 0.7) +
+  geom_linerange(data = afs %>% mutate(
+    ucl = case_when(
+      (est + sd) > 1 ~ 1,
+      TRUE ~ est + sd
+    ),
+    lcl = case_when(
+      (est - sd) < 0 ~ 0,
+      TRUE ~ est - sd
+    )
+  ), aes(x = year, ymin = lcl, ymax = ucl, color = herd), alpha = 0.7)
+ggsave(here::here("plots", "survival.png"), width = 14, height = 11, bg = "white")
+
+#### Recruitment####
+ggplot() +
+  geom_ribbon(data = demog, aes(x = yrs, y = R, ymin = R.lower, ymax = R.upper, fill = herd), alpha = 0.4) +
+  geom_line(data = demog, aes(x = yrs, y = R, ymin = R.lower, ymax = R.upper, fill = herd)) +
+  geom_point(data = demog, aes(x = yrs, y = R, ymin = R.lower, ymax = R.upper, fill = herd)) +
+  theme_ipsum() +
+  theme(legend.position = "none") +
+  ylab("") +
+  xlab("Year") +
+  # expand_limits(y=0)+
+  scale_x_continuous(breaks = seq(1980, 2020, by = 20)) +
+  facet_wrap(vars(herd), scales = "free_y") +
+  labs(x = "Year", title = "Recruitment") +
+  theme(
+    axis.title.x = element_text(size = 15),
+    axis.title.y = element_text(size = 15),
+    strip.text.x = element_text(size = 15),
+    strip.text.y = element_text(size = 15),
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 15)
+  ) +
+  geom_point(data = afr, aes(x = year, y = est, color = herd)) +
+  geom_linerange(data = afr %>% mutate(
+    ucl = case_when(
+      (est + sd) > 1 ~ 1,
+      TRUE ~ est + sd
+    ),
+    lcl = case_when(
+      (est - sd) < 0 ~ 0,
+      TRUE ~ est - sd
+    )
+  ), aes(x = year, ymin = lcl, ymax = ucl, color = herd), alpha = 0.7)
+ggsave(here::here("plots", "recruitment.png"), width = 14, height = 11, bg = "white")
+
+
+# write_csv(demog.trim, here::here("tables","demog.trim.csv"))
+
+
+#### Adult Recruitment####
+ggplot() +
+  geom_ribbon(data = demog, aes(x = yrs, y = R.ad, ymin = R.ad.lower, ymax = R.ad.upper, fill = herd), alpha = 0.4) +
+  geom_line(data = demog, aes(x = yrs, y = R.ad, ymin = R.ad.lower, ymax = R.ad.upper, fill = herd)) +
+  geom_point(data = demog, aes(x = yrs, y = R.ad, ymin = R.ad.lower, ymax = R.ad.upper, fill = herd)) +
+  theme_ipsum() +
+  theme(legend.position = "none") +
+  ylab("") +
+  xlab("Year") +
+  facet_wrap(vars(herd), scales = "free_y") +
+  labs(x = "Year", title = "Recruitment (calves/adult)") +
+  expand_limits(y = 0) +
+  theme(
+    axis.title.x = element_text(size = 15),
+    axis.title.y = element_text(size = 15),
+    strip.text.x = element_text(size = 15),
+    strip.text.y = element_text(size = 15),
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 15)
+  )
+
+#### Lambda####
+ggplot() +
+  geom_ribbon(data = demog, aes(x = yrs, y = lambda, ymin = lambda.lower, ymax = lambda.upper, fill = herd), alpha = 0.4) +
+  geom_line(data = demog, aes(x = yrs, y = lambda, ymin = lambda.lower, ymax = lambda.upper, fill = herd)) +
+  geom_point(data = demog, aes(x = yrs, y = lambda, ymin = lambda.lower, ymax = lambda.upper, fill = herd)) +
+  theme_ipsum() +
+  theme(legend.position = "none") +
+  ylab("") +
+  xlab("Year") +
+  facet_wrap(vars(herd), scales = "free_y") +
+  labs(x = "Year", title = "Population Growth") +
+  theme(
+    axis.title.x = element_text(size = 15),
+    axis.title.y = element_text(size = 15),
+    strip.text.x = element_text(size = 15),
+    strip.text.y = element_text(size = 15),
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 15)
+  ) +
+  geom_hline(
+    data = data.frame(herd = unique(demog$herd)),
+    aes(yintercept = 1), linetype = "dashed"
+  )
+```
+
+
 
 
 # Summarize effects of treatments
@@ -1014,6 +1214,7 @@ eff.draws %>%
   count(delta > 0)
 ```
 
+
 ## Population growth Before-After w/ Intensity
 ```{r trt eff- BA w intensity, message=FALSE, warning=FALSE}
 
@@ -1050,7 +1251,7 @@ eff.draws.app <- demog.draws %>%
 
 eff.draws.app.bind <- eff.draws.app %>%
   mutate(group = "all") %>%
-  dplyr::bind_rows(eff.draws.app %>%
+  rbind(eff.draws.app %>%
     filter(application == "standard") %>%
     mutate(group = "standard"))
 
@@ -1080,7 +1281,7 @@ ggplot() +
     data = eff.draws.app.bind %>%
       filter(trt != "transplant") %>%
       group_by(name, trt, .draw, group) %>%
-      summarise(delta = mean(delta.i.lr)),
+      summarise(delta = median(delta.i.lr)),
     aes(x = delta, y = trt, fill = name, linetype = group),
     scale = .9,
     rel_min_height = .01,
@@ -1091,7 +1292,7 @@ ggplot() +
     data = eff.draws.app.bind %>%
       filter(trt != "transplant", group == "all", !(herd == "Frisby-Boulder" & application == "standard")) %>%
       group_by(name, herd, trt, application) %>%
-      summarise(delta = mean(delta.i.lr)),
+      summarise(delta = median(delta.i.lr)),
     aes(y = trt, x = delta, color = application),
     shape = "|", size = 4
   ) +
@@ -1106,8 +1307,7 @@ ggplot() +
     legend.title = element_text(size = 15)
   ) +
   geom_vline(xintercept = 0, linetype = "dashed") +
-  labs(x = "Change in value", y = "Recovery measure(s)", title = "Before-After Assessment of Effectivness",
-       color="Application\nintensity", linetype="") +
+  labs(x = "Change in value", y = "Recovery measure(s)", title = "Before-After Assessment of Effectivness") +
   xlim(-0.2, 0.4) +
   scale_fill_manual(values = cols[c(1:3)]) +
   scale_color_manual(values = cols[c(8, 6)]) +
@@ -1130,7 +1330,7 @@ ggsave(here::here("plots", "ba_all_intensity.png"), width = 10, height = 7, bg =
 eff.draws.app.bind %>%
   filter(trt != "transplant", name == "Rate of increase (r)") %>%
   group_by(.draw, name, trt, group) %>%
-  summarise(delta = mean(delta.i.lr)) %>%
+  summarise(delta = median(delta.i.lr, na.rm = TRUE)) %>%
   group_by(trt, group) %>%
   summarise(
     delta.l = median(delta, na.rm = TRUE) %>% round(2),
@@ -1141,10 +1341,299 @@ eff.draws.app.bind %>%
   arrange(trt, group)
 ```
 
+## Population growth Before-After-Control-Impact w/ ecotype
+```{r trt eff- BACI w ecotype, message=FALSE, warning=FALSE,eval=FALSE,include=FALSE}
+#### ECCC grouping
+demog.mod.baci <- demog.draws %>%
+  ungroup() %>%
+  left_join(ecotype) %>%
+  select(.draw, herd, yrs, lambda, totNMF, trt, ECCC)
+
+
+trt.herds <- demog.mod.baci %>%
+  filter(!trt %in% c("Reference", "transplant"), .draw == 1) %>%
+  group_by(herd, trt, ECCC) %>%
+  summarise(
+    trt.start = min(yrs),
+    trt.end = max(yrs),
+    dur = n(),
+    baci.start = trt.start - dur
+  ) %>%
+  ungroup()
+
+baci <- tibble()
+for (i in 1:nrow(trt.herds)) {
+  post.trt <- demog.mod.baci %>%
+    dplyr::filter(
+      herd %in% !!trt.herds[i, "herd"][[1]],
+      yrs %in% !!c(trt.herds[i, "trt.start"][[1]]:trt.herds[i, "trt.end"][[1]])
+    ) %>%
+    dplyr::mutate(CI = 1)
+
+  pre.trt <- demog.mod.baci %>%
+    dplyr::filter(
+      trt %in% c("Reference"),
+      herd %in% !!trt.herds[i, "herd"][[1]],
+      yrs %in% !!c((trt.herds[i, "trt.start"][[1]] - 11):(trt.herds[i, "trt.start"][[1]] - 1))
+    ) %>%
+    dplyr::mutate(CI = 1)
+
+  control <- demog.mod.baci %>%
+    ungroup() %>%
+    dplyr::filter(
+      trt %in% c("Reference"),
+      !herd %in% !!trt.herds[i, "herd"][[1]],
+      ECCC %in% !!trt.herds[i, "ECCC"][[1]],
+      yrs %in% !!c((trt.herds[i, "trt.start"][[1]] - 11):trt.herds[i, "trt.end"][[1]])
+    ) %>%
+    dplyr::mutate(CI = 0)
+
+  ## only keep herds with full data
+  if (all(nrow(pre.trt) > 0, nrow(post.trt) > 0, nrow(control) > 0)) {
+    a <- rbind(pre.trt, post.trt, control) %>%
+      dplyr::mutate(
+        herd.grp = trt.herds[i, "herd"][[1]],
+        trt.grp = trt.herds[i, "trt"][[1]],
+        BA = case_when(
+          yrs < trt.herds[i, "trt.start"][[1]] ~ 0,
+          yrs >= trt.herds[i, "trt.start"][[1]] ~ 1
+        ),
+        BA.break = trt.herds[i, "trt.start"][[1]]
+      )
+  }
+
+  baci <- rbind(baci, a)
+}
+
+baci <- baci %>% mutate(lambda = log(lambda)) %>% ## little r
+  mutate(
+    grp = paste(herd.grp, trt, sep = "_"),
+    facet = paste(herd.grp, trt.grp, sep = "_")
+  )
+
+ggplot() +
+  geom_line(data = baci %>%
+    group_by(herd, yrs, CI, facet, trt.grp, herd.grp) %>%
+    summarise(
+      lambda = median(lambda),
+      totNMF = median(totNMF)
+    ) %>%
+    filter(CI == 1), aes(x = yrs, y = lambda, group = herd), color = "red", alpha = 1, size = 1) +
+  geom_line(data = baci %>%
+    group_by(herd, yrs, CI, facet, trt.grp, herd.grp) %>%
+    summarise(
+      lambda = median(lambda),
+      totNMF = median(totNMF)
+    ), aes(x = yrs, y = lambda, group = herd), alpha = 0.3) +
+  theme_ipsum() +
+  ylab("") +
+  xlab("Year") +
+  labs(x = "Year", y = "Instantaneous rate of increase (r)", title = "BACI set up", subtitle = "control herds shown in grey") +
+  expand_limits(y = 0) +
+  theme(
+    axis.title.x = element_text(size = 15),
+    axis.title.y = element_text(size = 15),
+    strip.text.x = element_text(size = 15),
+    strip.text.y = element_text(size = 15),
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 15)
+  ) +
+  geom_vline(data = baci %>%
+    distinct(BA.break, facet, herd.grp, trt.grp), aes(xintercept = BA.break - 0.5), linetype = "dashed") +
+  facet_wrap(vars(trt.grp, herd.grp))
+ggsave(here::here("plots", "appendix", "baci_setup_ECCC.png"), width = 13, height = 9, bg = "white")
+
+baci.draws <- baci %>%
+  group_by(.draw, trt.grp) %>%
+  do(tidy(lmer(lambda ~ BA + CI + BA * CI + (1 | grp), data = .))) %>%
+  filter(term %in% "BA:CI")
+
+ggplot(data = baci.draws, aes(x = estimate, y = fct_reorder(trt.grp, estimate))) +
+  geom_density_ridges(
+    scale = .9,
+    rel_min_height = .01,
+    size = 0.25,
+    alpha = 0.9,
+    fill = cols[c(1)]
+  ) +
+  theme_ipsum() +
+  theme(
+    axis.title.x = element_text(size = 15),
+    axis.title.y = element_text(size = 15),
+    strip.text.x = element_text(size = 15),
+    strip.text.y = element_text(size = 15),
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 15),
+    legend.position = "none"
+  ) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  labs(x = "Change in rate of increase", y = "Recovery measure(s)", title = "Before-After-Control-Impact", subtitle = "w/ spatio-temporal matching using ECCC ecotype") +
+  xlim(-0.3, 0.6)
+ggsave(here::here("plots", "appendix", "baci_all_ECCC.png"), width = 10, height = 7, bg = "white")
+
+baci.draws %>%
+  group_by(trt.grp) %>%
+  summarise(
+    delta.l = median(estimate, na.rm = TRUE) %>% round(2),
+    lower = quantile(estimate, 0.05, na.rm = TRUE) %>% round(2),
+    upper = quantile(estimate, 0.95, na.rm = TRUE) %>% round(2)
+  ) %>%
+  arrange(-delta.l) %>%
+  mutate(delta.lambda = paste0(delta.l, " (", lower, "-", upper, ")")) %>%
+  select(Treatment = trt.grp, `Delta r (BACI)` = delta.lambda) %>%
+  left_join(trt_eff_ba_table %>% select(Treatment, `Delta r (BA)` = delta.lambda)) %>%
+  gt() %>%
+  gtsave(here::here("tables", "appendix", "trt_eff_baci_ECCC.rtf"))
+
+
+
+
+#### Heard and Vagt grouping
+demog.mod.baci <- demog.draws %>%
+  ungroup() %>%
+  left_join(ecotype) %>%
+  select(.draw, herd, yrs, lambda, totNMF, trt, Heard_Vagt1998)
+
+
+trt.herds <- demog.mod.baci %>%
+  filter(!trt %in% c("Reference", "transplant"), .draw == 1) %>%
+  group_by(herd, trt, Heard_Vagt1998) %>%
+  summarise(
+    trt.start = min(yrs),
+    trt.end = max(yrs),
+    dur = n(),
+    baci.start = trt.start - dur
+  ) %>%
+  ungroup()
+
+baci <- tibble()
+for (i in 1:nrow(trt.herds)) {
+  post.trt <- demog.mod.baci %>%
+    dplyr::filter(
+      herd %in% !!trt.herds[i, "herd"][[1]],
+      yrs %in% !!c(trt.herds[i, "trt.start"][[1]]:trt.herds[i, "trt.end"][[1]])
+    ) %>%
+    dplyr::mutate(CI = 1)
+
+  pre.trt <- demog.mod.baci %>%
+    dplyr::filter(
+      trt %in% c("Reference"),
+      herd %in% !!trt.herds[i, "herd"][[1]],
+      yrs %in% !!c((trt.herds[i, "trt.start"][[1]] - 11):(trt.herds[i, "trt.start"][[1]] - 1))
+    ) %>%
+    dplyr::mutate(CI = 1)
+
+  control <- demog.mod.baci %>%
+    ungroup() %>%
+    dplyr::filter(
+      trt %in% c("Reference"),
+      !herd %in% !!trt.herds[i, "herd"][[1]],
+      Heard_Vagt1998 %in% !!trt.herds[i, "Heard_Vagt1998"][[1]],
+      yrs %in% !!c((trt.herds[i, "trt.start"][[1]] - 11):trt.herds[i, "trt.end"][[1]])
+    ) %>%
+    dplyr::mutate(CI = 0)
+
+  ## only keep herds with full data
+  if (all(nrow(pre.trt) > 0, nrow(post.trt) > 0, nrow(control) > 0)) {
+    a <- rbind(pre.trt, post.trt, control) %>%
+      dplyr::mutate(
+        herd.grp = trt.herds[i, "herd"][[1]],
+        trt.grp = trt.herds[i, "trt"][[1]],
+        BA = case_when(
+          yrs < trt.herds[i, "trt.start"][[1]] ~ 0,
+          yrs >= trt.herds[i, "trt.start"][[1]] ~ 1
+        ),
+        BA.break = trt.herds[i, "trt.start"][[1]]
+      )
+  }
+
+  baci <- rbind(baci, a)
+}
+
+baci <- baci %>% mutate(lambda = log(lambda)) %>% ## little r
+  mutate(
+    grp = paste(herd.grp, trt, sep = "_"),
+    facet = paste(herd.grp, trt.grp, sep = "_")
+  )
+
+ggplot() +
+  geom_line(data = baci %>%
+    group_by(herd, yrs, CI, facet, trt.grp, herd.grp) %>%
+    summarise(
+      lambda = median(lambda),
+      totNMF = median(totNMF)
+    ) %>%
+    filter(CI == 1), aes(x = yrs, y = lambda, group = herd), color = "red", alpha = 1, size = 1) +
+  geom_line(data = baci %>%
+    group_by(herd, yrs, CI, facet, trt.grp, herd.grp) %>%
+    summarise(
+      lambda = median(lambda),
+      totNMF = median(totNMF)
+    ), aes(x = yrs, y = lambda, group = herd), alpha = 0.3) +
+  theme_ipsum() +
+  ylab("") +
+  xlab("Year") +
+  labs(x = "Year", y = "Instantaneous rate of increase (r)", title = "BACI set up", subtitle = "control herds shown in grey") +
+  expand_limits(y = 0) +
+  theme(
+    axis.title.x = element_text(size = 15),
+    axis.title.y = element_text(size = 15),
+    strip.text.x = element_text(size = 15),
+    strip.text.y = element_text(size = 15),
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 15)
+  ) +
+  geom_vline(data = baci %>%
+    distinct(BA.break, facet, herd.grp, trt.grp), aes(xintercept = BA.break - 0.5), linetype = "dashed") +
+  facet_wrap(vars(trt.grp, herd.grp))
+ggsave(here::here("plots", "appendix", "baci_setup_Heard_Vagt1998.png"), width = 13, height = 9, bg = "white")
+
+baci.draws <- baci %>%
+  group_by(.draw, trt.grp) %>%
+  do(tidy(lmer(lambda ~ BA + CI + BA * CI + (1 | grp), data = .))) %>%
+  filter(term %in% "BA:CI")
+
+ggplot(data = baci.draws, aes(x = estimate, y = fct_reorder(trt.grp, estimate))) +
+  geom_density_ridges(
+    scale = .9,
+    rel_min_height = .01,
+    size = 0.25,
+    alpha = 0.9,
+    fill = cols[c(1)]
+  ) +
+  theme_ipsum() +
+  theme(
+    axis.title.x = element_text(size = 15),
+    axis.title.y = element_text(size = 15),
+    strip.text.x = element_text(size = 15),
+    strip.text.y = element_text(size = 15),
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 15),
+    legend.position = "none"
+  ) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  labs(x = "Change in rate of increase", y = "Recovery measure(s)", title = "Before-After-Control-Impact", subtitle = "w/ spatio-temporal matching using Heard & Vagt 1998") +
+  xlim(-0.3, 0.6)
+ggsave(here::here("plots", "appendix", "baci_all_Heard_Vagt1998.png"), width = 10, height = 7, bg = "white")
+
+baci.draws %>%
+  group_by(trt.grp) %>%
+  summarise(
+    delta.l = median(estimate, na.rm = TRUE) %>% round(2),
+    lower = quantile(estimate, 0.05, na.rm = TRUE) %>% round(2),
+    upper = quantile(estimate, 0.95, na.rm = TRUE) %>% round(2)
+  ) %>%
+  arrange(-delta.l) %>%
+  mutate(delta.lambda = paste0(delta.l, " (", lower, "-", upper, ")")) %>%
+  select(Treatment = trt.grp, `Delta r (BACI)` = delta.lambda) %>%
+  left_join(trt_eff_ba_table %>% select(Treatment, `Delta r (BA)` = delta.lambda)) %>%
+  gt() %>%
+  gtsave(here::here("tables", "trt_eff_baci_Heard_Vagt1998.rtf"))
+```
 
 
 ## Individual Treatment Effects
-```{r ind trt eff, message=FALSE, warning=FALSE}
+```{r trt eff- BACI w intensity, message=FALSE, warning=FALSE}
 ## prep data with individual treatments 1/0
 eff.draws <- eff.draws %>%
   mutate(
@@ -1218,18 +1707,21 @@ n.sims <- 1000
 start.pop <- 100
 # sim.ref   <- demog.draws.combotreat%>%ungroup%>%filter(trt=="Reference")%>%filter(lambda<quantile(lambda,0.95),lambda>quantile(lambda,0.05))%>%sample_n(n.sims)%>%pull(lambda)
 sim.ref <- demog.draws %>%
-  filter(trt == "Reference" & totNMF < 200) %>%
-  mutate(lambda=log(lambda))%>% ##little r
+  # filter(trt=="Reference" & totNMF<100)%>%
+  filter(trt == "Reference" & totNMF < 150) %>%
   group_by(.draw, trt, herd) %>%
-  summarise(lambda = mean(lambda)) %>% ## mean per herd-treatment-draw
+  summarise(lambda = exp(mean(log(lambda)))) %>% ## geo mean per herd-treatment-draw
   group_by(.draw, trt) %>%
-  summarise(lambda = mean(lambda)) %>% ## mean lambda per treatment-draw
+  summarise(lambda = exp(mean(log(lambda)))) %>% ## geo mean lambda per treatment-draw
   ungroup() %>%
+  filter(lambda < quantile(lambda, 0.95), lambda > quantile(lambda, 0.05)) %>%
   sample_n(n.sims) %>%
   pull(lambda)
 
 sim.trt <- ind.eff %>%
+  mutate(estimate = exp(estimate) - 1) %>% ## back to lambda
   group_by(term) %>%
+  filter(estimate < quantile(estimate, 0.95), estimate > quantile(estimate, 0.05)) %>%
   ungroup() %>%
   select(.draw, term, estimate) %>%
   pivot_wider(names_from = "term", values_from = "estimate") %>%
@@ -1238,45 +1730,45 @@ sim.trt <- ind.eff %>%
 
 sim.trt$reducewolves %>% median()
 sim.trt$feed %>% median()
-sim.ref%>%median()
 
 year.end <- 14
 sim.df <- list()
 for (i in 1:n.sims) {
   cons.sim.i <- tibble(yr = 1:(11 + year.end)) %>%
     dplyr::mutate(
-      reference = c(start.pop * exp(sim.ref[i])^yr),
+      reference = c(start.pop * (sim.ref[i])^yr),
       reducewolves = case_when(
         yr %in% 1:10 ~ reference,
-        yr %in% 11:30 ~ c(reference[10] * exp((sim.ref[i] + sim.trt$reducewolves[i]))^(yr - 10))
+        yr %in% 11:30 ~ c(reference[10] * (sim.ref[i] + sim.trt$reducewolves[i])^(yr - 10))
       ),
       feed = case_when(
         yr %in% 1:10 ~ reference,
-        yr %in% 11:30 ~ c(reference[10] * exp((sim.ref[i] + sim.trt$feed[i]))^(yr - 10))
+        yr %in% 11:30 ~ c(reference[10] * (sim.ref[i] + sim.trt$feed[i])^(yr - 10))
       ),
       pen = case_when(
         yr %in% 1:10 ~ reference,
-        yr %in% 11:30 ~ c(reference[10] * exp((sim.ref[i] + sim.trt$pen[i]))^(yr - 10))
+        yr %in% 11:30 ~ c(reference[10] * (sim.ref[i] + sim.trt$pen[i])^(yr - 10))
       ),
       reducemoose = case_when(
         yr %in% 1:10 ~ reference,
-        yr %in% 11:30 ~ c(reference[10] * exp((sim.ref[i] + sim.trt$reducemoose[i]))^(yr - 10))
+        yr %in% 11:30 ~ c(reference[10] * (sim.ref[i] + sim.trt$reducemoose[i])^(yr - 10))
       ),
       sterilizewolves = case_when(
         yr %in% 1:10 ~ reference,
-        yr %in% 11:30 ~ c(reference[10] * exp((sim.ref[i] + sim.trt$sterilizewolves[i]))^(yr - 10))
+        yr %in% 11:30 ~ c(reference[10] * (sim.ref[i] + sim.trt$sterilizewolves[i])^(yr - 10))
       ),
       `reducewolves+feed` = case_when(
         yr %in% 1:10 ~ reference,
-        yr %in% 11:30 ~ c(reference[10] * exp((sim.ref[i] + sim.trt$feed[i] + sim.trt$reducewolves[i]))^(yr - 10))
+        yr %in% 11:30 ~ c(reference[10] * (sim.ref[i] + sim.trt$feed[i] + sim.trt$reducewolves[i])^(yr - 10))
       ),
       `reducewolves+pen` = case_when(
         yr %in% 1:10 ~ reference,
-        yr %in% 11:30 ~ c(reference[10] * exp((sim.ref[i] + sim.trt$pen[i] + sim.trt$reducewolves[i]))^(yr - 10))
+        yr %in% 11:30 ~ c(reference[10] * (sim.ref[i] + sim.trt$pen[i] + sim.trt$reducewolves[i])^(yr - 10))
       ),
-      sim = i
+      sim = 1
     )
-  
+
+  cons.sim.i$sim <- i
   sim.df[[i]] <- cons.sim.i
 }
 
@@ -1389,6 +1881,8 @@ ggsave(plot = recov.together, here::here("plots/recov.together.png"), width = 13
 
 
 
+
+
 ## Map
 ```{r map, message=FALSE, warning=FALSE}
 ## Prep Herd Bounds
@@ -1427,7 +1921,6 @@ dist.herd <- read_csv("data/Spatial/disturbance/from_Emily/2022-01-27/herds_prop
   )) %>%
   group_by(herd) %>%
   summarise(across(anthro_prop_dist:all_prop_dist, mean))
-
 dist.herd <- dist.herd %>%
   rbind(dist.herd %>% filter(herd %in% "Nakusp") %>% mutate(herd = "Duncan"))
 
@@ -1444,13 +1937,10 @@ herds <- dist.herd %>%
     filter(trt %in% c("Reference")) %>%
     group_by(herd) %>%
     filter(yrs %in% (max(yrs) - 19):max(yrs)) %>%
-    summarise(lambda = exp(mean(log(lambda)))),
-    by="herd") %>% ## geo mean per herd
-  left_join(ext.yr %>% mutate(ext = 1) %>% ungroup() %>% select(herd, ext) %>% rbind(tibble(herd = "Scott West", ext = 1)),
-            by="herd") %>%
+    summarise(lambda = exp(mean(log(lambda))))) %>% ## geo mean per herd
+  left_join(ext.yr %>% mutate(ext = 1) %>% ungroup() %>% select(herd, ext) %>% rbind(tibble(herd = "Scott West", ext = 1))) %>%
   mutate(lambda = case_when(herd %in% "Scott West" ~ 0.95, TRUE ~ lambda)) %>% ## don't have Scott west. Extirpated
-  left_join(herds,
-            by="herd") %>%
+  left_join(herds) %>%
   drop_na(human) %>%
   mutate(
     human = round(human * 100, 0) %>% as.integer(),
@@ -1461,9 +1951,9 @@ herds <- dist.herd %>%
       lambda >= 1.01 ~ ">1.01"
     ),
     lambda.class2 = case_when(
-      lambda <= 0.99 ~ "declining",
-      lambda > 0.99 & lambda <= 1.01 ~ "stable",
-      lambda > 1.01 ~ "increasing",
+      lambda <= 0.98 ~ "declining",
+      lambda > 0.98 & lambda <= 1.02 ~ "stable",
+      lambda > 1.02 ~ "increasing",
       is.na(lambda) & ext == 1 ~ "declining"
     )
   ) %>%
@@ -1592,4 +2082,403 @@ ggsave(plot = map_combo, here::here("plots/map.together.png"), width = 12, heigh
 
 ggplot(herds %>% tibble(), aes(x = human, fill = lambda.class2)) +
   geom_histogram(alpha = 0.5)
+```
+
+
+
+
+
+
+
+## Ecotype
+```{r ecotype, message=FALSE, warning=FALSE}
+
+demog.draws.combotreat.ecotype <- demog.draws %>%
+  # filter(!(intensity%in%"low"|totNMF<20))%>%
+  filter(yrs >= 2010) %>%
+  group_by(.draw, trt, herd) %>%
+  summarise(lambda = exp(mean(log(lambda)))) %>% ## geo mean per herd-treatment-draw
+  left_join(ecotype) %>%
+  group_by(.draw, trt, ECCC) %>%
+  summarise(lambda = exp(mean(log(lambda)))) %>% ## geo mean lambda per treatment-draw
+  mutate(trt = case_when(is.na(trt) ~ "Reference", TRUE ~ trt)) %>%
+  mutate(group = case_when(trt %in% "Reference" ~ "Reference", TRUE ~ "Treatment"))
+
+order <- demog.draws.combotreat.ecotype %>%
+  group_by(trt) %>%
+  summarize(med = median(lambda))
+
+demog.draws.combotreat.ecotype %>%
+  filter(!trt %in% "transplant") %>%
+  left_join(order) %>%
+  ggplot(aes(x = lambda, y = fct_reorder(trt, med), fill = ECCC)) +
+  geom_density_ridges( # scale = 1.5,
+    # scale = 1.3,
+    rel_min_height = .01,
+    size = 0.25,
+    alpha = 0.5
+  ) +
+  theme_ipsum() +
+  theme(
+    axis.title.x = element_text(size = 15),
+    axis.title.y = element_text(size = 15),
+    strip.text.x = element_text(size = 15),
+    strip.text.y = element_text(size = 15),
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 15)
+  ) +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  xlim(0.8, 1.3) +
+  labs(
+    x = "Population growth rate",
+    y = "Recovery measure(s)",
+    fill = "ECCC Ecotype",
+    title = "Population Growth Rate by Recovery Measure"
+  ) +
+  scale_fill_manual(values = cols)
+ggsave(here::here("plots", "appendix", "lambda_treatments_ecotype.png"), width = 8, height = 7, bg = "white")
+
+eff.draws.ecotype <- eff.draws %>%
+  dplyr::select(.draw:delta.i.lr) %>%
+  filter(name == "Rate of increase (r)") %>%
+  left_join(ecotype) %>%
+  pivot_longer(ECCC:Heard_Vagt1998, names_to = "ecotype")
+
+
+ggplot() +
+  geom_density_ridges(
+    data = eff.draws.ecotype %>%
+      filter(!trt %in% "transplant") %>%
+      filter(ecotype == "ECCC") %>%
+      group_by(name, trt, .draw, value) %>%
+      summarise(delta = median(delta.i.lr)),
+    aes(x = delta, y = trt, fill = value),
+    scale = .9,
+    rel_min_height = .01,
+    size = 0.25,
+    alpha = 0.5
+  ) +
+  theme_ipsum() +
+  theme(
+    axis.title.x = element_text(size = 15),
+    axis.title.y = element_text(size = 15),
+    strip.text.x = element_text(size = 15),
+    strip.text.y = element_text(size = 15),
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 15)
+  ) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  labs(x = "Delta r", y = "Recovery measure(s)", title = "Before-After Assessment of Effectivness", fill = "ECCC Ecotype") +
+  xlim(-0.2, 0.4) +
+  scale_fill_manual(values = cols)
+
+ggsave(here::here("plots", "appendix", "baci_treatments_ecotype.png"), width = 8, height = 7, bg = "white")
+
+ggplot() +
+  geom_density_ridges(
+    data = eff.draws.ecotype %>%
+      filter(!trt %in% "transplant") %>%
+      filter(ecotype == "COSEWIC") %>%
+      group_by(name, trt, .draw, value) %>%
+      summarise(delta = median(delta.i.lr)),
+    aes(x = delta, y = trt, fill = value),
+    scale = .9,
+    rel_min_height = .01,
+    size = 0.25,
+    alpha = 0.5
+  ) +
+  theme_ipsum() +
+  theme(
+    axis.title.x = element_text(size = 15),
+    axis.title.y = element_text(size = 15),
+    strip.text.x = element_text(size = 15),
+    strip.text.y = element_text(size = 15),
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 15)
+  ) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  labs(x = "delta", y = "Recovery measure(s)", title = "COSEWIC Grouping: Before-After Assessment of Effectivness", fill = "COSEWIC Ecotype") +
+  xlim(-0.2, 0.4)
+
+
+
+ggplot() +
+  geom_density_ridges(
+    data = eff.draws.ecotype %>%
+      filter(!trt %in% "transplant") %>%
+      filter(ecotype == "Heard_Vagt1998") %>%
+      group_by(name, trt, .draw, value) %>%
+      summarise(delta = median(delta.i.lr)),
+    aes(x = delta, y = trt, fill = value),
+    scale = .9,
+    rel_min_height = .01,
+    size = 0.25,
+    alpha = 0.5
+  ) +
+  theme_ipsum() +
+  theme(
+    axis.title.x = element_text(size = 15),
+    axis.title.y = element_text(size = 15),
+    strip.text.x = element_text(size = 15),
+    strip.text.y = element_text(size = 15),
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 15)
+  ) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  labs(x = "delta", y = "Recovery measure(s)", title = "Before-After Assessment of Effectivness", fill = "Heard_Vagt1998 Ecotype") +
+  xlim(-0.2, 0.4)
+ggsave(here::here("plots", "appendix", "baci_treatments_HeardVagt1998.png"), width = 8, height = 7, bg = "white")
+
+
+
+
+
+
+
+
+
+ind.eff.ecotype <- eff.draws %>%
+  filter(name == "Rate of increase (r)" & !trt %in% "transplant") %>%
+  left_join(ecotype) %>%
+  group_by(.draw) %>%
+  do(tidy(lm(delta.i ~ reducewolves + sterilizewolves + reducemoose + pen + feed + ECCC, data = .))) %>%
+  filter(!term %in% "(Intercept)")
+
+
+
+order <- ind.eff.ecotype %>%
+  group_by(term) %>%
+  summarize(med = median(estimate))
+
+ggplot(ind.eff.ecotype %>% left_join(order), aes(x = estimate, y = fct_reorder(term, med), fill = term)) +
+  geom_density_ridges(
+    scale = .9,
+    rel_min_height = .01,
+    size = 0.25,
+    alpha = 0.5
+  ) +
+  theme_ipsum() +
+  theme(
+    axis.title.x = element_text(size = 15),
+    axis.title.y = element_text(size = 15),
+    strip.text.x = element_text(size = 15),
+    strip.text.y = element_text(size = 15),
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 15),
+    legend.position = "none"
+  ) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  labs(x = "Delta population growth", y = "Recovery measure", title = "Individual Treatment Effects w/ Ecotype", subtitle = "Partitioned using regression analysis, assuming effects are additive") +
+  xlim(-0.15, 0.25) +
+  scale_fill_manual(values = cols[c(1:7)])
+ggsave(here::here("plots", "appendix", "ind_eff_ecotype.png"), width = 8, height = 7, bg = "white")
+
+
+ind.eff.ecotype %>%
+  group_by(term) %>%
+  summarise(
+    eff = median(estimate) %>% round(3),
+    lower = quantile(estimate, 0.05) %>% round(3),
+    upper = quantile(estimate, 0.95) %>% round(3)
+  ) %>%
+  arrange(-eff) %>%
+  mutate(delta.lambda = paste0(eff, " (", lower, "-", upper, ")")) %>%
+  select(Treatment = term, delta.lambda) %>%
+  gt() %>%
+  gtsave(here::here("tables", "appendix", "ind_eff_ecotype.rtf"))
+
+
+
+
+ind.eff.ecotype.raw <- eff.draws %>%
+  filter(name == "Rate of increase (r)" & !trt %in% "transplant") %>%
+  left_join(ecotype) %>%
+  dplyr::select(herd, trt, ECCC, COSEWIC, Heard_Vagt1998, reducewolves:feed, delta.i.lr) %>%
+  dplyr::group_by(across(herd:feed)) %>%
+  summarise(delta.i.lr = median(delta.i.lr)) %>%
+  ungroup() %>%
+  mutate(ECCC = str_split(ECCC, " ", simplify = TRUE)[, 1])
+
+
+ggplot() +
+  geom_boxplot(data = ind.eff.ecotype.raw, aes(x = ECCC, y = delta.i.lr), outlier.alpha = 0) +
+  geom_jitter(data = ind.eff.ecotype.raw, aes(x = ECCC, y = delta.i.lr, color = trt), width = 0.2) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  theme_ipsum() +
+  theme(
+    axis.title.x = element_text(size = 15),
+    axis.title.y = element_text(size = 15),
+    strip.text.x = element_text(size = 15),
+    strip.text.y = element_text(size = 15),
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 15)
+  ) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  labs(x = "ECCC Recovery Ecotype", y = "Delta r")
+
+
+ggplot() +
+  geom_boxplot(data = ind.eff.ecotype.raw, aes(x = ECCC, y = delta.i.lr), outlier.alpha = 0) +
+  geom_jitter(data = ind.eff.ecotype.raw, aes(x = ECCC, y = delta.i.lr, color = trt), width = 0.2) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  facet_wrap(vars(trt)) +
+  theme_ipsum() +
+  theme(
+    axis.title.x = element_text(size = 15),
+    axis.title.y = element_text(size = 15),
+    strip.text.x = element_text(size = 15),
+    strip.text.y = element_text(size = 15),
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 15),
+    legend.position = "none"
+  ) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  labs(x = "ECCC Recovery Ecotype", y = "Delta r")
+ggsave(here::here("plots", "appendix", "trt_eff_boxplot_ecotype.png"), width = 8, height = 7, bg = "white")
+
+ggplot() +
+  geom_boxplot(data = ind.eff.ecotype.raw, aes(x = COSEWIC, y = delta.i.lr), outlier.alpha = 0) +
+  geom_jitter(data = ind.eff.ecotype.raw, aes(x = COSEWIC, y = delta.i.lr, color = trt), width = 0.2) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  facet_wrap(vars(trt)) +
+  theme_ipsum() +
+  theme(
+    axis.title.x = element_text(size = 15),
+    axis.title.y = element_text(size = 15),
+    strip.text.x = element_text(size = 15),
+    strip.text.y = element_text(size = 15),
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 15),
+    legend.position = "none"
+  ) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  labs(x = "COSEWIC Recovery Ecotype", y = "Delta r")
+
+ggplot() +
+  geom_boxplot(data = ind.eff.ecotype.raw, aes(x = Heard_Vagt1998, y = delta.i.lr), outlier.alpha = 0) +
+  geom_jitter(data = ind.eff.ecotype.raw, aes(x = Heard_Vagt1998, y = delta.i.lr, color = trt), width = 0.2) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  facet_wrap(vars(trt)) +
+  theme_ipsum() +
+  theme(
+    axis.title.x = element_text(size = 15),
+    axis.title.y = element_text(size = 15),
+    strip.text.x = element_text(size = 15),
+    strip.text.y = element_text(size = 15),
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 15),
+    legend.position = "none"
+  ) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  labs(x = "Heard_Vagt1998 Recovery Ecotype", y = "Delta r")
+
+
+ind.eff.ecotype.raw2 <- eff.draws %>%
+  filter(name == "Rate of increase (r)" & !trt %in% "transplant") %>%
+  left_join(ecotype) %>%
+  dplyr::select(herd, trt, ECCC, COSEWIC, Heard_Vagt1998, reducewolves:feed, delta.i.lr) %>%
+  dplyr::group_by(across(herd:feed)) %>%
+  summarise(delta.i.lr = median(delta.i.lr)) %>%
+  pivot_longer(reducewolves:feed) %>%
+  filter(value == 1) %>%
+  mutate(ECCC = str_split(ECCC, " ", simplify = TRUE)[, 1])
+ggplot() +
+  geom_boxplot(data = ind.eff.ecotype.raw2, aes(x = ECCC, y = delta.i.lr), outlier.alpha = 0) +
+  geom_jitter(data = ind.eff.ecotype.raw2, aes(x = ECCC, y = delta.i.lr, color = trt), width = 0.2) +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  facet_wrap(vars(name)) +
+  theme_ipsum() +
+  theme(
+    axis.title.x = element_text(size = 15),
+    axis.title.y = element_text(size = 15),
+    strip.text.x = element_text(size = 15),
+    strip.text.y = element_text(size = 15),
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 15),
+    legend.position = "bottom"
+  ) +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  labs(x = "ECCC Recovery Ecotype", y = "Delta r") +
+  guides(colour = guide_legend(nrow = 3))
+ggsave(here::here("plots", "appendix", "ind.trt_eff_boxplot_ecotype.png"), width = 8, height = 7, bg = "white")
+```
+
+
+
+
+```{r for pc, message=FALSE, warning=FALSE, eval=FALSE, include=FALSE}
+## For PC contract..don't review
+
+## Gather draws
+pc <- out %>%
+  gather_draws(S[i, j], R_adj[i, j], totNMF[i, j], totAdultsMF[i, j]) %>%
+  ungroup() %>%
+  pivot_wider(names_from = .variable, values_from = .value)
+
+
+pc <- pc %>%
+  left_join(out %>%
+    gather_draws(N[i, j, a]) %>%
+    ungroup() %>%
+    pivot_wider(names_from = .variable, values_from = .value) %>%
+    select(i, j, .draw, a, N) %>%
+    pivot_wider(names_from = a, values_from = N, names_prefix = "N"), by = c("i", "j", ".draw")) %>%
+  left_join(yr_df %>% rename(j = yr_idx), by = "j") %>%
+  left_join(trt %>% distinct(herd_num, herd) %>% select(i = herd_num, herd), by = c("i")) %>%
+  left_join(treatment.combos) %>%
+  left_join(trt %>% distinct(herd, year, intensity) %>% select(herd, yrs = year, intensity) %>% filter(intensity %in% "low"), by = c("herd", "yrs")) %>%
+  mutate(trt = case_when(is.na(trt) ~ "Reference", TRUE ~ trt))
+
+
+## remove first year lambda for each herd, as lambda==1
+pc <- pc %>%
+  group_by(herd, .draw) %>%
+  arrange(yrs) %>%
+  slice(-1) %>%
+  ungroup()
+
+## export for Ian Adams
+write_csv(pc %>% group_by(herd, yrs) %>%
+  select(herd, yrs, totNMF, totAdultsMF) %>%
+  summarise(across(totNMF:totAdultsMF,
+    list(median = median, lower90 = ~ quantile(., probs = 0.05), upper90 = ~ quantile(., probs = 0.95)),
+    .names = "{.col}.{.fn}"
+  )) %>%
+  group_by(herd) %>%
+  arrange(-yrs) %>% slice(1), "IPM_posteriors_Adams.csv")
+
+
+
+## filter herds to a period where not extirpated
+pc.trim <- tibble()
+herds <- unique(demog$herd)
+for (i in 1:length(herds)) {
+  if (herds[i] %in% ext.yr$herd) {
+    yr <- ext.yr %>%
+      dplyr::filter(herd == !!herds[i])
+    a <- pc %>%
+      dplyr::filter(herd == !!herds[i] & yrs < yr$yrs)
+  }
+
+  if (!herds[i] %in% ext.yr$herd) {
+    a <- pc %>%
+      dplyr::filter(herd == !!herds[i])
+  }
+
+  pc.trim <- bind_rows(a, pc.trim)
+}
+
+pc <- pc.trim
+rm(pc.trim)
+
+## calculate N calves corrected to March
+pc <- pc %>%
+  mutate(N1_March = R_adj * totAdultsMF * 0.5)
+
+
+## export for Tal
+write_csv(pc %>% filter(
+  herd %in% c("A La Peche", "Brazeau", "Maligne", "Tonquin"),
+  yrs >= 2000
+) %>% select(.draw:intensity), "IPM_posteriors_AB.csv")
 ```
