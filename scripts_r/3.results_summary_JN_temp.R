@@ -147,10 +147,10 @@ demog <- out %>%
     ndraws = 1000
   ) %>%
   median_qi(.width = 0.9) %>% # 0.9 is somewhat unconventional, just be explicit in writing, reminder that we can't do math on the median
-  left_join(yr_df %>% rename(j = yr_idx), by="j") %>%
-  left_join(hd %>% select(herd, i = herd_num),by="i") %>%
-  left_join(treatment.combos, by=c("herd","yrs")) %>%
-  mutate(trt = replace_na(trt,"Reference"))%>%
+  left_join(yr_df %>% rename(j = yr_idx), by = "j") %>%
+  left_join(hd %>% select(herd, i = herd_num), by = "i") %>%
+  left_join(treatment.combos, by = c("herd", "yrs")) %>%
+  mutate(trt = replace_na(trt, "Reference")) %>%
   rename(R = R_adj, R.lower = R_adj.lower, R.upper = R_adj.upper)
 
 
@@ -188,12 +188,12 @@ for (i in 1:length(herds)) {
     a <- demog %>%
       dplyr::filter(herd == !!herds[i] & yrs < yr$yrs)
   }
-  
+
   if (!herds[i] %in% extirpated.yr$herd) {
     a <- demog %>%
       dplyr::filter(herd == !!herds[i])
   }
-  
+
   demog.trim <- bind_rows(a, demog.trim)
 }
 
@@ -297,7 +297,7 @@ sim <- sims_tmp %>%
     herd = hd$herd[i],
     year = yr_df$yrs[j]
   ) |>
-  dplyr::left_join(treatment.combos%>%rename(year=yrs), by = c("herd", "year")) |>
+  dplyr::left_join(treatment.combos %>% rename(year = yrs), by = c("herd", "year")) |>
   dplyr::mutate(
     trt = tidyr::replace_na(trt, "Reference")
   )
@@ -466,7 +466,7 @@ ext.yr <- sim %>%
 #   coord_cartesian(clip = "off")
 
 
-#ggsave(here::here("plots", "abundance.png"), width = 15, height = 11, bg = "white")
+# ggsave(here::here("plots", "abundance.png"), width = 15, height = 11, bg = "white")
 
 
 ## ----Plot total abundance, message=FALSE, warning=FALSE----------------------------------------------------------------------------------------------------
@@ -595,7 +595,7 @@ quantile(n.recovery.all, c(0.05, 0.5, 0.95))
 #     clip = "off"
 #   )
 # abundance.all.plot
-# 
+#
 # #ggsave(plot = abundance.all.plot, here::here("plots", "abundance_all.png"), width = 6, height = 6, bg = "white")
 
 
@@ -796,7 +796,7 @@ demog.draws <- demog.draws %>%
   #   by = "year"
   # ) %>%
   left_join(
-    treatment.combos%>%rename(year=yrs),
+    treatment.combos %>% rename(year = yrs),
     by = c("herd", "year")
   ) %>%
   left_join(
@@ -840,7 +840,7 @@ demog.draws <- demog.draws %>%
   arrange(year) %>% # Note that we have the yrs v year problem here as well
   slice(-1) %>%
   ungroup()
-# 
+#
 # # I offered an alternative above, I can't always get the code below to run
 # ## filter herds to a period where not extirpated
 # demog.draws.trim <- tibble()
@@ -851,15 +851,15 @@ demog.draws <- demog.draws %>%
 #     a <- demog.draws %>%
 #       dplyr::filter(herd == !!herds[i] & yrs < yr$yrs)
 #   }
-#   
+#
 #   if (!herds[i] %in% ext.yr$herd) {
 #     a <- demog.draws %>%
 #       dplyr::filter(herd == !!herds[i])
 #   }
-#   
+#
 #   demog.draws.trim <- bind_rows(a, demog.draws.trim)
 # }
-# 
+#
 # demog.draws <- demog.draws.trim
 # rm(demog.draws.trim)
 
@@ -1025,7 +1025,7 @@ demog.draws |>
   scale_fill_manual(values = c(cols[c(3, 1)]))
 
 
-#ggsave(here::here("plots", "lambda_treatments.png"), width = 8, height = 7, bg = "white")
+# ggsave(here::here("plots", "lambda_treatments.png"), width = 8, height = 7, bg = "white")
 
 
 # Would be nice to show the years by herd that each prescription was applied
@@ -1092,8 +1092,8 @@ order <- eff.draws %>%
   summarise(med = median(delta.i.lr)) %>%
   arrange(-med)
 
-# Again, because of the reuse of the names I can't see the result and then 
-#  go back and explore the code. eff.draws depends on eff.draws, which was just 
+# Again, because of the reuse of the names I can't see the result and then
+#  go back and explore the code. eff.draws depends on eff.draws, which was just
 #  changed so now this code doesn't mean much and can't be run again. Consider
 #  reducing the number of objects created and writing a few functions to reduce
 #  the amount of code.
@@ -1109,7 +1109,7 @@ eff.draws <- eff.draws %>%
     )
   )
 
-# What is the scale of the x-axis here? 
+# What is the scale of the x-axis here?
 # I would think you could do this by making the units 1 SD, (x - mean)/sd kind
 #  of approach, but if the units aren't the same it could be very misleading
 ggplot() +
@@ -1148,13 +1148,13 @@ ggplot() +
   xlim(-0.2, 0.4) +
   scale_fill_manual(values = cols[c(1:3)])
 
-#ggsave(here::here("plots", "ba_all.png"), width = 10, height = 7, bg = "white")
+# ggsave(here::here("plots", "ba_all.png"), width = 10, height = 7, bg = "white")
 
 
 trt_eff_ba_table <- eff.draws %>%
   filter(name == "Rate of increase (r)") %>%
   group_by(trt) %>% # Don't need to group by draw, just summarise
-  #summarise(delta = median(delta.i)) %>% # this is not needed and could be wrong if the grouping were not maintined by default the calculation in the next summarise would just be wrong
+  # summarise(delta = median(delta.i)) %>% # this is not needed and could be wrong if the grouping were not maintined by default the calculation in the next summarise would just be wrong
   summarise(
     lower = quantile(delta.i, 0.05, na.rm = TRUE) %>% round(2),
     delta.l = median(delta.i, na.rm = TRUE) %>% round(2),
@@ -1167,11 +1167,11 @@ trt_eff_ba_table <- eff.draws %>%
   select(Treatment = trt, delta.lambda) %>%
   filter(Treatment != "transplant")
 
-# Please separate code that saves from regular interactive evaluation, I don't 
+# Please separate code that saves from regular interactive evaluation, I don't
 # want to have to hunt down too many files
 trt_eff_ba_table %>%
-  gt() #%>%
-#gtsave(here::here("tables", "trt_eff_ba.rtf"))
+  gt() # %>%
+# gtsave(here::here("tables", "trt_eff_ba.rtf"))
 
 
 eff.draws %>%
@@ -1184,24 +1184,24 @@ eff.draws %>%
 
 ## ----trt eff- BA w intensity, message=FALSE, warning=FALSE-------------------------------------------------------------------------------------------------
 
-# Would be nice if there were only one of these, not sure if it is possible 
+# Would be nice if there were only one of these, not sure if it is possible
 
 eff.draws.app <- demog.draws %>%
   group_by(herd, year, trt) %>%
-  mutate(  # This "should be" a summarize, not a mutate. We can't group by herd, year and treat, summarize and still have each draw available. Anyway, be sure not to use this quantity later except for the logical.
+  mutate( # This "should be" a summarize, not a mutate. We can't group by herd, year and treat, summarize and still have each draw available. Anyway, be sure not to use this quantity later except for the logical.
     totNMF.median = median(totNMF)
   ) %>% # get average pop size so popsize threshold doesnt split low/standard in some years due to draws being above/below threshold
   ungroup() %>%
   mutate(
     lambda = log(lambda), ## little r
     application = case_when(
-      intensity == "low" | totNMF.median < 30 ~ "low", 
+      intensity == "low" | totNMF.median < 30 ~ "low",
       TRUE ~ "standard"
     )
   ) %>%
   ungroup() %>%
   # Since this is done so many times I added a column called trt_active, so you could do
-  # filter(!trt_active) |> 
+  # filter(!trt_active) |>
   filter(!trt %in% "Reference") %>%
   group_by(.draw, herd, trt, application) %>%
   summarise(across(lambda:R, ~ mean(.x))) %>%
@@ -1224,8 +1224,8 @@ eff.draws.app <- demog.draws %>%
     delta.i.lr = eff - ref
   )
 
-# Given that the first one is not filtered, doesn't it include everything that 
-#  is in the second object? Seems like maybe the first should be 
+# Given that the first one is not filtered, doesn't it include everything that
+#  is in the second object? Seems like maybe the first should be
 #  application != "standard"
 eff.draws.app.bind <- eff.draws.app %>%
   mutate(group = "all") %>%
@@ -1270,8 +1270,7 @@ ggplot() +
   ) +
   geom_point(
     data = eff.draws.app.bind %>%
-      filter(trt != "transplant", group == "all", !(herd == "Frisby-Boulder" & application == "standard")
-      ) %>%
+      filter(trt != "transplant", group == "all", !(herd == "Frisby-Boulder" & application == "standard")) %>%
       group_by(name, herd, trt, application) %>% # No draw here, same data though, right?
       summarise(delta = median(delta.i.lr)), # Grouped data, fyi
     aes(y = trt, x = delta, color = application),
@@ -1294,7 +1293,7 @@ ggplot() +
   scale_color_manual(values = cols[c(8, 6)]) +
   guides(fill = "none")
 
-#ggsave(here::here("plots", "ba_all_intensity.png"), width = 10, height = 7, bg = "white")
+# ggsave(here::here("plots", "ba_all_intensity.png"), width = 10, height = 7, bg = "white")
 
 
 # ggplot()+
@@ -1310,8 +1309,8 @@ ggplot() +
 
 eff.draws.app.bind %>%
   filter(trt != "transplant", name == "Rate of increase (r)") %>%
-  #group_by(.draw, name, trt, group) %>%
-  #summarise(delta = median(delta.i.lr, na.rm = TRUE)) %>%
+  # group_by(.draw, name, trt, group) %>%
+  # summarise(delta = median(delta.i.lr, na.rm = TRUE)) %>%
   group_by(trt, group) %>%
   summarise(
     delta.l = median(delta.i.lr, na.rm = TRUE) %>% round(2),
@@ -1584,14 +1583,14 @@ eff.draws <- eff.draws %>%
 ind.eff <- eff.draws %>%
   filter(name == "Rate of increase (r)") %>%
   group_by(.draw) %>%
-  do(tidy(lm(delta.i.lr ~ -1 + reducewolves + sterilizewolves + reducemoose + pen + feed, data = .))) #%>%
-#filter(!term %in% "(Intercept)")
+  do(tidy(lm(delta.i.lr ~ -1 + reducewolves + sterilizewolves + reducemoose + pen + feed, data = .))) # %>%
+# filter(!term %in% "(Intercept)")
 
-ind.eff <- eff.draws%>%
-  filter(name=="Rate of increase (r)")%>%
+ind.eff <- eff.draws %>%
+  filter(name == "Rate of increase (r)") %>%
   group_by(.draw) %>%
-  do(tidy(lm(delta.i.lr~reducewolves+sterilizewolves+reducemoose+pen+feed, data=.)))%>%
-  filter(!term%in%"(Intercept)")
+  do(tidy(lm(delta.i.lr ~ reducewolves + sterilizewolves + reducemoose + pen + feed, data = .))) %>%
+  filter(!term %in% "(Intercept)")
 
 ind.eff %>%
   group_by(term) %>%
@@ -1606,9 +1605,10 @@ order <- ind.eff %>%
 # Yikes, bimodal and all. This doesn't look consistent with earlier graphs, but
 # I may just remembering it wrong
 ind.eff.plot <- ggplot(
-  ind.eff %>% 
-    left_join(order), 
-  aes(x = estimate, y = fct_reorder(term, med), fill = term)) +
+  ind.eff %>%
+    left_join(order),
+  aes(x = estimate, y = fct_reorder(term, med), fill = term)
+) +
   geom_density_ridges(
     scale = .9,
     rel_min_height = .01,
@@ -1648,11 +1648,11 @@ ind.eff %>%
 
 
 ## ----cons sims, message=FALSE, warning=FALSE---------------------------------------------------------------------------------------------------------------
-n.sims <- 900# 1000
+n.sims <- 900 # 1000
 start.pop <- 100
 # sim.ref   <- demog.draws.combotreat%>%ungroup%>%filter(trt=="Reference")%>%filter(lambda<quantile(lambda,0.95),lambda>quantile(lambda,0.05))%>%sample_n(n.sims)%>%pull(lambda)
 
-# Why not just use random draws of lambda/treatment? Curious why the geometric mean transformation is desirable. 
+# Why not just use random draws of lambda/treatment? Curious why the geometric mean transformation is desirable.
 sim.ref <- demog.draws %>%
   # filter(trt=="Reference" & totNMF<100)%>%
   filter(trt == "Reference" & totNMF < 150) %>%
@@ -1716,9 +1716,9 @@ for (i in 1:n.sims) {
         yr %in% 1:10 ~ reference,
         yr %in% 11:30 ~ c(reference[10] * (sim.ref[i] + sim.trt$pen[i] + sim.trt$reducewolves[i])^(yr - 10))
       ),
-      sim = 1  # Did you mean to hardcode this value?
+      sim = 1 # Did you mean to hardcode this value?
     )
-  
+
   cons.sim.i$sim <- i # Oh, ok, this could have been done above
   sim.df[[i]] <- cons.sim.i
 }
@@ -1738,7 +1738,7 @@ sim.df.plot <- sim.df %>%
   summarise(
     median = median(value, na.rm = TRUE),
     se = sd(value, na.rm = TRUE),
-    upper = quantile(abund, 0.95, na.rm = T), # Code didn't work for me without adding na.rm 
+    upper = quantile(abund, 0.95, na.rm = T), # Code didn't work for me without adding na.rm
     lower = quantile(abund, 0.05, na.rm = T),
     inc = (mean(inc, na.rm = T) * 100) %>% round(0),
     ext = (mean(ext, na.rm = T) * 100) %>% round(0)
@@ -1769,8 +1769,8 @@ sim.df.plot <- sim.df %>%
 recov.cols <- c(cols[1:3], "black", cols[5:8])
 recov.sims.plot <- ggplot() +
   annotate("rect",
-           xmin = -10, xmax = year.end + 1, ymin = 0, ymax = 20,
-           alpha = .1, fill = "black"
+    xmin = -10, xmax = year.end + 1, ymin = 0, ymax = 20,
+    alpha = .1, fill = "black"
   ) +
   annotate("text", x = -4, y = 5, label = "Functionally extirpated") +
   geom_line(data = sim.df.plot %>% filter(name != "reference"), aes(x = yr, y = median, color = trt)) +
@@ -1832,7 +1832,7 @@ recov.sims.plot
 
 ## plot individual treatments together
 recov.together <- ind.eff.plot + recov.sims.plot + plot_layout(widths = c(1.3, 1.6))
-#ggsave(plot = recov.together, here::here("plots/recov.together.png"), width = 13, height = 6, bg = "white")
+# ggsave(plot = recov.together, here::here("plots/recov.together.png"), width = 13, height = 6, bg = "white")
 
 
 ## ----map, message=FALSE, warning=FALSE---------------------------------------------------------------------------------------------------------------------
@@ -1851,14 +1851,14 @@ herds <- st_read(here::here("data/Spatial/herds/u_bc_herds_2021_CL.shp")) %>%
     TRUE ~ herd
   )) %>%
   rbind(st_read(here::here("data/Spatial/herds/Caribou_Range.shp")) %>% # Still very scared of rbind, but it only worked on matrices when I started this=)
-          st_transform(3005) %>%
-          select(herd = SUBUNIT) %>%
-          mutate(herd = case_when(
-            herd %in% "Narraway" ~ "Narraway AB",
-            herd %in% "Jasper" ~ "Brazeau",
-            herd %in% "Redrock-Prairie Creek" ~ "Redrock/Prairie Creek",
-            TRUE ~ herd
-          ))) %>%
+    st_transform(3005) %>%
+    select(herd = SUBUNIT) %>%
+    mutate(herd = case_when(
+      herd %in% "Narraway" ~ "Narraway AB",
+      herd %in% "Jasper" ~ "Brazeau",
+      herd %in% "Redrock-Prairie Creek" ~ "Redrock/Prairie Creek",
+      TRUE ~ herd
+    ))) %>%
   st_simplify(
     preserveTopology = FALSE,
     dTolerance = 1000
@@ -1875,8 +1875,8 @@ dist.herd <- read_csv("data/Spatial/disturbance/from_Emily/2022-01-27/herds_prop
   summarise(across(anthro_prop_dist:all_prop_dist, mean))
 
 # This line reads like my comment above about is the same data in both
-# I dist.herd and all of its data being combined with itself with the herd name 
-#  changed, is that the intent, two copies of the data with one called Nakusp 
+# I dist.herd and all of its data being combined with itself with the herd name
+#  changed, is that the intent, two copies of the data with one called Nakusp
 #  and one called Duncan?
 dist.herd <- dist.herd %>%
   rbind(dist.herd %>% filter(herd %in% "Nakusp") %>% mutate(herd = "Duncan"))
@@ -1891,23 +1891,23 @@ herds <- dist.herd %>%
     TRUE ~ herd
   )) %>%
   left_join(demog.draws %>%
-              filter(trt %in% c("Reference")) %>%
-              mutate(
-                herd = case_when(
-                  herd %in% c("Hart South", "Hart North") ~ "Hart Ranges",
-                  TRUE ~ herd
-                )
-              ) %>%
-              group_by(herd) %>%
-              filter(yrs %in% (max(yrs) - 19):max(yrs)) %>%
-              summarise(
-                lambda = exp(mean(log(lambda))))
-  ) %>% ## geo mean per herd
+    filter(trt %in% c("Reference")) %>%
+    mutate(
+      herd = case_when(
+        herd %in% c("Hart South", "Hart North") ~ "Hart Ranges",
+        TRUE ~ herd
+      )
+    ) %>%
+    group_by(herd) %>%
+    filter(yrs %in% (max(yrs) - 19):max(yrs)) %>%
+    summarise(
+      lambda = exp(mean(log(lambda)))
+    )) %>% ## geo mean per herd
   left_join(
-    ext.yr %>% 
-      mutate(ext = 1) %>% 
-      ungroup() %>% 
-      select(herd, ext) %>% 
+    ext.yr %>%
+      mutate(ext = 1) %>%
+      ungroup() %>%
+      select(herd, ext) %>%
       rbind(tibble(herd = "Scott West", ext = 1))
   ) %>%
   mutate(lambda = case_when(herd %in% "Scott West" ~ 0.95, TRUE ~ lambda)) %>% ## don't have Scott west. Extirpated
@@ -2034,7 +2034,7 @@ map <- ggRGB(bmap.big, r = 1, g = 2, b = 3) +
 ## plot together
 map_combo <- map + abundance.all.plot + plot_layout(widths = c(1.7, 1.3))
 
-#ggsave(plot = map_combo, here::here("plots/map.together.png"), width = 12, height = 8, bg = "white")
+# ggsave(plot = map_combo, here::here("plots/map.together.png"), width = 12, height = 8, bg = "white")
 
 
 
@@ -2092,7 +2092,7 @@ demog.draws.combotreat.ecotype %>%
   scale_fill_manual(values = cols)
 
 
-#ggsave(here::here("plots", "appendix", "lambda_treatments_ecotype.png"), width = 8, height = 7, bg = "white")
+# ggsave(here::here("plots", "appendix", "lambda_treatments_ecotype.png"), width = 8, height = 7, bg = "white")
 
 eff.draws.ecotype <- eff.draws %>%
   dplyr::select(.draw:delta.i.lr) %>%
@@ -2128,7 +2128,7 @@ ggplot() +
   xlim(-0.2, 0.4) +
   scale_fill_manual(values = cols)
 
-#ggsave(here::here("plots", "appendix", "baci_treatments_ecotype.png"), width = 8, height = 7, bg = "white")
+# ggsave(here::here("plots", "appendix", "baci_treatments_ecotype.png"), width = 8, height = 7, bg = "white")
 
 ggplot() +
   geom_density_ridges(
@@ -2183,7 +2183,7 @@ ggplot() +
   geom_vline(xintercept = 0, linetype = "dashed") +
   labs(x = "delta", y = "Recovery measure(s)", title = "Before-After Assessment of Effectivness", fill = "Heard_Vagt1998 Ecotype") +
   xlim(-0.2, 0.4)
-#ggsave(here::here("plots", "appendix", "baci_treatments_HeardVagt1998.png"), width = 8, height = 7, bg = "white")
+# ggsave(here::here("plots", "appendix", "baci_treatments_HeardVagt1998.png"), width = 8, height = 7, bg = "white")
 
 
 
@@ -2198,10 +2198,10 @@ ind.eff.ecotype <- eff.draws %>%
   filter(name == "Rate of increase (r)" & !trt %in% "transplant") %>%
   left_join(ecotype) %>%
   group_by(.draw) %>%
-  do(tidy(lm(delta.i ~ -1 + reducewolves + sterilizewolves + reducemoose + pen + feed + ECCC, data = .))) #%>%
-#filter(!term %in% "(Intercept)")
+  do(tidy(lm(delta.i ~ -1 + reducewolves + sterilizewolves + reducemoose + pen + feed + ECCC, data = .))) # %>%
+# filter(!term %in% "(Intercept)")
 
-# Not sure if the means is going to get it done for you this time. You may want to go with the effects and then calculate the various 
+# Not sure if the means is going to get it done for you this time. You may want to go with the effects and then calculate the various
 #  contrats of interest. For example, the effect of reducing wolves in the Northern Group.
 
 order <- ind.eff.ecotype %>%
@@ -2230,7 +2230,7 @@ ggplot(ind.eff.ecotype %>% left_join(order), aes(x = estimate, y = fct_reorder(t
   xlim(-0.15, 0.25) +
   scale_fill_manual(values = cols[c(1:8)])
 
-#ggsave(here::here("plots", "appendix", "ind_eff_ecotype.png"), width = 8, height = 7, bg = "white")
+# ggsave(here::here("plots", "appendix", "ind_eff_ecotype.png"), width = 8, height = 7, bg = "white")
 
 
 ind.eff.ecotype %>%
@@ -2243,8 +2243,8 @@ ind.eff.ecotype %>%
   arrange(-eff) %>%
   mutate(delta.lambda = paste0(eff, " (", lower, "-", upper, ")")) %>%
   select(Treatment = term, delta.lambda) %>%
-  gt()# %>%
-#gtsave(here::here("tables", "appendix", "ind_eff_ecotype.rtf"))
+  gt() # %>%
+# gtsave(here::here("tables", "appendix", "ind_eff_ecotype.rtf"))
 
 
 
@@ -2293,7 +2293,7 @@ ggplot() +
   ) +
   geom_vline(xintercept = 0, linetype = "dashed") +
   labs(x = "ECCC Recovery Ecotype", y = "Delta r")
-#ggsave(here::here("plots", "appendix", "trt_eff_boxplot_ecotype.png"), width = 8, height = 7, bg = "white")
+# ggsave(here::here("plots", "appendix", "trt_eff_boxplot_ecotype.png"), width = 8, height = 7, bg = "white")
 
 ggplot() +
   geom_boxplot(data = ind.eff.ecotype.raw, aes(x = COSEWIC, y = delta.i.lr), outlier.alpha = 0) +
@@ -2359,7 +2359,7 @@ ggplot() +
   geom_vline(xintercept = 0, linetype = "dashed") +
   labs(x = "ECCC Recovery Ecotype", y = "Delta r") +
   guides(colour = guide_legend(nrow = 3))
-#ggsave(here::here("plots", "appendix", "ind.trt_eff_boxplot_ecotype.png"), width = 8, height = 7, bg = "white")
+# ggsave(here::here("plots", "appendix", "ind.trt_eff_boxplot_ecotype.png"), width = 8, height = 7, bg = "white")
 
 
 ## ----for pc, message=FALSE, warning=FALSE, eval=FALSE, include=FALSE---------------------------------------------------------------------------------------
@@ -2429,9 +2429,9 @@ ggplot() +
 
 
 
-####CL SIMPLE EXAMPLE
+#### CL SIMPLE EXAMPLE
 
-###JN APPROACH
+### JN APPROACH
 # No need to create a new object, just start with demog.draws and move forward
 demog.draws |>
   group_by(.draw, trt, herd) |> # Compute transformation at each draw
@@ -2479,7 +2479,7 @@ demog.draws |>
 
 
 
-###CL APPROACH
+### CL APPROACH
 # No need to create a new object, just start with demog.draws and move forward
 demog.draws |>
   group_by(.draw, trt, herd) |> # Compute transformation at each draw
@@ -2487,7 +2487,7 @@ demog.draws |>
     lambda = geo_mean(lambda),
     .groups = "drop"
   ) |>
-  group_by(.draw,trt) |> # Compute transformation at each draw
+  group_by(.draw, trt) |> # Compute transformation at each draw
   summarise(
     lambda = median(lambda),
     .groups = "drop"
@@ -2532,7 +2532,7 @@ demog.draws |>
 
 
 
-###JN approach visualized
+### JN approach visualized
 demog.draws |>
   group_by(.draw, trt, herd) |> # Compute transformation at each draw
   summarise(
@@ -2544,7 +2544,7 @@ demog.draws |>
     group = replace(group, trt == "Reference", "Reference")
   ) |>
   filter(trt != "transplant") %>%
-  ggplot(aes(x = log(lambda), y = fct_reorder(trt, lambda), color = herd, fill=herd)) +
+  ggplot(aes(x = log(lambda), y = fct_reorder(trt, lambda), color = herd, fill = herd)) +
   geom_density_ridges(
     rel_min_height = .01,
     size = 0.25,
