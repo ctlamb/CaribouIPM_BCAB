@@ -804,6 +804,8 @@ demog.draws <- demog.draws %>%
     !(herd %in% "Purcell South" & yrs %in% c(2012:2013))
   )
 
+demog.draws%>%write_csv(here::here("tables","draws","demog.draws.csv"))
+
 # ###how to calculate from draws
 # lambda.compare <- demog%>%
 #   ungroup%>%

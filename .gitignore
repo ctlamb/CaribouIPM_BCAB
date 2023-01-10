@@ -16,3 +16,4 @@ jags/output
 IPM_posteriors_AB.csv
 ExternalReviews/
 Paper/
+tables/draws
