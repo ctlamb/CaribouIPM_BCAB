@@ -1,0 +1,13 @@
+trt,n_herds,n_yrs
+Reference,40,1720
+feed,1,1
+feed-reducewolves,1,6
+pen-reducemoose,1,3
+pen-reducemoose-reducewolves,1,2
+pen-reducewolves,1,7
+reducemoose,4,58
+reducemoose-reducewolves,3,7
+reducewolves,10,39
+reducewolves-sterilizewolves,2,22
+reducewolves-transplant,1,4
+transplant,4,91
