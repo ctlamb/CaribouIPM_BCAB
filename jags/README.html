@@ -602,7 +602,7 @@ padding-top: 0px;
 <body>
 
 <h1 id="bc-ab-caribou-ipm-run">BC AB Caribou IPM run</h1>
-<p>Clayton T. Lamb 31 March, 2023</p>
+<p>Clayton T. Lamb 02 April, 2023</p>
 <h2 id="load-data">Load Data</h2>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidybayes)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggmcmc)</span>
@@ -649,7 +649,7 @@ padding-top: 0px;
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>nherd <span class="ot">&lt;-</span> <span class="fu">nrow</span>(hn)</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>hd <span class="ot">&lt;-</span> hd<span class="sc">%&gt;%</span></span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(ecotype, <span class="at">by=</span><span class="st">&quot;herd&quot;</span>)</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>hd<span class="sc">$</span>demog_grp <span class="ot">&lt;-</span> hd<span class="sc">$</span>ECCC<span class="sc">%&gt;%</span>factor<span class="sc">%&gt;%</span><span class="fu">as.numeric</span>() <span class="do">##TEMP. try different groupings.</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>hd<span class="sc">$</span>demog_grp <span class="ot">&lt;-</span> hd<span class="sc">$</span>ECCC<span class="sc">%&gt;%</span>factor<span class="sc">%&gt;%</span><span class="fu">as.numeric</span>() </span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>nsight_grp <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">unique</span>(hd<span class="sc">$</span>sight_grp))</span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>ndemog_grp <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">unique</span>(hd<span class="sc">$</span>demog_grp))</span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
@@ -990,8 +990,8 @@ padding-top: 0px;
 <span id="cb2-344"><a href="#cb2-344" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">first_yr =</span> <span class="fu">min</span>(first_s_year, first_r_year, first_c_year, first_e_year, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span></span>
 <span id="cb2-345"><a href="#cb2-345" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.data.frame</span>() <span class="sc">%&gt;%</span></span>
 <span id="cb2-346"><a href="#cb2-346" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(herd)<span class="sc">%&gt;%</span></span>
-<span id="cb2-347"><a href="#cb2-347" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(hd<span class="sc">%&gt;%</span><span class="fu">select</span>(<span class="at">name=</span>herd,<span class="at">herd=</span>herd_num))<span class="sc">%&gt;%</span></span>
-<span id="cb2-348"><a href="#cb2-348" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(yr_df<span class="sc">%&gt;%</span><span class="fu">select</span>(<span class="at">first_yr=</span>yr_idx, yrs))</span>
+<span id="cb2-347"><a href="#cb2-347" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(hd<span class="sc">%&gt;%</span>dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="at">name=</span>herd,<span class="at">herd=</span>herd_num))<span class="sc">%&gt;%</span></span>
+<span id="cb2-348"><a href="#cb2-348" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(yr_df<span class="sc">%&gt;%</span>dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="at">first_yr=</span>yr_idx, yrs))</span>
 <span id="cb2-349"><a href="#cb2-349" aria-hidden="true" tabindex="-1"></a>first <span class="ot">&lt;-</span> first_per_herd<span class="sc">$</span>first_yr</span>
 <span id="cb2-350"><a href="#cb2-350" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-351"><a href="#cb2-351" aria-hidden="true" tabindex="-1"></a>first <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span>,nherd)</span>
@@ -1005,7 +1005,7 @@ padding-top: 0px;
 <span id="cb2-359"><a href="#cb2-359" aria-hidden="true" tabindex="-1"></a>  <span class="fu">full_join</span>(<span class="fu">tibble</span>(<span class="at">herd_num=</span><span class="dv">1</span><span class="sc">:</span>nherd,</span>
 <span id="cb2-360"><a href="#cb2-360" aria-hidden="true" tabindex="-1"></a>                    <span class="at">yr_fill=</span><span class="dv">2021</span>),</span>
 <span id="cb2-361"><a href="#cb2-361" aria-hidden="true" tabindex="-1"></a>             <span class="at">by=</span><span class="st">&quot;herd_num&quot;</span>)<span class="sc">%&gt;%</span></span>
-<span id="cb2-362"><a href="#cb2-362" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(hd<span class="sc">%&gt;%</span><span class="fu">select</span>(<span class="at">name=</span>herd,herd_num))<span class="sc">%&gt;%</span></span>
+<span id="cb2-362"><a href="#cb2-362" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(hd<span class="sc">%&gt;%</span>dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="at">name=</span>herd,herd_num))<span class="sc">%&gt;%</span></span>
 <span id="cb2-363"><a href="#cb2-363" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">yrs=</span><span class="fu">case_when</span>(<span class="fu">is.na</span>(yr)<span class="sc">~</span>yr_fill,</span>
 <span id="cb2-364"><a href="#cb2-364" aria-hidden="true" tabindex="-1"></a>                       name<span class="sc">%in%</span><span class="st">&quot;Columbia North&quot;</span><span class="sc">~</span><span class="dv">2004</span>, <span class="do">##CN reduce moose did work so keep this one</span></span>
 <span id="cb2-365"><a href="#cb2-365" aria-hidden="true" tabindex="-1"></a>                      <span class="cn">TRUE</span><span class="sc">~</span>yr))<span class="sc">%&gt;%</span></span>
@@ -1117,11 +1117,11 @@ padding-top: 0px;
 <span id="cb3-97"><a href="#cb3-97" aria-hidden="true" tabindex="-1"></a>    <span class="st">&quot;penwolf&quot;</span></span>
 <span id="cb3-98"><a href="#cb3-98" aria-hidden="true" tabindex="-1"></a>    )</span></code></pre></div>
 <h2 id="run-ipm">Run IPM</h2>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>nth <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>nbu <span class="ot">&lt;-</span> <span class="dv">30000</span> </span>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>nth <span class="ot">&lt;-</span> <span class="dv">90</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>nbu <span class="ot">&lt;-</span> <span class="dv">35000</span> </span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>nch <span class="ot">&lt;-</span> <span class="dv">3</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>nad <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>nit <span class="ot">&lt;-</span> <span class="dv">400000</span> </span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>nad <span class="ot">&lt;-</span> <span class="dv">15000</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>nit <span class="ot">&lt;-</span> <span class="dv">500000</span> </span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># nth &lt;- 10</span></span>
 <span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="co"># nbu &lt;- 2000</span></span>
@@ -1141,7 +1141,7 @@ padding-top: 0px;
 <span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">n.adapt =</span> nad)</span></code></pre></div>
 <h2 id="save-outputs">Save outputs</h2>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">#mcmcplots::mcmcplot(out$samples, par = c(&quot;S&quot;, &quot;R&quot;, &quot;totNMF&quot;)) </span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(out, <span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;jags/output/BCAB_CaribouIPM_posteriors.rds&quot;</span>))</span></code></pre></div>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(out, <span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;jags/output/BCAB_CaribouIPM_posteriors_02042023.rds&quot;</span>))</span></code></pre></div>
 
 </body>
 </html>

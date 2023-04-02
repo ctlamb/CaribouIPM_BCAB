@@ -1,7 +1,7 @@
 BC AB Caribou IPM run
 ================
 Clayton T. Lamb
-31 March, 2023
+02 April, 2023
 
 ## Load Data
 
@@ -55,7 +55,7 @@ herds <- unique(hd$herd)
 nherd <- nrow(hn)
 hd <- hd%>%
   left_join(ecotype, by="herd")
-hd$demog_grp <- hd$ECCC%>%factor%>%as.numeric() ##TEMP. try different groupings.
+hd$demog_grp <- hd$ECCC%>%factor%>%as.numeric() 
 nsight_grp <- length(unique(hd$sight_grp))
 ndemog_grp <- length(unique(hd$demog_grp))
 
@@ -396,8 +396,8 @@ first_per_herd <- first_s %>%
     mutate(first_yr = min(first_s_year, first_r_year, first_c_year, first_e_year, na.rm = TRUE)) %>%
     as.data.frame() %>%
     arrange(herd)%>%
-  left_join(hd%>%select(name=herd,herd=herd_num))%>%
-  left_join(yr_df%>%select(first_yr=yr_idx, yrs))
+  left_join(hd%>%dplyr::select(name=herd,herd=herd_num))%>%
+  left_join(yr_df%>%dplyr::select(first_yr=yr_idx, yrs))
 first <- first_per_herd$first_yr
 
 first <- rep(1,nherd)
@@ -411,7 +411,7 @@ treatment_start<- trt%>%
   full_join(tibble(herd_num=1:nherd,
                     yr_fill=2021),
              by="herd_num")%>%
-  left_join(hd%>%select(name=herd,herd_num))%>%
+  left_join(hd%>%dplyr::select(name=herd,herd_num))%>%
   mutate(yrs=case_when(is.na(yr)~yr_fill,
                        name%in%"Columbia North"~2004, ##CN reduce moose did work so keep this one
                       TRUE~yr))%>%
@@ -531,11 +531,11 @@ model_parms <- c(
 ## Run IPM
 
 ``` r
-nth <- 100
-nbu <- 30000 
+nth <- 90
+nbu <- 35000 
 nch <- 3
-nad <- 10000
-nit <- 400000 
+nad <- 15000
+nit <- 500000 
 
 # nth <- 10
 # nbu <- 2000
@@ -559,5 +559,5 @@ out <- jagsUI::jags(ipm_dat,
 
 ``` r
 #mcmcplots::mcmcplot(out$samples, par = c("S", "R", "totNMF")) 
-saveRDS(out, file = here::here("jags/output/BCAB_CaribouIPM_posteriors.rds"))
+saveRDS(out, file = here::here("jags/output/BCAB_CaribouIPM_posteriors_02042023.rds"))
 ```

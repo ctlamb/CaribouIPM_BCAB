@@ -1,7 +1,7 @@
 BC AB Caribou IPM Results
 ================
 Clayton T. Lamb
-01 April, 2023
+02 April, 2023
 
 ## Load Data
 
@@ -36,7 +36,7 @@ library(tidyverse)
 # Load data ---------------------------------------------------------------
 
 ## IPM Output
-out <- readRDS(file = here::here("jags/output/BCAB_CaribouIPM_posteriors.rds"))
+out <- readRDS(file = here::here("jags/output/BCAB_CaribouIPM_posteriors_02042023.rds"))
 
 ## IPM input to compare results
 hd <- read.csv("data/clean/blueprint.csv")
@@ -253,8 +253,7 @@ trt.plot <- trt %>%
     treatment %in% "sterilize wolves" ~ max - (max * 0.25),
     treatment %in% "pen" ~ max - (max * 0.3),
     treatment %in% "feed" ~ max - (max * 0.35)
-  )) %>%
-  mutate()
+  ))
 
 ### a couple functions for the red boxes around herd names of extirpated
 element_textbox_highlight <- function(..., hi.labels = NULL, hi.fill = NULL,
@@ -470,14 +469,14 @@ n.recovery.all <- sims.draws %>%
 median(n.recovery.all)
 ```
 
-    ## [1] 1119.903
+    ## [1] 1122.303
 
 ``` r
 quantile(n.recovery.all, c(0.05, 0.5, 0.95)) %>% round(0)
 ```
 
     ##   5%  50%  95% 
-    ##  895 1120 1360
+    ##  898 1122 1361
 
 ``` r
 n.recovery <- median(n.recovery.all) %>% round(0)
@@ -498,7 +497,7 @@ quantile(calves.recovered.all, c(0.05, 0.5, 0.95)) %>% round(0)
 ```
 
     ##   5%  50%  95% 
-    ##  654  964 1248
+    ##  662  968 1252
 
 ``` r
 calves.recovered <- median(calves.recovered.all) %>% round(0)
@@ -506,7 +505,7 @@ calves.recovered <- median(calves.recovered.all) %>% round(0)
 sum(out$mean$totCalvesMF - out$mean$pred_totCalvesMF)
 ```
 
-    ## [1] 958.7506
+    ## [1] 965.1058
 
 ``` r
 #### Total Abundance####
@@ -733,12 +732,12 @@ kable(lambda.table)
 
 | trt                          | r.med | lower | upper | r                  |
 |:-----------------------------|------:|------:|------:|:-------------------|
-| feed-reducewolves            |  0.15 |  0.11 |  0.19 | 0.15 (0.11-0.19)   |
-| feed                         |  0.13 | -0.27 |  0.46 | 0.13 (-0.27-0.46)  |
-| pen-reducewolves             |  0.13 |  0.10 |  0.16 | 0.13 (0.1-0.16)    |
+| feed-reducewolves            |  0.15 |  0.12 |  0.19 | 0.15 (0.12-0.19)   |
+| feed                         |  0.12 | -0.27 |  0.46 | 0.12 (-0.27-0.46)  |
+| pen-reducewolves             |  0.12 |  0.10 |  0.16 | 0.12 (0.1-0.16)    |
 | reducewolves                 |  0.11 |  0.03 |  0.19 | 0.11 (0.03-0.19)   |
 | reducemoose-reducewolves     |  0.10 |  0.01 |  0.18 | 0.1 (0.01-0.18)    |
-| pen-reducemoose              |  0.08 | -0.06 |  0.22 | 0.08 (-0.06-0.22)  |
+| pen-reducemoose              |  0.09 | -0.06 |  0.22 | 0.09 (-0.06-0.22)  |
 | reducewolves-sterilizewolves |  0.04 |  0.02 |  0.06 | 0.04 (0.02-0.06)   |
 | Reference                    | -0.02 | -0.02 | -0.01 | -0.02 (-0.02–0.01) |
 | pen-reducemoose-reducewolves | -0.03 | -0.22 |  0.18 | -0.03 (-0.22-0.18) |
@@ -875,7 +874,7 @@ kable(trt_eff_ba_table)
 | pen-reducewolves             | 0.17 (0.14-0.21)                        |
 | feed                         | 0.15 (-0.26-0.49)                       |
 | reducemoose-reducewolves     | 0.11 (-0.02-0.22)                       |
-| pen-reducemoose              | 0.09 (-0.05-0.23)                       |
+| pen-reducemoose              | 0.1 (-0.05-0.23)                        |
 | reducewolves                 | 0.08 (0.02-0.14)                        |
 | reducewolves-sterilizewolves | 0.05 (0.02-0.07)                        |
 | pen-reducemoose-reducewolves | -0.02 (-0.21-0.19)                      |
@@ -1048,10 +1047,10 @@ kable(ind.eff.table)
 | Treatment       | delta.lambda       |
 |:----------------|:-------------------|
 | reducewolves    | 0.1 (0.04-0.17)    |
-| feed            | 0.09 (-0.12-0.26)  |
+| feed            | 0.09 (-0.11-0.26)  |
 | pen             | 0.03 (-0.06-0.12)  |
 | reducemoose     | -0.05 (-0.11-0.01) |
-| sterilizewolves | -0.08 (-0.15-0)    |
+| sterilizewolves | -0.07 (-0.15-0)    |
 
 ``` r
 eff.draws %>% write_csv(here::here("tables", "draws", "eff.draws.csv"))
@@ -1076,7 +1075,7 @@ sim.ref <- demog.draws %>%
 median(sim.ref)
 ```
 
-    ## [1] -0.07103332
+    ## [1] -0.07149475
 
 ``` r
 sim.trt <- ind.eff %>%
@@ -1090,7 +1089,7 @@ sim.trt <- ind.eff %>%
 median(sim.ref)
 ```
 
-    ## [1] -0.07103332
+    ## [1] -0.07149475
 
 ``` r
 test <- c()
@@ -1303,24 +1302,20 @@ herd.bounds <- st_read(here::here("data/Spatial/herds/u_bc_herds_2021_CL.shp")) 
 ```
 
     ## Reading layer `u_bc_herds_2021_CL' from data source 
-    ##   `/Users/claytonlamb/Library/CloudStorage/GoogleDrive-ctlamb@ualberta.ca/.shortcut-targets-by-id/0ByCPEmOOaXC2VU1ONHZoX0ltZk0/CMU/WSC Projects/CaribouIPM_BCAB/data/Spatial/herds/u_bc_herds_2021_CL.shp' 
-    ##   using driver `ESRI Shapefile'
+    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/herds/u_bc_herds_2021_CL.shp' using driver `ESRI Shapefile'
     ## Simple feature collection with 57 features and 19 fields
     ## Geometry type: MULTIPOLYGON
     ## Dimension:     XY
     ## Bounding box:  xmin: -165343.7 ymin: 5422045 xmax: 1031821 ymax: 6709569
     ## Projected CRS: NAD83 / UTM zone 10N
     ## Reading layer `Caribou_Range' from data source 
-    ##   `/Users/claytonlamb/Library/CloudStorage/GoogleDrive-ctlamb@ualberta.ca/.shortcut-targets-by-id/0ByCPEmOOaXC2VU1ONHZoX0ltZk0/CMU/WSC Projects/CaribouIPM_BCAB/data/Spatial/herds/Caribou_Range.shp' 
-    ##   using driver `ESRI Shapefile'
+    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/herds/Caribou_Range.shp' using driver `ESRI Shapefile'
     ## Simple feature collection with 25 features and 9 fields
     ## Geometry type: MULTIPOLYGON
     ## Dimension:     XY
     ## Bounding box:  xmin: 170844.4 ymin: 5689840 xmax: 819119.1 ymax: 6659319
     ## Projected CRS: NAD83 / Alberta 10-TM (Forest)
-    ## Reading layer `BC_RRPC' from data source 
-    ##   `/Users/claytonlamb/Library/CloudStorage/GoogleDrive-ctlamb@ualberta.ca/.shortcut-targets-by-id/0ByCPEmOOaXC2VU1ONHZoX0ltZk0/CMU/WSC Projects/CaribouIPM_BCAB/data/Spatial/herds/rrpc/BC_RRPC.shp' 
-    ##   using driver `ESRI Shapefile'
+    ## Reading layer `BC_RRPC' from data source `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/herds/rrpc/BC_RRPC.shp' using driver `ESRI Shapefile'
     ## Simple feature collection with 1 feature and 17 fields
     ## Geometry type: POLYGON
     ## Dimension:     XY
@@ -1337,7 +1332,7 @@ disturb <- st_read(here::here("data/Spatial/disturbance/from_Emily/2022-01-19/an
 ```
 
     ## Reading layer `anthrodisturbance_75to15incl0' from data source 
-    ##   `/Users/claytonlamb/Library/CloudStorage/GoogleDrive-ctlamb@ualberta.ca/.shortcut-targets-by-id/0ByCPEmOOaXC2VU1ONHZoX0ltZk0/CMU/WSC Projects/CaribouIPM_BCAB/data/Spatial/disturbance/from_Emily/2022-01-19/anthrodisturbance_75to15incl0/anthrodisturbance_75to15incl0.shp' 
+    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/disturbance/from_Emily/2022-01-19/anthrodisturbance_75to15incl0/anthrodisturbance_75to15incl0.shp' 
     ##   using driver `ESRI Shapefile'
     ## Simple feature collection with 1 feature and 1 field
     ## Geometry type: MULTIPOLYGON
@@ -1390,9 +1385,9 @@ herd.bounds <- herd.bounds %>%
 st_write(herd.bounds, here::here("data/Spatial/herds/ipm_herds.shp"), delete_dsn = TRUE)
 ```
 
-    ## Deleting source `/Users/claytonlamb/Library/CloudStorage/GoogleDrive-ctlamb@ualberta.ca/.shortcut-targets-by-id/0ByCPEmOOaXC2VU1ONHZoX0ltZk0/CMU/WSC Projects/CaribouIPM_BCAB/data/Spatial/herds/ipm_herds.shp' using driver `ESRI Shapefile'
+    ## Deleting source `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/herds/ipm_herds.shp' using driver `ESRI Shapefile'
     ## Writing layer `ipm_herds' to data source 
-    ##   `/Users/claytonlamb/Library/CloudStorage/GoogleDrive-ctlamb@ualberta.ca/.shortcut-targets-by-id/0ByCPEmOOaXC2VU1ONHZoX0ltZk0/CMU/WSC Projects/CaribouIPM_BCAB/data/Spatial/herds/ipm_herds.shp' using driver `ESRI Shapefile'
+    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/herds/ipm_herds.shp' using driver `ESRI Shapefile'
     ## Writing 41 features with 9 fields and geometry type Polygon.
 
 ``` r
@@ -1424,8 +1419,7 @@ cities <- st_read(here::here("data/Spatial/administrative/places.shp")) %>%
 ```
 
     ## Reading layer `places' from data source 
-    ##   `/Users/claytonlamb/Library/CloudStorage/GoogleDrive-ctlamb@ualberta.ca/.shortcut-targets-by-id/0ByCPEmOOaXC2VU1ONHZoX0ltZk0/CMU/WSC Projects/CaribouIPM_BCAB/data/Spatial/administrative/places.shp' 
-    ##   using driver `ESRI Shapefile'
+    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/administrative/places.shp' using driver `ESRI Shapefile'
     ## Simple feature collection with 787 features and 3 fields
     ## Geometry type: POINT
     ## Dimension:     XY
@@ -1448,8 +1442,7 @@ pnw <- st_read(here::here("data/Spatial/administrative/North_America.shp")) %>%
 ```
 
     ## Reading layer `North_America' from data source 
-    ##   `/Users/claytonlamb/Library/CloudStorage/GoogleDrive-ctlamb@ualberta.ca/.shortcut-targets-by-id/0ByCPEmOOaXC2VU1ONHZoX0ltZk0/CMU/WSC Projects/CaribouIPM_BCAB/data/Spatial/administrative/North_America.shp' 
-    ##   using driver `ESRI Shapefile'
+    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/administrative/North_America.shp' using driver `ESRI Shapefile'
     ## Simple feature collection with 70 features and 2 fields
     ## Geometry type: MULTIPOLYGON
     ## Dimension:     XY

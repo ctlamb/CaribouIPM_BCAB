@@ -40,7 +40,7 @@ library(tidyverse)
 # Load data ---------------------------------------------------------------
 
 ## IPM Output
-out <- readRDS(file = here::here("jags/output/BCAB_CaribouIPM_posteriors.rds"))
+out <- readRDS(file = here::here("jags/output/BCAB_CaribouIPM_posteriors_02042023.rds"))
 
 ## IPM input to compare results
 hd <- read.csv("data/clean/blueprint.csv")
@@ -277,8 +277,7 @@ trt.plot <- trt %>%
     treatment %in% "sterilize wolves" ~ max - (max * 0.25),
     treatment %in% "pen" ~ max - (max * 0.3),
     treatment %in% "feed" ~ max - (max * 0.35)
-  )) %>%
-  mutate()
+  ))
 
 ### a couple functions for the red boxes around herd names of extirpated
 element_textbox_highlight <- function(..., hi.labels = NULL, hi.fill = NULL,

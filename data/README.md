@@ -1,7 +1,7 @@
 BC AB IPM data prep
 ================
 Clayton T. Lamb
-01 April, 2023
+02 April, 2023
 
 ## Load Data
 
@@ -63,7 +63,7 @@ count.raw <- count.raw %>%
   filter(!(herd == "Tweedsmuir" & Year == 1987)) ## only keep one count
 
 surv.raw <- surv.raw %>%
-  select(-Herd) %>%
+  dplyr::select(-Herd) %>%
   rename(herd = `Herd (RS, CL)`) %>%
   filter(herd %in% herds)
 ```
@@ -114,7 +114,7 @@ surv <- surv.raw %>%
     !Age.when.collard %in% c("Juv", "Calf"),
     MonitoringDays > 0
   ) %>%
-  select(id, herd, DateEntry, DateExit, event)
+  dplyr::select(id, herd, DateEntry, DateExit, event)
 
 
 # surv.raw%>%
@@ -408,7 +408,7 @@ surv.boot.summary <- surv.boot %>%
 
 ## add in to data
 surv.yr.est <- surv.yr.est %>%
-  left_join(surv.boot.summary %>% select(-n) %>% ungroup(), by = c("herd", "year")) %>%
+  left_join(surv.boot.summary %>% dplyr::select(-n) %>% ungroup(), by = c("herd", "year")) %>%
   mutate(
     se = case_when(
       est %in% c(1, 0) ~ sd.boot,
@@ -428,7 +428,7 @@ surv.yr.est <- surv.yr.est %>%
     year = as.numeric(year)
   ) %>%
   ungroup() %>%
-  select(-av, -sd.boot)
+  dplyr::select(-av, -sd.boot)
 
 
 ## force upper and lowers between 0-1 (has to be true for survival)
@@ -478,7 +478,7 @@ surv.yr.est <- surv.yr.est %>%
   filter(year < year.cut)
 
 ## save
-write_csv(surv.yr.est %>% select(herd, year, est, sd), here::here("data", "clean", "survival.csv"))
+write_csv(surv.yr.est %>% dplyr::select(herd, year, est, sd), here::here("data", "clean", "survival.csv"))
 ```
 
 ## Sex Ratios
@@ -487,7 +487,7 @@ write_csv(surv.yr.est %>% select(herd, year, est, sd), here::here("data", "clean
 ## extract sex ratio data from counts
 sr <- count.raw %>%
   filter(!NFG %in% c("Y")) %>%
-  select(herd,
+  dplyr::select(herd,
     year = Year,
     adF = `N. Adult F (OTC)`,
     adM = `N. Adult M (OTC)`,
@@ -498,7 +498,7 @@ sr <- count.raw %>%
   mutate(type = "OTC") %>%
   rbind(count.raw %>%
     filter(!NFG %in% c("Y")) %>%
-    select(herd,
+    dplyr::select(herd,
       year = Year,
       adF = `N. Adult F (OSC)`,
       adM = `N. Adult M (OSC)`,
@@ -509,7 +509,7 @@ sr <- count.raw %>%
     mutate(type = "OSC")) %>%
   rbind(count.raw %>%
     filter(!NFG %in% c("Y")) %>%
-    select(herd,
+    dplyr::select(herd,
       year = Year,
       adF = `N. Adult F (Min # Known Alive)`,
       adM = `N. Adult M (Min # Known Alive)`,
@@ -530,7 +530,7 @@ sr <- sr %>%
     TRUE ~ "needs class"
   )) %>%
   filter(!season %in% c("needs class")) %>%
-  select(-`Official Survey Timing`)
+  dplyr::select(-`Official Survey Timing`)
 
 
 
@@ -656,7 +656,7 @@ recruitment <- count.raw %>%
     is.na(`Official Survey Timing`) ~ NA_character_,
     TRUE ~ "needs class"
   )) %>%
-  select(herd,
+  dplyr::select(herd,
     year = Year, season, r.OTC, `N. Calves (OTC)`, `N. Adults (OTC)`,
     r.OSC, `N. Calves (OSC)` = `N. Calves (OSC)`, `N. Adults (OSC)`,
     r.MNA, `N. Calves (MNA)` = `N. Calves (Min # Known Alive)`, `N. Adults (MNA)`
@@ -774,7 +774,7 @@ recruitment <- recruitment %>%
       !is.na(recruitment_OTC) ~ "OTC"
     )
   ) %>%
-  select(herd, year, season, calves, adults, recruitment, count.used) %>%
+  dplyr::select(herd, year, season, calves, adults, recruitment, count.used) %>%
   drop_na(recruitment)
 
 ## summary stats by type
@@ -819,7 +819,7 @@ recruitment <- recruitment %>%
       recruitment = recruit,
       count.used = "IPM"
     ) %>%
-    select(colnames(recruitment)))
+    dplyr::select(colnames(recruitment)))
 
 ## remove herd-years with <=2 adults seen (means r est could only be 0,0.5,or 1)
 recruitment <- recruitment %>%
@@ -842,7 +842,7 @@ recruitment <- recruitment %>%
     upper = recruitment + (se * 1.96)
   ) %>%
   drop_na(recruitment) %>%
-  select(herd, year, season, est = recruitment, se, lower, upper, sd, calves, adults, count.used)
+  dplyr::select(herd, year, season, est = recruitment, se, lower, upper, sd, calves, adults, count.used)
 
 
 
@@ -904,7 +904,7 @@ mnka.sr <- sr.summary %>%
   pull(mean)
 
 recruitment <- recruitment %>%
-  left_join(sr %>% filter(type %in% c("OSC", "MNKA")) %>% select(herd, year, season, sratio), by = c("herd", "season", "year")) %>%
+  left_join(sr %>% filter(type %in% c("OSC", "MNKA")) %>% dplyr::select(herd, year, season, sratio), by = c("herd", "season", "year")) %>%
   mutate(
     sratio = case_when(
       count.used %in% "OSC" & is.na(sratio) ~ osc.sr,
@@ -919,7 +919,7 @@ recruitment <- recruitment %>%
 
 
 
-write_csv(recruitment %>% select(herd, year, est = est.adj, sd, season_int), here::here("data", "clean", "recruitment.csv"))
+write_csv(recruitment %>% dplyr::select(herd, year, est = est.adj, sd, season_int), here::here("data", "clean", "recruitment.csv"))
 
 
 
@@ -984,7 +984,7 @@ counts <- count.raw %>%
     herd %in% c("Chase", "Wolverine") & !is.na(`Estimate (MC, eg JHE)`) ~ (`Estimate (MC, eg JHE)` * (`N collars detected` / `N collar available`)),
     TRUE ~ `Survey Count (KMB = SO, Total count) OTC`
   )) %>% ## back transform Chase and Wolverine
-  select(herd,
+  dplyr::select(herd,
     year = Year,
     timing = `Official Survey Timing`,
     SurveyCount = `Survey Count (KMB = SO, Total count) OTC`,
@@ -1066,7 +1066,7 @@ counts <- counts %>%
 ## add in bootstrapped error to deal with when sightability ==1 or 0 (no error)
 sight.rep <- counts %>%
   filter(Sightability %in% c(1, 0)) %>%
-  select(herd, year, CollarsSeen, CollarsAvailable) %>%
+  dplyr::select(herd, year, CollarsSeen, CollarsAvailable) %>%
   group_by(herd, year) %>%
   slice(rep(1:n(), each = CollarsAvailable)) %>%
   mutate(sight = case_when(row_number() == 1 ~ 0, TRUE ~ 1))
@@ -1101,7 +1101,7 @@ counts <- counts %>%
     TRUE ~ sd
   )) %>%
   ungroup() %>%
-  select(-av, -sd.boot, -n)
+  dplyr::select(-av, -sd.boot, -n)
 
 
 ## create final count data
@@ -1185,7 +1185,7 @@ counts <- counts %>%
       Est_CL.min = (SurveyCount / (Sightability + sd)),
       Est_CL.max = (SurveyCount / (Sightability - sd))
     ) %>%
-    select(colnames(counts)))
+    dplyr::select(colnames(counts)))
 
 a <- tonq.abund %>%
   mutate(
@@ -1307,7 +1307,7 @@ ggsave(here::here("data", "plots", "abundance2.png"), width = 12, height = 10, b
 counts <- counts %>%
   filter(year <= year.cut)
 
-write_csv(counts %>% select(herd, year, count, Sightability, sd, MinUsed, Est_CL, Est_CL.min, Est_CL.max), here::here("data", "clean", "counts.csv"))
+write_csv(counts %>% dplyr::select(herd, year, count, Sightability, sd, MinUsed, Est_CL, Est_CL.min, Est_CL.max), here::here("data", "clean", "counts.csv"))
 
 write_csv(herd.sight %>% drop_na(est), here::here("data", "clean", "herd_sightability.csv"))
 
@@ -1509,20 +1509,20 @@ herds.present <- treat.raw %>%
   rename(herd = Herd) %>%
   left_join(counts %>%
     distinct(herd) %>%
-    select(herd) %>%
+    dplyr::select(herd) %>%
     mutate(count = 1)) %>%
   left_join(recruitment %>%
     ungroup() %>%
     distinct(herd) %>%
-    select(herd) %>%
+    dplyr::select(herd) %>%
     mutate(recruitment = 1)) %>%
   left_join(surv.yr.est %>%
     distinct(herd) %>%
-    select(herd) %>%
+    dplyr::select(herd) %>%
     mutate(survival = 1)) %>%
   left_join(trt_long %>%
     distinct(herd) %>%
-    select(herd) %>%
+    dplyr::select(herd) %>%
     mutate(treatment = 1))
 
 write_csv(herds.present, here::here("data", "herds.present.csv"))
@@ -1578,7 +1578,7 @@ sight_group <- herd.sight %>%
     est > 0.85 & est <= 1 ~ 3,
     is.na(est) ~ 2
   )) %>%
-  select(herd, sight_grp) %>%
+  dplyr::select(herd, sight_grp) %>%
   add_row(herd = "Tonquin", sight_grp = 3) %>%
   distinct()
 
@@ -1587,7 +1587,7 @@ bp <- bp %>%
 
 demog_group <- treat.raw %>%
   mutate(demog_grp = draft.demog.cluster %>% as.factor() %>% as.numeric()) %>%
-  select(herd = Herd, demog_grp) %>%
+  dplyr::select(herd = Herd, demog_grp) %>%
   distinct()
 
 bp <- bp %>%
@@ -1595,7 +1595,7 @@ bp <- bp %>%
 
 baci_group <- treat.raw %>%
   mutate(baci_grp = draft.BACI.cluster %>% as.factor() %>% as.numeric()) %>%
-  select(herd = Herd, baci_grp) %>%
+  dplyr::select(herd = Herd, baci_grp) %>%
   distinct()
 
 bp <- bp %>%
@@ -1722,7 +1722,7 @@ trt_long %>%
   filter(n > 1)
 
 trt_long %>%
-  left_join(read_csv(here::here("tables", "demog.csv")) %>% select(year = yrs, herd, totNMF)) %>%
+  left_join(read_csv(here::here("tables", "demog.csv")) %>% dplyr::select(year = yrs, herd, totNMF)) %>%
   filter(applied == 1) %>%
   mutate(application = case_when(intensity == "low" | totNMF < 30 ~ "low", TRUE ~ "standard")) %>%
   group_by(herd, treatment, application) %>%
@@ -1750,9 +1750,9 @@ a <- counts %>%
     timing %in% c("August", "September", "October", "November") ~ "fall",
     timing %in% c("June", "July") ~ "spring"
   )) %>%
-  select(herd, year, season, est = Est_CL) %>%
+  dplyr::select(herd, year, season, est = Est_CL) %>%
   mutate(param = "count") %>%
-  rbind(recruitment %>% select(herd, year, season, est) %>% mutate(param = "R")) %>%
+  rbind(recruitment %>% dplyr::select(herd, year, season, est) %>% mutate(param = "R")) %>%
   filter(herd %in% c(fall.herds, spring.herds)) %>%
   group_by(herd, season, param) %>%
   count()
