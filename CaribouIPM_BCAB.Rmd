@@ -44,13 +44,14 @@ library(sf)
 library(mapview)
 library(basemaps)
 library(ggtext)
+library(knitr)
 library(rlang)
 library(tidyverse)
 
 # Load data ---------------------------------------------------------------
 
 ## IPM Output
-out <- readRDS(file = here::here("jags/output/BCAB_CaribouIPM_posteriors_02042023.rds"))
+out <- readRDS(file = here::here("jags/output/BCAB_CaribouIPM_posteriors_08062023.rds"))
 
 ## IPM input to compare results
 hd <- read.csv("data/clean/blueprint.csv")
@@ -89,7 +90,7 @@ rm(yr_idx)
 
 ## check posteriors for convergence
 mcmcplots::mcmcplot(out$samples, par = "lambda")
-mcmcplots::mcmcplot(out$samples, par = "surv_sd_yr_dg")
+mcmcplots::mcmcplot(out$samples, par = "surv_yr_dg")
 mcmcplots::mcmcplot(out$samples, par = "sight_tau_yr_sg")
 mcmcplots::mcmcplot(out$samples, par = "totNMF")
 mcmcplots::mcmcplot(out$samples, par = "surv_tau_yr_dg", "recruit_tau_yr_dg")

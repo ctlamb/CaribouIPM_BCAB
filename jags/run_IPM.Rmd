@@ -563,7 +563,7 @@ nit <- 500000
 out <- jagsUI::jags(ipm_dat, 
 	inits = ipm_inits,
 	model_parms,
-	model.file = here::here("jags/BCAB_IPM_20230206_SW_cl_JN.txt"),
+	model.file = here::here("jags/BCAB_IPM_20230607_SW_cl_JN.txt"),
 	n.chains = nch,
 	n.cores = nch,
 	n.iter = nit,
@@ -575,5 +575,5 @@ out <- jagsUI::jags(ipm_dat,
 ## Save outputs
 ```{r Save outputs, results='hide', message=FALSE, warning=FALSE, eval=FALSE}
 #mcmcplots::mcmcplot(out$samples, par = c("S", "R", "totNMF")) 
-saveRDS(out, file = here::here("jags/output/BCAB_CaribouIPM_posteriors_02042023.rds"))
+saveRDS(out, file = here::here("jags/output/BCAB_CaribouIPM_posteriors_08072023.rds"))
 ```
