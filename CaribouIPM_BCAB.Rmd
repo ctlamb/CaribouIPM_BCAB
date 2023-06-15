@@ -51,7 +51,7 @@ library(tidyverse)
 # Load data ---------------------------------------------------------------
 
 ## IPM Output
-out <- readRDS(file = here::here("jags/output/BCAB_CaribouIPM_posteriors_08062023.rds"))
+out <- readRDS(file = here::here("jags/output/BCAB_CaribouIPM_posteriors_2023_06_13_breakouticha_JNgammaedits.rds"))
 
 ## IPM input to compare results
 hd <- read.csv("data/clean/blueprint.csv")

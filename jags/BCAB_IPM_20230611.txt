@@ -1,0 +1,278 @@
+model{
+
+	#  Overall informative intercepts for survival and recruitment
+	meanS <- logit(0.85)
+	muS ~ dnorm(meanS, 1)
+	meanR <- logit(0.15)
+	muR ~ dnorm(meanR, 1)
+	
+	#  Independent random effects for:
+	#    Time (year, per demography group) and
+	#    Herd
+	
+	# Random effect for year per demography group
+	for(dg in 1:ndemog_grp){	
+		surv_tau_yr_dg[dg] ~ dgamma(0.01, 0.01)
+		surv_sd_yr_dg[dg] <- sqrt(1/surv_tau_yr_dg[dg])
+		recruit_tau_yr_dg[dg] ~ dgamma(0.01, 0.01)
+		recruit_sd_yr_dg[dg] <- sqrt(1/recruit_tau_yr_dg[dg])
+		
+		for(yr in 1:nyr){
+			surv_yr_dg[yr, dg] ~ dnorm(0, surv_tau_yr_dg[dg])T(-10,10) ##constrain values between 0-1
+			recruit_yr_dg[yr, dg] ~ dnorm(0, recruit_tau_yr_dg[dg])T(-10,10)
+			}
+		}
+
+	# Random effect for herd
+	surv_tau_hd <- 1/(surv_sd_hd^2)
+	surv_sd_hd ~ dunif(0, 10)
+	recruit_tau_hd <- 1/(recruit_sd_hd^2)
+	recruit_sd_hd ~ dunif(0, 10)
+
+	for(h in 1:nherd){
+		surv_hd[h] ~ dnorm(0, surv_tau_hd)
+		recruit_hd[h] ~ dnorm(0, recruit_tau_hd)
+		}
+
+	#  Offset for survey timing - recruitment
+	offset ~ dnorm(0, 0.1)  ##CL tried tau=0.1 instead of 0.01
+	
+	mtrt_eff_s ~ dnorm(0, 0.1) ##CL tried tau=0.1 instead of 0.01
+	mtrt_eff_r ~ dnorm(0, 0.1)
+	wtrt_eff_s ~ dnorm(0, 0.1)
+	wtrt_eff_r ~ dnorm(0, 0.1)
+	ptrt_eff_s ~ dnorm(0, 0.1)
+	ptrt_eff_r ~ dnorm(0, 0.1)
+	ftrt_eff_s ~ dnorm(0, 0.1)
+	ftrt_eff_r ~ dnorm(0, 0.1)
+	strt_eff_s ~ dnorm(0, 0.1)
+	strt_eff_r ~ dnorm(0, 0.1)
+	ttrt_eff_s ~ dnorm(0, 0.1)
+	ttrt_eff_r ~ dnorm(0, 0.1)
+	
+	# Linear predictors for survival and recruitment
+	for(h in 1:nherd){
+		for(yr in 1:nyr){
+			
+			logit(S[h,yr]) <- muS + # intercept (baseline survival)
+				surv_yr_dg[yr, demog_grp[h]] + 
+				surv_hd[h] + 
+				mtrt_eff_s*mtrt[h,yr] + 
+				wtrt_eff_s*wtrt[h,yr] + 
+				ptrt_eff_s*ptrt[h,yr] +
+				ftrt_eff_s*ftrt[h,yr] +
+				strt_eff_s*strt[h,yr] +
+				ttrt_eff_s*ttrt[h,yr] 
+				
+			logit(R[h,yr]) <- muR + # intercept (baseline survival), 
+				recruit_yr_dg[yr, demog_grp[h]] + 				
+				recruit_hd[h] + 
+				offset*month_offset[h,yr]  +
+				mtrt_eff_r*mtrt[h,yr] + 
+				wtrt_eff_r*wtrt[h,yr] + 
+				ptrt_eff_r*ptrt[h,yr] +
+				ftrt_eff_r*ftrt[h,yr] +
+				strt_eff_r*strt[h,yr] +				
+				ttrt_eff_r*ttrt[h,yr] 
+			}
+		}
+
+   
+	# Random effect for year-SG
+	for(sg in 1:nsight_grp){	
+		sight_tau_yr_sg[sg] <- 1/(sight_sd_yr_sg[sg]^2)
+		sight_sd_yr_sg[sg] ~ dunif(0, 10)
+		for(yr in 1:nyr){
+			sight_yr_sg[yr, sg] ~ dnorm(0, sight_tau_yr_sg[sg]) 
+			}
+		}
+	
+	# Sightability
+	for(sg in 1:nsight_grp){	
+		p_logit[sg] ~ dnorm(mean_grp_p[sg], mean_grp_ptau[sg])T(0, 1) # 0 - 1
+		p_mu[sg] <- logit(p_logit[sg]) # -Inf - Inf
+	}
+		
+	# Linear predictor for sightability
+	#  p is only used in observation model for surveys that *do not* have their own
+	#   sightability estimate
+	for(h in 1:nherd){	
+		for(yr in first[h]:nyr){
+			logit(p[h, yr]) <- p_mu[sight_grp[h]] + sight_yr_sg[yr,sight_grp[h]]
+		}
+	}
+
+	# Sex ratio
+	for(h in 1:nherd){	
+		for(yr in first[h]:nyr){
+			sexratio[h,yr] ~ dnorm(meansr[1,1], meansr[1,2])T(0,1)
+			}
+		}
+		
+		
+	# First year population size
+	for(h in 1:nherd){	
+
+		N[h,first[h],1] ~ dpois(n1[h,1])
+		N[h,first[h],2] ~ dpois(n1[h,2])
+		
+		totCalves[h,first[h]] <- N[h,first[h],1] 
+		totAdults[h,first[h]] <- N[h,first[h],2] 
+		totN[h,first[h]] <- totCalves[h,first[h]] + totAdults[h,first[h]]
+
+		#  Apply sex ratio to get full population size
+		totAdultsMF[h,first[h]] <- totAdults[h,first[h]]/sexratio[h,first[h]]
+		totCalvesMF[h,first[h]] <- totCalves[h,first[h]]/0.5
+		totNMF[h,first[h]] <- totAdultsMF[h,first[h]] + totCalvesMF[h,first[h]] 
+
+		lambda[h,first[h]] <- 1
+		#R.ad[h,first[h]] <- 0.1
+		R_adj[h,first[h]] <- 0.1
+		
+		adj_totNMF[h,first[h]] <- totNMF[h,first[h]]
+		}
+		
+		
+	# Mean response for 10 years before treatment
+	for(h in 1:nherd){
+		mean_R[h] <- mean(R_adj[h, (treatment_start[h]-10): treatment_start[h]]) 
+		mean_S[h] <- mean(S[h, (treatment_start[h]-10): treatment_start[h]])
+		}
+
+
+
+	##########################################################################
+	#  Process model - multiple herds, 2 ages
+
+	for(h in 1:nherd){	
+		for(yr in (first[h]+1):nyr){
+				
+			# Calves: Poisson, dpois(lambda) where lambda >= 0
+			N[h,yr,1] ~ dpois((totAdultsMF[h,yr] * R[h,yr]) * 0.5)
+
+			#  SubAdults and Adults: Binomial, dbin(p,n), 0 < p < 1 and n ≥ 1
+			N[h,yr,2] ~ dbin(S[h,yr-1], (N[h,yr-1,2] + N[h,yr-1,1]))
+
+			#  Totals in each year - females only
+			totCalves[h,yr] <- N[h,yr,1] 
+			totAdults[h,yr] <- N[h,yr,2] 
+			totN[h,yr] <- totCalves[h,yr] + totAdults[h,yr]
+
+			#  Apply sex ratio to get full population size
+			totAdultsMF[h,yr] <- totAdults[h,yr]/sexratio[h,yr]
+			totCalvesMF[h,yr] <- totCalves[h,yr]/0.5
+			totNMF[h,yr] <- totAdultsMF[h,yr] + totCalvesMF[h,yr]
+
+		
+		# Derived parameters
+		# adult R
+		#R.ad[h,yr] <- N[h,yr,1] /(N[h,yr-1,2] * S[h,yr-1])
+		logit(R_adj[h,yr]) <- logit(R[h,yr]) - offset*month_offset[h,yr]
+		
+		# Adjust totNMF for very small population 
+		adj_totNMF[h,yr] <- ifelse(totNMF[h,yr]<1, 0, totNMF[h,yr])
+	
+		# Lambda
+		lambda[h,yr] <- (adj_totNMF[h,yr] + 0.001)/abs(adj_totNMF[h,yr-1] + 0.001)
+		logla[h,yr] <- log(ifelse(lambda[h,yr] < 0.0001, 0.01, lambda[h,yr]))
+	
+		}
+	}
+		
+		
+	##########################################################################
+	#  Observation Models
+	#  Indexing/columns of data inputs:
+	#  Herd, Year, Age, Sex, Mean, Tau (we only have Sex 1)
+
+	#  Survey observations -- counts indicate survey counts that **have** a sightability value
+	for(i in 1:nc) {
+	  sight_est[i] ~ dnorm(pdat[i,5], pdat[i,6])T(0,1)
+	  cdat[i,5] ~ dbin(sight_est[i], round(totNMF[cdat[i,1], cdat[i,2]]))
+	}
+	
+	# Estimate observations (herd-years that don't have sightability)
+	for(i in 1:ne){
+    edat[i,5] ~ dbin(p[edat[i,1], edat[i,2]], round(totNMF[edat[i,1], edat[i,2]]))
+	}
+
+	#  Survival Observations 
+	for(i in 1:ns){
+		sdat[i,5] ~ dnorm(S[sdat[i,1], sdat[i,2]], sdat[i,6])T(0,1)
+		#S[h,yr]
+	}
+
+	#  Recruitment Observations
+	for(i in 1:nr){
+		rdat[i,5] ~ dnorm(R[rdat[i,1], rdat[i,2]], rdat[i,6])T(0,1)
+		#R[h,yr]
+	}
+		
+	# Sex ratio
+	for(i in 1:nsr){
+		srdat[i,3] ~ dnorm(sexratio[srdat[i,1], srdat[i,2]], srdat[i,4])T(0,1)
+		#sexratio[h,yr]
+	}
+	
+	##########################################################################
+	#  Simulate no action
+	for(h in 1:nherd){
+		pred_N[h,1:treatment_start[h],1] <- N[h,1:treatment_start[h],1]
+		pred_N[h,1:treatment_start[h],2] <- N[h,1:treatment_start[h],2]
+
+		pred_totAdults[h,1:treatment_start[h]] <- totAdults[h,1:treatment_start[h]]
+		pred_totN[h,1:treatment_start[h]] <- totN[h,1:treatment_start[h]]
+		pred_totAdultsMF[h,1:treatment_start[h]] <- totAdultsMF[h,1:treatment_start[h]]
+		pred_totCalvesMF[h,1:treatment_start[h]] <- totCalvesMF[h,1:treatment_start[h]]
+		pred_totNMF[h,1:treatment_start[h]] <- totNMF[h,1:treatment_start[h]]
+
+		for(yr in (treatment_start[h]+1):nyr){
+				
+			#  Calves
+			pred_N[h,yr,1] ~ dpois((pred_totAdultsMF[h,yr] * mean_R[h]) * 0.5)
+			
+			#  Adults
+			pred_N[h,yr,2] ~ dbin(mean_S[h], (pred_N[h,yr-1,2] + pred_N[h,yr-1,1]))
+
+			#  Totals in each year - females only
+			pred_totCalves[h,yr] <- pred_N[h,yr,1]
+			pred_totAdults[h,yr] <- pred_N[h,yr,2] 
+			pred_totN[h,yr] <- pred_totCalves[h,yr] + pred_totAdults[h,yr]
+			
+			#  Apply sex ratio to get full population size
+			pred_totAdultsMF[h,yr] <- pred_totAdults[h,yr]/sexratio[h,yr]
+			pred_totCalvesMF[h,yr] <- pred_totCalves[h,yr]/0.5
+			pred_totNMF[h,yr] <- pred_totAdultsMF[h,yr] + pred_totCalvesMF[h,yr]
+			
+			}
+		}
+	
+
+##test treatment eff
+	##reducemoose-reducewolves, Columbia North (9; 48:49 vs 2:32),Groundhog (15; 46:49 vs 2:45),Hart North (16; 49 vs 2:34)
+	cn_ref <- mean(logla[9,2:32])
+	cn_trt <- mean(logla[9,48:49])
+	
+	gh_ref <- mean(logla[15,2:45])
+	gh_trt <- mean(logla[15,46:49])
+	
+	hn_ref <- mean(logla[16,2:34])
+	hn_trt <- mean(logla[16,49])
+	
+	##dif
+	cn_dif <- cn_trt-cn_ref
+	gh_dif <- gh_trt-gh_ref
+	hn_dif <- hn_trt-hn_ref
+	
+	##mean effect
+	moosewolf <- (cn_dif+gh_dif+hn_dif)/3
+	
+	
+	
+	##pen-reducewolves, Klinse-Za (20; 43:49 vs 2:41)
+	kz_ref <- mean(logla[20,2:41])
+	kz_trt <- mean(logla[20,43:49])
+	
+	##dif, which is also the mean/global effect because only 1 herd
+	penwolf <- kz_trt-kz_ref
+	}   
