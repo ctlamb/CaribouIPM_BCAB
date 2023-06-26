@@ -946,7 +946,7 @@ ggplot(ind.eff.ecotype %>% left_join(order), aes(x = estimate, y = fct_reorder(t
   geom_vline(xintercept = 0, linetype = "dashed") +
   labs(x = "Delta population growth", y = "Recovery measure", title = "Individual Treatment Effects w/ Ecotype", subtitle = "Partitioned using regression analysis, assuming effects are additive") +
   scale_fill_manual(values = cols[c(1:7)])
-ggsave(here::here("plots", "appendix", "ind_eff_ecotype.png"), width = 8, height = 7, bg = "white")
+ggsave(here::here("plots", "appendix", "ind_eff_ecotype_ECCC.png"), width = 8, height = 7, bg = "white")
 
 
 ind.eff.ecotype %>%
@@ -960,7 +960,7 @@ ind.eff.ecotype %>%
   mutate(delta.r = paste0(eff, " (", lower, "-", upper, ")")) %>%
   dplyr::select(Treatment = term, delta.r) %>%
   gt() %>%
-  gtsave(here::here("tables", "appendix", "ind_eff_ecotype.rtf"))
+  gtsave(here::here("tables", "appendix", "ind_eff_ecotype_ECCC.rtf"))
 
 
 

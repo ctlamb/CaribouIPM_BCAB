@@ -151,7 +151,7 @@ treatment.combos <- trt %>%
 
 
 ## pull posterior draws, add in herd, year, and treatment to each herd-year
-ndraws <- 5000
+ndraws <- 10000
 demog <- out %>%
   spread_draws(
     c(totNMF, totN, totAdults, S, R_adj, lambda, SR)[i, j],
@@ -809,7 +809,7 @@ abundance.all.plot <- ggplot(data = sims.plot %>%
   ) +
   expand_limits(y = 0) +
   scale_y_continuous(expand = c(0, 100), limits = c(0, 12000)) +
-  scale_x_continuous(breaks = seq(1980, 2020, by = 20), limits = c(1991, 2021)) +
+  scale_x_continuous(breaks = seq(1980, 2020, by = 10), limits = c(1991, 2021)) +
   theme(
     axis.title.x = element_text(size = 15),
     axis.title.y = element_text(size = 15),
@@ -1131,7 +1131,7 @@ eff.draws %>%
   kable()
 ```
 
-## Summarize results by recovery action
+## Summarize results by recovery action, including application intensity
 ```{r application, message=FALSE, warning=FALSE}
 
 eff.draws.app <- demog.draws %>%
@@ -1283,7 +1283,7 @@ n.sims <- 1000
 start.pop <- 100
 
 sim.ref <- demog.draws %>%
-  filter(trt == "Reference" & totNMF < 150 & yrs > 1990) %>%
+  filter(trt == "Reference" & totNMF < 100 & yrs > 1990) %>%
   group_by(.draw, trt, herd) %>%
   summarise(r = mean(r, na.rm = TRUE)) %>% ## mean per herd-draw
   group_by(.draw, trt) %>%
@@ -1437,7 +1437,8 @@ recov.sims.plot <- ggplot() +
   # geom_hline(yintercept = 10, linetype="dashed")+
   geom_text_repel(
     data = sim.df.plot %>%
-      filter(yr == last(yr)),
+      filter(yr == last(yr),
+             name != "feed"),
     aes(color = trt, label = trt, x = yr, y = median),
     size = 4,
     direction = "y",
@@ -1449,6 +1450,21 @@ recov.sims.plot <- ggplot() +
     box.padding = .4,
     seed = 999
   ) +
+    geom_text_repel(
+    data = sim.df.plot %>%
+      filter(yr == last(yr),
+             name == "feed"),
+    aes(color = trt, label = trt, x = yr, y = median),
+    size = 4,
+    direction = "y",
+    xlim = c(year.end + 2, 35),
+    vjust = 3,
+    segment.size = .7,
+    segment.alpha = .5,
+    segment.linetype = "dotted",
+    box.padding = .4,
+    seed = 999
+    ) +
   coord_cartesian(
     clip = "off"
   ) +
@@ -1526,7 +1542,7 @@ herd.bounds <- herd.bounds %>%
   dplyr::select(herd, human) %>%
   left_join(
     demog %>%
-      filter(trt %in% c("Reference")) %>%
+      filter(trt %in% c("Reference","transplant")) %>%
       group_by(herd) %>%
       filter(yrs %in% (max(yrs) - 9):max(yrs)) %>% ## filter to 10 years before intervention started
       summarise(r = mean(log(lambda), na.rm = TRUE)), ## geo mean per herd
@@ -1643,7 +1659,7 @@ map <- ggRGB(bmap.big, r = 1, g = 2, b = 3) +
     st_transform(cust.crs), size = 1, fill = NA, linetype = "dashed") +
   geom_sf(data = herd.bounds, aes(fill = r.class2), inherit.aes = FALSE, alpha = 0.7) +
   geom_sf(data = herd.bounds %>%
-    filter(ext %in% 1), aes(color = "Extirpated"), fill = NA, inherit.aes = FALSE, alpha = 0.7) +
+    filter(ext %in% 1), aes(color = "fnl extirpation"), fill = NA, inherit.aes = FALSE, alpha = 0.7,linewidth=0.75) +
   geom_sf_text(data = st_centroid(herd.bounds), aes(label = number_label), inherit.aes = FALSE, size = 3, color = "white") +
   geom_sf_text(data = st_centroid(herd.bounds %>% filter(r.class2 == "stable")), aes(label = number_label), inherit.aes = FALSE, size = 2.5, color = "black") +
   geom_sf(data = cities %>% st_transform(cust.crs), inherit.aes = FALSE, size = 3, pch = 21, fill = "white", color = "black") +
@@ -1671,7 +1687,7 @@ map <- ggRGB(bmap.big, r = 1, g = 2, b = 3) +
   scale_x_continuous(expand = c(0, 0), limits = c(5E4, 105E4)) +
   labs(fill = "Population growth\nw/o intervention", title = "a) Southern Mountain Caribou", color = "") +
   scale_fill_viridis_d() +
-  scale_color_manual(values = c("Extirpated" = "red")) +
+  scale_color_manual(values = c("fnl extirpation" = "red")) +
   guides(fill = guide_legend(nrow = 2, byrow = TRUE))
 
 
