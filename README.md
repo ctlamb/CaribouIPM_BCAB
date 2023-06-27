@@ -1,7 +1,7 @@
 BC AB Caribou IPM Results
 ================
 Clayton T. Lamb
-02 April, 2023
+26 June, 2023
 
 ## Load Data
 
@@ -30,13 +30,14 @@ library(sf)
 library(mapview)
 library(basemaps)
 library(ggtext)
+library(knitr)
 library(rlang)
 library(tidyverse)
 
 # Load data ---------------------------------------------------------------
 
 ## IPM Output
-out <- readRDS(file = here::here("jags/output/BCAB_CaribouIPM_posteriors_02042023.rds"))
+out <- readRDS(file = here::here("jags/output/BCAB_CaribouIPM_posteriors_2023_06_13_breakouticha_JNgammaedits.rds"))
 
 ## IPM input to compare results
 hd <- read.csv("data/clean/blueprint.csv")
@@ -58,6 +59,7 @@ ecotype <- read.csv("data/raw/treatment.csv") %>%
   dplyr::select(herd = Herd, ECCC = ECCC_Recov_Grp, COSEWIC = COSEWIC_Grp, Heard_Vagt1998 = Heard.and.Vagt.1998.grouping) %>%
   distinct()
 labels <- read.csv("data/clean/labels.csv")
+label.lookup <-  read.csv("data/clean/label_lookup.csv")
 
 #  Years of study
 yrs <- seq(from = min(trt$year), to = max(trt$year), by = 1)
@@ -107,7 +109,7 @@ treatment.combos <- trt %>%
 
 
 ## pull posterior draws, add in herd, year, and treatment to each herd-year
-ndraws <- 5000
+ndraws <- 10000
 demog <- out %>%
   spread_draws(
     c(totNMF, totN, totAdults, S, R_adj, lambda, SR)[i, j],
@@ -413,9 +415,16 @@ ggplot() +
   coord_cartesian(clip = "off")
 ```
 
-    ## Warning in geom_line(data = demog %>% ungroup() %>% left_join(labels, by = "herd") %>% : Ignoring unknown aesthetics: ymin and ymax
+    ## Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+    ## ℹ Please use `linewidth` instead.
+    ## This warning is displayed once every 8 hours.
+    ## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.
 
-    ## Warning in geom_text(data = trt.plot %>% ungroup() %>% distinct(herd, treatment, : Ignoring unknown parameters: `direction`
+    ## Warning in geom_line(data = demog %>% ungroup() %>% left_join(labels, by = "herd") %>% : Ignoring unknown
+    ## aesthetics: ymin and ymax
+
+    ## Warning in geom_text(data = trt.plot %>% ungroup() %>% distinct(herd, treatment, : Ignoring unknown parameters:
+    ## `direction`
 
     ## Warning: Removed 1 row containing missing values (`geom_line()`).
 
@@ -469,14 +478,14 @@ n.recovery.all <- sims.draws %>%
 median(n.recovery.all)
 ```
 
-    ## [1] 1122.303
+    ## [1] 976.526
 
 ``` r
 quantile(n.recovery.all, c(0.05, 0.5, 0.95)) %>% round(0)
 ```
 
     ##   5%  50%  95% 
-    ##  898 1122 1361
+    ##  726  977 1237
 
 ``` r
 n.recovery <- median(n.recovery.all) %>% round(0)
@@ -497,7 +506,7 @@ quantile(calves.recovered.all, c(0.05, 0.5, 0.95)) %>% round(0)
 ```
 
     ##   5%  50%  95% 
-    ##  662  968 1252
+    ##  574  872 1148
 
 ``` r
 calves.recovered <- median(calves.recovered.all) %>% round(0)
@@ -505,7 +514,7 @@ calves.recovered <- median(calves.recovered.all) %>% round(0)
 sum(out$mean$totCalvesMF - out$mean$pred_totCalvesMF)
 ```
 
-    ## [1] 965.1058
+    ## [1] 867.525
 
 ``` r
 #### Total Abundance####
@@ -532,7 +541,7 @@ abundance.all.plot <- ggplot(data = sims.plot %>%
   ) +
   expand_limits(y = 0) +
   scale_y_continuous(expand = c(0, 100), limits = c(0, 12000)) +
-  scale_x_continuous(breaks = seq(1980, 2020, by = 20), limits = c(1991, 2021)) +
+  scale_x_continuous(breaks = seq(1980, 2020, by = 10), limits = c(1991, 2021)) +
   theme(
     axis.title.x = element_text(size = 15),
     axis.title.y = element_text(size = 15),
@@ -627,7 +636,7 @@ demog.draws <- demog.draws.trim
 rm(demog.draws.trim)
 
 
-### Remove years where transplant was being done (impossibly high lambda due to adding individuals, not population response)
+### Remove years where transplant was being done (impossibly high lambda due to adding translocated individuals, not population response)
 demog.draws <- demog.draws %>%
   filter(
     !(herd %in% "Charlotte Alplands" & yrs %in% c(1984:1991)),
@@ -674,8 +683,9 @@ order <- demog.draws.combotreat %>%
 
 demog.draws.combotreat %>%
   left_join(order) %>%
+  left_join(label.lookup, by="trt")%>%
   filter(trt != "transplant") %>%
-  ggplot(aes(x = r, y = fct_reorder(trt, med), fill = group)) +
+  ggplot(aes(x = r, y = fct_reorder(new, med), fill = group)) +
   geom_density_ridges( # scale = 1.5,
     # scale = 1.3,
     rel_min_height = .01,
@@ -686,8 +696,9 @@ demog.draws.combotreat %>%
   geom_point(
     data = demog.draws.combotreat.rug %>%
       left_join(order) %>%
+      left_join(label.lookup, by="trt")%>%
       filter(trt != "transplant"),
-    aes(y = fct_reorder(trt, med), x = r),
+    aes(y = fct_reorder(new, med), x = r),
     shape = "|"
   ) +
   theme(
@@ -732,12 +743,12 @@ kable(lambda.table)
 
 | trt                          | r.med | lower | upper | r                  |
 |:-----------------------------|------:|------:|------:|:-------------------|
-| feed-reducewolves            |  0.15 |  0.12 |  0.19 | 0.15 (0.12-0.19)   |
-| feed                         |  0.12 | -0.27 |  0.46 | 0.12 (-0.27-0.46)  |
-| pen-reducewolves             |  0.12 |  0.10 |  0.16 | 0.12 (0.1-0.16)    |
-| reducewolves                 |  0.11 |  0.03 |  0.19 | 0.11 (0.03-0.19)   |
+| feed-reducewolves            |  0.14 |  0.10 |  0.18 | 0.14 (0.1-0.18)    |
+| feed                         |  0.13 | -0.26 |  0.46 | 0.13 (-0.26-0.46)  |
+| pen-reducewolves             |  0.12 |  0.09 |  0.15 | 0.12 (0.09-0.15)   |
 | reducemoose-reducewolves     |  0.10 |  0.01 |  0.18 | 0.1 (0.01-0.18)    |
-| pen-reducemoose              |  0.09 | -0.06 |  0.22 | 0.09 (-0.06-0.22)  |
+| reducewolves                 |  0.09 |  0.01 |  0.18 | 0.09 (0.01-0.18)   |
+| pen-reducemoose              |  0.08 | -0.06 |  0.22 | 0.08 (-0.06-0.22)  |
 | reducewolves-sterilizewolves |  0.04 |  0.02 |  0.06 | 0.04 (0.02-0.06)   |
 | Reference                    | -0.02 | -0.02 | -0.01 | -0.02 (-0.02–0.01) |
 | pen-reducemoose-reducewolves | -0.03 | -0.22 |  0.18 | -0.03 (-0.22-0.18) |
@@ -775,7 +786,8 @@ eff.draws <- demog.draws %>%
   ) %>%
   ## add a label that includes sample sizes for plot
   left_join(trt.n, by = "trt") %>%
-  mutate(trt.label = paste0(trt, "\n", n_herds, " subpops, ", n_yrs, " yrs"))
+  left_join(label.lookup, by="trt")%>%
+  mutate(trt.label = paste0(new, "\n", n_herds, " subpops, ", n_yrs, " yrs"))
 
 
 
@@ -844,9 +856,9 @@ ggsave(here::here("plots", "ba_all.png"), width = 10, height = 7, bg = "white")
 
 trt_eff_ba_table <- eff.draws %>%
   filter(name == "Rate of increase (r)") %>%
-  group_by(trt, .draw) %>%
+  group_by(new, .draw) %>%
   summarise(delta = median(delta.r)) %>% ## get mean effect for each treatment across herds for each draw
-  group_by(trt) %>%
+  group_by(new) %>%
   summarise(
     delta.l = median(delta, na.rm = TRUE) %>% round(2), ## mean effect of each treatment
     lower = quantile(delta, 0.05, na.rm = TRUE) %>% round(2),
@@ -854,8 +866,8 @@ trt_eff_ba_table <- eff.draws %>%
   ) %>%
   arrange(-delta.l) %>%
   mutate(delta.r = paste0(delta.l, " (", lower, "-", upper, ")")) %>%
-  filter(trt != "transplant") %>%
-  dplyr::select(`Recovery action` = trt, `Change in instantaneous growth rate (r)` = delta.r)
+  filter(new != "transplant") %>%
+  dplyr::select(`Recovery action` = new, `Change in instantaneous growth rate (r)` = delta.r)
 
 
 trt_eff_ba_table %>%
@@ -868,17 +880,17 @@ trt_eff_ba_table %>%
 kable(trt_eff_ba_table)
 ```
 
-| Recovery action              | Change in instantaneous growth rate (r) |
-|:-----------------------------|:----------------------------------------|
-| feed-reducewolves            | 0.17 (0.13-0.22)                        |
-| pen-reducewolves             | 0.17 (0.14-0.21)                        |
-| feed                         | 0.15 (-0.26-0.49)                       |
-| reducemoose-reducewolves     | 0.11 (-0.02-0.22)                       |
-| pen-reducemoose              | 0.1 (-0.05-0.23)                        |
-| reducewolves                 | 0.08 (0.02-0.14)                        |
-| reducewolves-sterilizewolves | 0.05 (0.02-0.07)                        |
-| pen-reducemoose-reducewolves | -0.02 (-0.21-0.19)                      |
-| reducemoose                  | -0.05 (-0.07–0.03)                      |
+| Recovery action                  | Change in instantaneous growth rate (r) |
+|:---------------------------------|:----------------------------------------|
+| penning + wolf reduction         | 0.17 (0.14-0.2)                         |
+| feeding + wolf reduction         | 0.16 (0.12-0.21)                        |
+| feeding                          | 0.15 (-0.25-0.49)                       |
+| moose & wolf reduction           | 0.11 (-0.02-0.22)                       |
+| penning + moose reduction        | 0.09 (-0.05-0.23)                       |
+| wolf reduction                   | 0.07 (0.02-0.14)                        |
+| wolf reduction + sterilization   | 0.05 (0.02-0.07)                        |
+| penning + moose & wolf reduction | -0.02 (-0.21-0.19)                      |
+| moose reduction                  | -0.05 (-0.07–0.03)                      |
 
 ``` r
 eff.draws %>%
@@ -896,7 +908,7 @@ eff.draws %>%
 | FALSE      |   6 |
 | TRUE       |  20 |
 
-## Summarize results by recovery action
+## Summarize results by recovery action, including application intensity
 
 ``` r
 eff.draws.app <- demog.draws %>%
@@ -996,7 +1008,7 @@ order <- ind.eff %>%
   group_by(term) %>%
   summarize(med = median(estimate))
 
-ind.eff.plot <- ggplot(ind.eff %>% left_join(order), aes(x = estimate, y = fct_reorder(term, med), fill = term)) +
+ind.eff.plot <- ggplot(ind.eff %>% left_join(order) %>%left_join(label.lookup%>%rename(term=trt), by="term"), aes(x = estimate, y = fct_reorder(new, med), fill = new)) +
   geom_density_ridges(
     scale = .9,
     rel_min_height = .01,
@@ -1046,11 +1058,11 @@ kable(ind.eff.table)
 
 | Treatment       | delta.lambda       |
 |:----------------|:-------------------|
-| reducewolves    | 0.1 (0.04-0.17)    |
-| feed            | 0.09 (-0.11-0.26)  |
-| pen             | 0.03 (-0.06-0.12)  |
-| reducemoose     | -0.05 (-0.11-0.01) |
-| sterilizewolves | -0.07 (-0.15-0)    |
+| feed            | 0.1 (-0.1-0.27)    |
+| reducewolves    | 0.1 (0.03-0.16)    |
+| pen             | 0.03 (-0.05-0.12)  |
+| reducemoose     | -0.04 (-0.1-0.02)  |
+| sterilizewolves | -0.06 (-0.14-0.01) |
 
 ``` r
 eff.draws %>% write_csv(here::here("tables", "draws", "eff.draws.csv"))
@@ -1063,7 +1075,7 @@ n.sims <- 1000
 start.pop <- 100
 
 sim.ref <- demog.draws %>%
-  filter(trt == "Reference" & totNMF < 150 & yrs > 1990) %>%
+  filter(trt == "Reference" & totNMF < 100 & yrs > 1990) %>%
   group_by(.draw, trt, herd) %>%
   summarise(r = mean(r, na.rm = TRUE)) %>% ## mean per herd-draw
   group_by(.draw, trt) %>%
@@ -1075,7 +1087,7 @@ sim.ref <- demog.draws %>%
 median(sim.ref)
 ```
 
-    ## [1] -0.07149475
+    ## [1] -0.07821556
 
 ``` r
 sim.trt <- ind.eff %>%
@@ -1089,7 +1101,7 @@ sim.trt <- ind.eff %>%
 median(sim.ref)
 ```
 
-    ## [1] -0.07149475
+    ## [1] -0.07821556
 
 ``` r
 test <- c()
@@ -1179,21 +1191,24 @@ sim.df.plot <- sim.df %>%
     !(yr < 10 & name != "reference"),
     yr <= (11 + year.end)
   ) %>%
+  left_join(label.lookup%>%rename(name=trt), by="name")%>%
   mutate(
-    trt = paste0(name, " (", inc, ", ", ext, ", ", lower %>% round(0), "-", upper %>% round(0), ")"),
+    trt = paste0(new, " (", inc, ", ", ext, ", ", lower %>% round(0), "-", upper %>% round(0), ")"),
     yr = yr - 10
   ) %>%
   mutate(yr.shift = case_when(
-    name %in% "sterilizewolves" & yr == year.end ~ yr + (2.5 * nudge),
-    name %in% "reducemoose" & yr == year.end ~ yr + (3.5 * nudge),
-    name %in% "reference" & yr == year.end ~ yr - nudge,
-    name %in% "pen" & yr == year.end ~ yr,
-    name %in% "feed" & yr == year.end ~ yr + nudge,
-    name %in% "reducewolves" & yr == year.end ~ yr + (2 * nudge),
-    name %in% "reducewolves+pen" & yr == year.end ~ yr + (3 * nudge),
-    name %in% "reducewolves+feed" & yr == year.end ~ yr + (4 * nudge),
+    new %in% "sterilizewolves" & yr == year.end ~ yr + (2.5 * nudge),
+    new %in% "reducemoose" & yr == year.end ~ yr + (3.5 * nudge),
+    new %in% "reference" & yr == year.end ~ yr - nudge,
+    new %in% "pen" & yr == year.end ~ yr,
+    new %in% "feed" & yr == year.end ~ yr + nudge,
+    new %in% "reducewolves" & yr == year.end ~ yr + (2 * nudge),
+    new %in% "reducewolves+pen" & yr == year.end ~ yr + (3 * nudge),
+    new %in% "reducewolves+feed" & yr == year.end ~ yr + (4 * nudge),
     TRUE ~ yr
-  ))
+  ))%>%
+      mutate(trt=case_when(str_detect(trt, "\\+ wolf reduction")~str_wrap(trt, width = 26),
+                       TRUE~trt))
 
 # a <-sim.df.plot%>%
 #   filter(yr == last(yr))%>%pull()
@@ -1226,7 +1241,8 @@ recov.sims.plot <- ggplot() +
   # geom_hline(yintercept = 10, linetype="dashed")+
   geom_text_repel(
     data = sim.df.plot %>%
-      filter(yr == last(yr)),
+      filter(yr == last(yr),
+             name != "feed"),
     aes(color = trt, label = trt, x = yr, y = median),
     size = 4,
     direction = "y",
@@ -1238,6 +1254,21 @@ recov.sims.plot <- ggplot() +
     box.padding = .4,
     seed = 999
   ) +
+    geom_text_repel(
+    data = sim.df.plot %>%
+      filter(yr == last(yr),
+             name == "feed"),
+    aes(color = trt, label = trt, x = yr, y = median),
+    size = 4,
+    direction = "y",
+    xlim = c(year.end + 2, 35),
+    vjust = 2.5,
+    segment.size = .7,
+    segment.alpha = .5,
+    segment.linetype = "dotted",
+    box.padding = .4,
+    seed = 999
+    ) +
   coord_cartesian(
     clip = "off"
   ) +
@@ -1302,20 +1333,24 @@ herd.bounds <- st_read(here::here("data/Spatial/herds/u_bc_herds_2021_CL.shp")) 
 ```
 
     ## Reading layer `u_bc_herds_2021_CL' from data source 
-    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/herds/u_bc_herds_2021_CL.shp' using driver `ESRI Shapefile'
+    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/herds/u_bc_herds_2021_CL.shp' 
+    ##   using driver `ESRI Shapefile'
     ## Simple feature collection with 57 features and 19 fields
     ## Geometry type: MULTIPOLYGON
     ## Dimension:     XY
     ## Bounding box:  xmin: -165343.7 ymin: 5422045 xmax: 1031821 ymax: 6709569
     ## Projected CRS: NAD83 / UTM zone 10N
     ## Reading layer `Caribou_Range' from data source 
-    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/herds/Caribou_Range.shp' using driver `ESRI Shapefile'
+    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/herds/Caribou_Range.shp' 
+    ##   using driver `ESRI Shapefile'
     ## Simple feature collection with 25 features and 9 fields
     ## Geometry type: MULTIPOLYGON
     ## Dimension:     XY
     ## Bounding box:  xmin: 170844.4 ymin: 5689840 xmax: 819119.1 ymax: 6659319
     ## Projected CRS: NAD83 / Alberta 10-TM (Forest)
-    ## Reading layer `BC_RRPC' from data source `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/herds/rrpc/BC_RRPC.shp' using driver `ESRI Shapefile'
+    ## Reading layer `BC_RRPC' from data source 
+    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/herds/rrpc/BC_RRPC.shp' 
+    ##   using driver `ESRI Shapefile'
     ## Simple feature collection with 1 feature and 17 fields
     ## Geometry type: POLYGON
     ## Dimension:     XY
@@ -1348,7 +1383,7 @@ herd.bounds <- herd.bounds %>%
   dplyr::select(herd, human) %>%
   left_join(
     demog %>%
-      filter(trt %in% c("Reference")) %>%
+      filter(trt %in% c("Reference","transplant")) %>%
       group_by(herd) %>%
       filter(yrs %in% (max(yrs) - 9):max(yrs)) %>% ## filter to 10 years before intervention started
       summarise(r = mean(log(lambda), na.rm = TRUE)), ## geo mean per herd
@@ -1419,7 +1454,8 @@ cities <- st_read(here::here("data/Spatial/administrative/places.shp")) %>%
 ```
 
     ## Reading layer `places' from data source 
-    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/administrative/places.shp' using driver `ESRI Shapefile'
+    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/administrative/places.shp' 
+    ##   using driver `ESRI Shapefile'
     ## Simple feature collection with 787 features and 3 fields
     ## Geometry type: POINT
     ## Dimension:     XY
@@ -1442,7 +1478,8 @@ pnw <- st_read(here::here("data/Spatial/administrative/North_America.shp")) %>%
 ```
 
     ## Reading layer `North_America' from data source 
-    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/administrative/North_America.shp' using driver `ESRI Shapefile'
+    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/administrative/North_America.shp' 
+    ##   using driver `ESRI Shapefile'
     ## Simple feature collection with 70 features and 2 fields
     ## Geometry type: MULTIPOLYGON
     ## Dimension:     XY
@@ -1495,7 +1532,7 @@ map <- ggRGB(bmap.big, r = 1, g = 2, b = 3) +
     st_transform(cust.crs), size = 1, fill = NA, linetype = "dashed") +
   geom_sf(data = herd.bounds, aes(fill = r.class2), inherit.aes = FALSE, alpha = 0.7) +
   geom_sf(data = herd.bounds %>%
-    filter(ext %in% 1), aes(color = "Extirpated"), fill = NA, inherit.aes = FALSE, alpha = 0.7) +
+    filter(ext %in% 1), aes(color = "fnl extirpation"), fill = NA, inherit.aes = FALSE, alpha = 0.7,linewidth=0.75) +
   geom_sf_text(data = st_centroid(herd.bounds), aes(label = number_label), inherit.aes = FALSE, size = 3, color = "white") +
   geom_sf_text(data = st_centroid(herd.bounds %>% filter(r.class2 == "stable")), aes(label = number_label), inherit.aes = FALSE, size = 2.5, color = "black") +
   geom_sf(data = cities %>% st_transform(cust.crs), inherit.aes = FALSE, size = 3, pch = 21, fill = "white", color = "black") +
@@ -1523,7 +1560,7 @@ map <- ggRGB(bmap.big, r = 1, g = 2, b = 3) +
   scale_x_continuous(expand = c(0, 0), limits = c(5E4, 105E4)) +
   labs(fill = "Population growth\nw/o intervention", title = "a) Southern Mountain Caribou", color = "") +
   scale_fill_viridis_d() +
-  scale_color_manual(values = c("Extirpated" = "red")) +
+  scale_color_manual(values = c("fnl extirpation" = "red")) +
   guides(fill = guide_legend(nrow = 2, byrow = TRUE))
 
 

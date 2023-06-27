@@ -1,7 +1,7 @@
 BC AB Caribou IPM run
 ================
 Clayton T. Lamb
-02 April, 2023
+26 June, 2023
 
 ## Load Data
 
@@ -56,6 +56,7 @@ nherd <- nrow(hn)
 hd <- hd%>%
   left_join(ecotype, by="herd")
 hd$demog_grp <- hd$ECCC%>%factor%>%as.numeric() 
+hd[hd$herd%in%c("Charlotte Alplands","Itcha-Ilgachuz","Rainbows"),"demog_grp"]<-4
 nsight_grp <- length(unique(hd$sight_grp))
 ndemog_grp <- length(unique(hd$demog_grp))
 
@@ -481,9 +482,9 @@ for(h in 1:nherd) {
 
 ipm_inits <- function(){ 
   list(
-    N = Nst,
-        meanS = runif(1, 0.5, 0.9),
-        meanR = runif(1, 0.1, 0.6)
+    N = Nst
+        # meanS = runif(1, 0.5, 0.9),
+        # meanR = runif(1, 0.1, 0.6)
     )
 }
 
@@ -532,10 +533,10 @@ model_parms <- c(
 
 ``` r
 nth <- 90
-nbu <- 35000 
+nbu <- 30000 
 nch <- 3
-nad <- 15000
-nit <- 500000 
+nad <- 60000
+nit <- 400000 
 
 # nth <- 10
 # nbu <- 2000
@@ -546,18 +547,22 @@ nit <- 500000
 out <- jagsUI::jags(ipm_dat, 
     inits = ipm_inits,
     model_parms,
-    model.file = here::here("jags/BCAB_IPM_20230206_SW_cl_JN.txt"),
+    model.file = here::here("jags/BCAB_IPM_20230611.txt"),
     n.chains = nch,
     n.cores = nch,
     n.iter = nit,
     n.burnin = nbu,
     n.thin = nth,
     n.adapt = nad)
+
+
+# Error in setParameters(init.values[[i]], i) : Error in node meanR
+# Cannot set value of non-variable node
 ```
 
 ## Save outputs
 
 ``` r
 #mcmcplots::mcmcplot(out$samples, par = c("S", "R", "totNMF")) 
-saveRDS(out, file = here::here("jags/output/BCAB_CaribouIPM_posteriors_02042023.rds"))
+saveRDS(out, file = here::here("jags/output/BCAB_CaribouIPM_posteriors_2023_06_13_breakouticha_JNgammaedits.rds"))
 ```

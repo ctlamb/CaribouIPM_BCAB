@@ -1,4 +1,4 @@
-## ----render, eval=FALSE,include=FALSE----------------------------------------------------------------------------------------------------------------
+## ----render, eval=FALSE,include=FALSE-----------------------------------------------------------------------------------------------
 ## rmarkdown::render(here::here("jags", 'run_IPM.Rmd'),
 ##                   output_file =  "README.md")
 ## 
@@ -6,7 +6,7 @@
 ##                   output =  here::here("scripts_r", '2.run_IPM.r'))
 
 
-## ----Load packages and data, results='hide', message=FALSE, warning=FALSE----------------------------------------------------------------------------
+## ----Load packages and data, results='hide', message=FALSE, warning=FALSE-----------------------------------------------------------
 library(tidybayes)
 library(ggmcmc)
 library(hrbrthemes)
@@ -48,7 +48,7 @@ sexratio_summary <-  read.csv(here::here("data/clean/sexratio_summary.csv"))
 #trt$applied[is.na(trt$applied)] <- 0
 
 
-## ----Prep data for IPM, results='hide', message=FALSE, warning=FALSE---------------------------------------------------------------------------------
+## ----Prep data for IPM, results='hide', message=FALSE, warning=FALSE----------------------------------------------------------------
 
 
 # Herds and herd number
@@ -57,6 +57,7 @@ nherd <- nrow(hn)
 hd <- hd%>%
   left_join(ecotype, by="herd")
 hd$demog_grp <- hd$ECCC%>%factor%>%as.numeric() 
+hd[hd$herd%in%c("Charlotte Alplands","Itcha-Ilgachuz","Rainbows"),"demog_grp"]<-4
 nsight_grp <- length(unique(hd$sight_grp))
 ndemog_grp <- length(unique(hd$demog_grp))
 
@@ -427,7 +428,7 @@ nyr <- rest_yr
 
 
 
-## ----Gather data inputs in a list, results='hide', message=FALSE, warning=FALSE----------------------------------------------------------------------
+## ----Gather data inputs in a list, results='hide', message=FALSE, warning=FALSE-----------------------------------------------------
 ipm_dat <- list(
 	nherd = nherd,
 	nyr = nyr,
@@ -481,9 +482,9 @@ for(h in 1:nherd) {
 
 ipm_inits <- function(){ 
   list(
-    N = Nst,
-		meanS = runif(1, 0.5, 0.9),
-		meanR = runif(1, 0.1, 0.6)
+    N = Nst
+		# meanS = runif(1, 0.5, 0.9),
+		# meanR = runif(1, 0.1, 0.6)
 	)
 }
 
@@ -528,12 +529,12 @@ model_parms <- c(
 	)
 
 
-## ----Run IPM, results='hide', message=FALSE, warning=FALSE, eval=FALSE-------------------------------------------------------------------------------
+## ----Run IPM, results='hide', message=FALSE, warning=FALSE, eval=FALSE--------------------------------------------------------------
 ## nth <- 90
-## nbu <- 35000
+## nbu <- 30000
 ## nch <- 3
-## nad <- 15000
-## nit <- 500000
+## nad <- 60000
+## nit <- 400000
 ## 
 ## # nth <- 10
 ## # nbu <- 2000
@@ -544,16 +545,20 @@ model_parms <- c(
 ## out <- jagsUI::jags(ipm_dat,
 ## 	inits = ipm_inits,
 ## 	model_parms,
-## 	model.file = here::here("jags/BCAB_IPM_20230206_SW_cl_JN.txt"),
+## 	model.file = here::here("jags/BCAB_IPM_20230611.txt"),
 ## 	n.chains = nch,
 ## 	n.cores = nch,
 ## 	n.iter = nit,
 ## 	n.burnin = nbu,
 ## 	n.thin = nth,
 ## 	n.adapt = nad)
+## 
+## 
+## # Error in setParameters(init.values[[i]], i) : Error in node meanR
+## # Cannot set value of non-variable node
 
 
-## ----Save outputs, results='hide', message=FALSE, warning=FALSE, eval=FALSE--------------------------------------------------------------------------
+## ----Save outputs, results='hide', message=FALSE, warning=FALSE, eval=FALSE---------------------------------------------------------
 ## #mcmcplots::mcmcplot(out$samples, par = c("S", "R", "totNMF"))
-## saveRDS(out, file = here::here("jags/output/BCAB_CaribouIPM_posteriors_02042023.rds"))
+## saveRDS(out, file = here::here("jags/output/BCAB_CaribouIPM_posteriors_2023_06_13_breakouticha_JNgammaedits.rds"))
 

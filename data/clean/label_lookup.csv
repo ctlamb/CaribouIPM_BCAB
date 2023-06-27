@@ -1,0 +1,17 @@
+﻿trt,new
+pen-reducewolves,penning + wolf reduction
+feed-reducewolves,feeding + wolf reduction
+feed,feeding
+reducemoose-reducewolves,moose & wolf reduction
+pen-reducemoose,penning + moose reduction
+reducewolves,wolf reduction
+reducewolves-sterilizewolves,wolf reduction + sterilization
+pen-reducemoose-reducewolves,penning + moose & wolf reduction
+reducemoose,moose reduction
+Reference,reference
+transplant,transplant
+pen,penning
+sterilizewolves,wolf sterlization
+reducewolves+feed,feeding + wolf reduction
+reducewolves+pen,penning + wolf reduction
+reference,reference

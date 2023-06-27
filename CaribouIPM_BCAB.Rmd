@@ -73,6 +73,7 @@ ecotype <- read.csv("data/raw/treatment.csv") %>%
   dplyr::select(herd = Herd, ECCC = ECCC_Recov_Grp, COSEWIC = COSEWIC_Grp, Heard_Vagt1998 = Heard.and.Vagt.1998.grouping) %>%
   distinct()
 labels <- read.csv("data/clean/labels.csv")
+label.lookup <-  read.csv("data/clean/label_lookup.csv")
 
 #  Years of study
 yrs <- seq(from = min(trt$year), to = max(trt$year), by = 1)
@@ -900,7 +901,7 @@ demog.draws <- demog.draws.trim
 rm(demog.draws.trim)
 
 
-### Remove years where transplant was being done (impossibly high lambda due to adding individuals, not population response)
+### Remove years where transplant was being done (impossibly high lambda due to adding translocated individuals, not population response)
 demog.draws <- demog.draws %>%
   filter(
     !(herd %in% "Charlotte Alplands" & yrs %in% c(1984:1991)),
@@ -947,8 +948,9 @@ order <- demog.draws.combotreat %>%
 
 demog.draws.combotreat %>%
   left_join(order) %>%
+  left_join(label.lookup, by="trt")%>%
   filter(trt != "transplant") %>%
-  ggplot(aes(x = r, y = fct_reorder(trt, med), fill = group)) +
+  ggplot(aes(x = r, y = fct_reorder(new, med), fill = group)) +
   geom_density_ridges( # scale = 1.5,
     # scale = 1.3,
     rel_min_height = .01,
@@ -959,8 +961,9 @@ demog.draws.combotreat %>%
   geom_point(
     data = demog.draws.combotreat.rug %>%
       left_join(order) %>%
+      left_join(label.lookup, by="trt")%>%
       filter(trt != "transplant"),
-    aes(y = fct_reorder(trt, med), x = r),
+    aes(y = fct_reorder(new, med), x = r),
     shape = "|"
   ) +
   theme(
@@ -1032,7 +1035,8 @@ eff.draws <- demog.draws %>%
   ) %>%
   ## add a label that includes sample sizes for plot
   left_join(trt.n, by = "trt") %>%
-  mutate(trt.label = paste0(trt, "\n", n_herds, " subpops, ", n_yrs, " yrs"))
+  left_join(label.lookup, by="trt")%>%
+  mutate(trt.label = paste0(new, "\n", n_herds, " subpops, ", n_yrs, " yrs"))
 
 
 
@@ -1097,9 +1101,9 @@ ggsave(here::here("plots", "ba_all.png"), width = 10, height = 7, bg = "white")
 
 trt_eff_ba_table <- eff.draws %>%
   filter(name == "Rate of increase (r)") %>%
-  group_by(trt, .draw) %>%
+  group_by(new, .draw) %>%
   summarise(delta = median(delta.r)) %>% ## get mean effect for each treatment across herds for each draw
-  group_by(trt) %>%
+  group_by(new) %>%
   summarise(
     delta.l = median(delta, na.rm = TRUE) %>% round(2), ## mean effect of each treatment
     lower = quantile(delta, 0.05, na.rm = TRUE) %>% round(2),
@@ -1107,8 +1111,8 @@ trt_eff_ba_table <- eff.draws %>%
   ) %>%
   arrange(-delta.l) %>%
   mutate(delta.r = paste0(delta.l, " (", lower, "-", upper, ")")) %>%
-  filter(trt != "transplant") %>%
-  dplyr::select(`Recovery action` = trt, `Change in instantaneous growth rate (r)` = delta.r)
+  filter(new != "transplant") %>%
+  dplyr::select(`Recovery action` = new, `Change in instantaneous growth rate (r)` = delta.r)
 
 
 trt_eff_ba_table %>%
@@ -1230,7 +1234,7 @@ order <- ind.eff %>%
   group_by(term) %>%
   summarize(med = median(estimate))
 
-ind.eff.plot <- ggplot(ind.eff %>% left_join(order), aes(x = estimate, y = fct_reorder(term, med), fill = term)) +
+ind.eff.plot <- ggplot(ind.eff %>% left_join(order) %>%left_join(label.lookup%>%rename(term=trt), by="term"), aes(x = estimate, y = fct_reorder(new, med), fill = new)) +
   geom_density_ridges(
     scale = .9,
     rel_min_height = .01,
@@ -1390,21 +1394,24 @@ sim.df.plot <- sim.df %>%
     !(yr < 10 & name != "reference"),
     yr <= (11 + year.end)
   ) %>%
+  left_join(label.lookup%>%rename(name=trt), by="name")%>%
   mutate(
-    trt = paste0(name, " (", inc, ", ", ext, ", ", lower %>% round(0), "-", upper %>% round(0), ")"),
+    trt = paste0(new, " (", inc, ", ", ext, ", ", lower %>% round(0), "-", upper %>% round(0), ")"),
     yr = yr - 10
   ) %>%
   mutate(yr.shift = case_when(
-    name %in% "sterilizewolves" & yr == year.end ~ yr + (2.5 * nudge),
-    name %in% "reducemoose" & yr == year.end ~ yr + (3.5 * nudge),
-    name %in% "reference" & yr == year.end ~ yr - nudge,
-    name %in% "pen" & yr == year.end ~ yr,
-    name %in% "feed" & yr == year.end ~ yr + nudge,
-    name %in% "reducewolves" & yr == year.end ~ yr + (2 * nudge),
-    name %in% "reducewolves+pen" & yr == year.end ~ yr + (3 * nudge),
-    name %in% "reducewolves+feed" & yr == year.end ~ yr + (4 * nudge),
+    new %in% "sterilizewolves" & yr == year.end ~ yr + (2.5 * nudge),
+    new %in% "reducemoose" & yr == year.end ~ yr + (3.5 * nudge),
+    new %in% "reference" & yr == year.end ~ yr - nudge,
+    new %in% "pen" & yr == year.end ~ yr,
+    new %in% "feed" & yr == year.end ~ yr + nudge,
+    new %in% "reducewolves" & yr == year.end ~ yr + (2 * nudge),
+    new %in% "reducewolves+pen" & yr == year.end ~ yr + (3 * nudge),
+    new %in% "reducewolves+feed" & yr == year.end ~ yr + (4 * nudge),
     TRUE ~ yr
-  ))
+  ))%>%
+      mutate(trt=case_when(str_detect(trt, "\\+ wolf reduction")~str_wrap(trt, width = 26),
+                       TRUE~trt))
 
 # a <-sim.df.plot%>%
 #   filter(yr == last(yr))%>%pull()
@@ -1458,7 +1465,7 @@ recov.sims.plot <- ggplot() +
     size = 4,
     direction = "y",
     xlim = c(year.end + 2, 35),
-    vjust = 3,
+    vjust = 2.5,
     segment.size = .7,
     segment.alpha = .5,
     segment.linetype = "dotted",

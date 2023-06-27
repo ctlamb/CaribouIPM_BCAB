@@ -1,7 +1,7 @@
 BC AB Caribou IPM Appendix
 ================
 Clayton T. Lamb
-02 April, 2023
+26 June, 2023
 
 ## Load Data
 
@@ -993,7 +993,7 @@ ggplot(ind.eff.ecotype %>% left_join(order), aes(x = estimate, y = fct_reorder(t
 ![](README_files/figure-gfm/individual%20by%20ECCC%20ecotype-1.png)<!-- -->
 
 ``` r
-ggsave(here::here("plots", "appendix", "ind_eff_ecotype.png"), width = 8, height = 7, bg = "white")
+ggsave(here::here("plots", "appendix", "ind_eff_ecotype_ECCC.png"), width = 8, height = 7, bg = "white")
 
 
 ind.eff.ecotype %>%
@@ -1007,7 +1007,7 @@ ind.eff.ecotype %>%
   mutate(delta.r = paste0(eff, " (", lower, "-", upper, ")")) %>%
   dplyr::select(Treatment = term, delta.r) %>%
   gt() %>%
-  gtsave(here::here("tables", "appendix", "ind_eff_ecotype.rtf"))
+  gtsave(here::here("tables", "appendix", "ind_eff_ecotype_ECCC.rtf"))
 
 
 

@@ -1,4 +1,4 @@
-## ----render, eval=FALSE,include=FALSE---------------------------------------------------------------------------------------------------------------
+## ----render, eval=FALSE,include=FALSE-------------------------------------------------------------------------
 ## rmarkdown::render(here::here("CaribouIPM_BCAB.Rmd"),
 ##   output_file = "README.md"
 ## )
@@ -9,7 +9,7 @@
 ## )
 
 
-## ----Load packages and data, results='hide', message=FALSE, warning=FALSE---------------------------------------------------------------------------
+## ----Load packages and data, results='hide', message=FALSE, warning=FALSE-------------------------------------
 library(ggmap)
 library(raster)
 library(RStoolbox)
@@ -34,13 +34,14 @@ library(sf)
 library(mapview)
 library(basemaps)
 library(ggtext)
+library(knitr)
 library(rlang)
 library(tidyverse)
 
 # Load data ---------------------------------------------------------------
 
 ## IPM Output
-out <- readRDS(file = here::here("jags/output/BCAB_CaribouIPM_posteriors_02042023.rds"))
+out <- readRDS(file = here::here("jags/output/BCAB_CaribouIPM_posteriors_2023_06_13_breakouticha_JNgammaedits.rds"))
 
 ## IPM input to compare results
 hd <- read.csv("data/clean/blueprint.csv")
@@ -62,6 +63,7 @@ ecotype <- read.csv("data/raw/treatment.csv") %>%
   dplyr::select(herd = Herd, ECCC = ECCC_Recov_Grp, COSEWIC = COSEWIC_Grp, Heard_Vagt1998 = Heard.and.Vagt.1998.grouping) %>%
   distinct()
 labels <- read.csv("data/clean/labels.csv")
+label.lookup <-  read.csv("data/clean/label_lookup.csv")
 
 #  Years of study
 yrs <- seq(from = min(trt$year), to = max(trt$year), by = 1)
@@ -74,11 +76,11 @@ rm(nyr)
 rm(yr_idx)
 
 
-## ----Check posteriors, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, results='hide'------------------------------------------------------
+## ----Check posteriors, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, results='hide'----------------
 ## 
 ## ## check posteriors for convergence
 ## mcmcplots::mcmcplot(out$samples, par = "lambda")
-## mcmcplots::mcmcplot(out$samples, par = "surv_sd_yr_dg")
+## mcmcplots::mcmcplot(out$samples, par = "surv_yr_dg")
 ## mcmcplots::mcmcplot(out$samples, par = "sight_tau_yr_sg")
 ## mcmcplots::mcmcplot(out$samples, par = "totNMF")
 ## mcmcplots::mcmcplot(out$samples, par = "surv_tau_yr_dg", "recruit_tau_yr_dg")
@@ -107,7 +109,7 @@ rm(yr_idx)
 ## ## feed (7), pen (12), and sterilize (22) have lowest sample sizes, makes sense why convergence is poorer
 
 
-## ----Data housekeeping, message=FALSE, warning=FALSE------------------------------------------------------------------------------------------------
+## ----Data housekeeping, message=FALSE, warning=FALSE----------------------------------------------------------
 ## set up colors for plotting
 display.brewer.pal(8, "Accent")
 cols <- RColorBrewer::brewer.pal(8, "Accent")
@@ -137,7 +139,7 @@ treatment.combos <- trt %>%
 
 
 ## pull posterior draws, add in herd, year, and treatment to each herd-year
-ndraws <- 5000
+ndraws <- 10000
 demog <- out %>%
   spread_draws(
     c(totNMF, totN, totAdults, S, R_adj, lambda, SR)[i, j],
@@ -218,7 +220,7 @@ ggplot(demog, aes(y = log(lambda), x = totNMF)) +
   )
 
 
-## ----Firstyr, message=FALSE, warning=FALSE----------------------------------------------------------------------------------------------------------
+## ----Firstyr, message=FALSE, warning=FALSE--------------------------------------------------------------------
 raw.demog <- rbind(
   afr %>% dplyr::select(herd, year, est) %>% mutate(type = "Recruit"),
   afs %>% dplyr::select(herd, year, est) %>% mutate(type = "Surv"),
@@ -254,7 +256,7 @@ ggplot(first.yr, aes(x = first.year)) +
   )
 
 
-## ----Plot herd abundance, fig.height=11, fig.width=15, message=FALSE--------------------------------------------------------------------------------
+## ----Plot herd abundance, fig.height=11, fig.width=15, message=FALSE------------------------------------------
 
 ## Prep data and layout for plot
 
@@ -440,7 +442,7 @@ ggplot() +
 ggsave(here::here("plots", "abundance.png"), width = 15, height = 11, bg = "white")
 
 
-## ----Plot herd abundance split, message=FALSE, include=FALSE----------------------------------------------------------------------------------------
+## ----Plot herd abundance split, message=FALSE, include=FALSE--------------------------------------------------
 ## split into two
 ## TOP
 ggplot() +
@@ -706,7 +708,7 @@ ggplot() +
 ggsave(here::here("plots", "abundance_legend.png"), width = 2.7, height = 3, bg = "transparent")
 
 
-## ----Plot total abundance, fig.height=6, fig.width=6, message=FALSE, warning=FALSE------------------------------------------------------------------
+## ----Plot total abundance, fig.height=6, fig.width=6, message=FALSE, warning=FALSE----------------------------
 
 #### Summarize bou pop in '91 vs 2021####
 sims.summary <- sims.plot %>%
@@ -790,7 +792,7 @@ abundance.all.plot <- ggplot(data = sims.plot %>%
   ) +
   expand_limits(y = 0) +
   scale_y_continuous(expand = c(0, 100), limits = c(0, 12000)) +
-  scale_x_continuous(breaks = seq(1980, 2020, by = 20), limits = c(1991, 2021)) +
+  scale_x_continuous(breaks = seq(1980, 2020, by = 10), limits = c(1991, 2021)) +
   theme(
     axis.title.x = element_text(size = 15),
     axis.title.y = element_text(size = 15),
@@ -826,7 +828,7 @@ abundance.all.plot
 ggsave(plot = abundance.all.plot, here::here("plots", "abundance_all.png"), width = 6, height = 6, bg = "white")
 
 
-## ----trt eff- r, message=FALSE, warning=FALSE-------------------------------------------------------------------------------------------------------
+## ----trt eff- r, message=FALSE, warning=FALSE-----------------------------------------------------------------
 
 ## Gather draws
 demog.draws <- out %>%
@@ -878,7 +880,7 @@ demog.draws <- demog.draws.trim
 rm(demog.draws.trim)
 
 
-### Remove years where transplant was being done (impossibly high lambda due to adding individuals, not population response)
+### Remove years where transplant was being done (impossibly high lambda due to adding translocated individuals, not population response)
 demog.draws <- demog.draws %>%
   filter(
     !(herd %in% "Charlotte Alplands" & yrs %in% c(1984:1991)),
@@ -925,8 +927,9 @@ order <- demog.draws.combotreat %>%
 
 demog.draws.combotreat %>%
   left_join(order) %>%
+  left_join(label.lookup, by="trt")%>%
   filter(trt != "transplant") %>%
-  ggplot(aes(x = r, y = fct_reorder(trt, med), fill = group)) +
+  ggplot(aes(x = r, y = fct_reorder(new, med), fill = group)) +
   geom_density_ridges( # scale = 1.5,
     # scale = 1.3,
     rel_min_height = .01,
@@ -937,8 +940,9 @@ demog.draws.combotreat %>%
   geom_point(
     data = demog.draws.combotreat.rug %>%
       left_join(order) %>%
+      left_join(label.lookup, by="trt")%>%
       filter(trt != "transplant"),
-    aes(y = fct_reorder(trt, med), x = r),
+    aes(y = fct_reorder(new, med), x = r),
     shape = "|"
   ) +
   theme(
@@ -977,7 +981,7 @@ lambda.table <- demog.draws.combotreat %>%
 kable(lambda.table)
 
 
-## ----trt eff- BA, fig.height=7, fig.width=10, message=FALSE, warning=FALSE--------------------------------------------------------------------------
+## ----trt eff- BA, fig.height=7, fig.width=10, message=FALSE, warning=FALSE------------------------------------
 # Before-After ---------------------------------------------
 
 ## pull draws and organize into treatment and untreated (reference) timeframes for each herd
@@ -1006,7 +1010,8 @@ eff.draws <- demog.draws %>%
   ) %>%
   ## add a label that includes sample sizes for plot
   left_join(trt.n, by = "trt") %>%
-  mutate(trt.label = paste0(trt, "\n", n_herds, " subpops, ", n_yrs, " yrs"))
+  left_join(label.lookup, by="trt")%>%
+  mutate(trt.label = paste0(new, "\n", n_herds, " subpops, ", n_yrs, " yrs"))
 
 
 
@@ -1071,9 +1076,9 @@ ggsave(here::here("plots", "ba_all.png"), width = 10, height = 7, bg = "white")
 
 trt_eff_ba_table <- eff.draws %>%
   filter(name == "Rate of increase (r)") %>%
-  group_by(trt, .draw) %>%
+  group_by(new, .draw) %>%
   summarise(delta = median(delta.r)) %>% ## get mean effect for each treatment across herds for each draw
-  group_by(trt) %>%
+  group_by(new) %>%
   summarise(
     delta.l = median(delta, na.rm = TRUE) %>% round(2), ## mean effect of each treatment
     lower = quantile(delta, 0.05, na.rm = TRUE) %>% round(2),
@@ -1081,8 +1086,8 @@ trt_eff_ba_table <- eff.draws %>%
   ) %>%
   arrange(-delta.l) %>%
   mutate(delta.r = paste0(delta.l, " (", lower, "-", upper, ")")) %>%
-  filter(trt != "transplant") %>%
-  dplyr::select(`Recovery action` = trt, `Change in instantaneous growth rate (r)` = delta.r)
+  filter(new != "transplant") %>%
+  dplyr::select(`Recovery action` = new, `Change in instantaneous growth rate (r)` = delta.r)
 
 
 trt_eff_ba_table %>%
@@ -1105,7 +1110,7 @@ eff.draws %>%
   kable()
 
 
-## ----application, message=FALSE, warning=FALSE------------------------------------------------------------------------------------------------------
+## ----application, message=FALSE, warning=FALSE----------------------------------------------------------------
 
 eff.draws.app <- demog.draws %>%
   group_by(herd, yrs, trt) %>%
@@ -1174,7 +1179,7 @@ demog.draws %>%
 eff.draws.app %>% write_csv(here::here("tables", "draws", "eff.draws.app.csv"))
 
 
-## ----ind trt eff, message=FALSE, warning=FALSE------------------------------------------------------------------------------------------------------
+## ----ind trt eff, message=FALSE, warning=FALSE----------------------------------------------------------------
 ## prep data with individual treatments 1/0
 eff.draws <- eff.draws %>%
   mutate(
@@ -1202,7 +1207,7 @@ order <- ind.eff %>%
   group_by(term) %>%
   summarize(med = median(estimate))
 
-ind.eff.plot <- ggplot(ind.eff %>% left_join(order), aes(x = estimate, y = fct_reorder(term, med), fill = term)) +
+ind.eff.plot <- ggplot(ind.eff %>% left_join(order) %>%left_join(label.lookup%>%rename(term=trt), by="term"), aes(x = estimate, y = fct_reorder(new, med), fill = new)) +
   geom_density_ridges(
     scale = .9,
     rel_min_height = .01,
@@ -1247,12 +1252,12 @@ kable(ind.eff.table)
 eff.draws %>% write_csv(here::here("tables", "draws", "eff.draws.csv"))
 
 
-## ----cons sims, message=FALSE, warning=FALSE--------------------------------------------------------------------------------------------------------
+## ----cons sims, message=FALSE, warning=FALSE------------------------------------------------------------------
 n.sims <- 1000
 start.pop <- 100
 
 sim.ref <- demog.draws %>%
-  filter(trt == "Reference" & totNMF < 150 & yrs > 1990) %>%
+  filter(trt == "Reference" & totNMF < 100 & yrs > 1990) %>%
   group_by(.draw, trt, herd) %>%
   summarise(r = mean(r, na.rm = TRUE)) %>% ## mean per herd-draw
   group_by(.draw, trt) %>%
@@ -1359,21 +1364,24 @@ sim.df.plot <- sim.df %>%
     !(yr < 10 & name != "reference"),
     yr <= (11 + year.end)
   ) %>%
+  left_join(label.lookup%>%rename(name=trt), by="name")%>%
   mutate(
-    trt = paste0(name, " (", inc, ", ", ext, ", ", lower %>% round(0), "-", upper %>% round(0), ")"),
+    trt = paste0(new, " (", inc, ", ", ext, ", ", lower %>% round(0), "-", upper %>% round(0), ")"),
     yr = yr - 10
   ) %>%
   mutate(yr.shift = case_when(
-    name %in% "sterilizewolves" & yr == year.end ~ yr + (2.5 * nudge),
-    name %in% "reducemoose" & yr == year.end ~ yr + (3.5 * nudge),
-    name %in% "reference" & yr == year.end ~ yr - nudge,
-    name %in% "pen" & yr == year.end ~ yr,
-    name %in% "feed" & yr == year.end ~ yr + nudge,
-    name %in% "reducewolves" & yr == year.end ~ yr + (2 * nudge),
-    name %in% "reducewolves+pen" & yr == year.end ~ yr + (3 * nudge),
-    name %in% "reducewolves+feed" & yr == year.end ~ yr + (4 * nudge),
+    new %in% "sterilizewolves" & yr == year.end ~ yr + (2.5 * nudge),
+    new %in% "reducemoose" & yr == year.end ~ yr + (3.5 * nudge),
+    new %in% "reference" & yr == year.end ~ yr - nudge,
+    new %in% "pen" & yr == year.end ~ yr,
+    new %in% "feed" & yr == year.end ~ yr + nudge,
+    new %in% "reducewolves" & yr == year.end ~ yr + (2 * nudge),
+    new %in% "reducewolves+pen" & yr == year.end ~ yr + (3 * nudge),
+    new %in% "reducewolves+feed" & yr == year.end ~ yr + (4 * nudge),
     TRUE ~ yr
-  ))
+  ))%>%
+      mutate(trt=case_when(str_detect(trt, "\\+ wolf reduction")~str_wrap(trt, width = 26),
+                       TRUE~trt))
 
 # a <-sim.df.plot%>%
 #   filter(yr == last(yr))%>%pull()
@@ -1406,7 +1414,8 @@ recov.sims.plot <- ggplot() +
   # geom_hline(yintercept = 10, linetype="dashed")+
   geom_text_repel(
     data = sim.df.plot %>%
-      filter(yr == last(yr)),
+      filter(yr == last(yr),
+             name != "feed"),
     aes(color = trt, label = trt, x = yr, y = median),
     size = 4,
     direction = "y",
@@ -1418,6 +1427,21 @@ recov.sims.plot <- ggplot() +
     box.padding = .4,
     seed = 999
   ) +
+    geom_text_repel(
+    data = sim.df.plot %>%
+      filter(yr == last(yr),
+             name == "feed"),
+    aes(color = trt, label = trt, x = yr, y = median),
+    size = 4,
+    direction = "y",
+    xlim = c(year.end + 2, 35),
+    vjust = 2.5,
+    segment.size = .7,
+    segment.alpha = .5,
+    segment.linetype = "dotted",
+    box.padding = .4,
+    seed = 999
+    ) +
   coord_cartesian(
     clip = "off"
   ) +
@@ -1442,7 +1466,7 @@ recov.together <- ind.eff.plot + recov.sims.plot + plot_layout(widths = c(1.3, 1
 ggsave(plot = recov.together, here::here("plots/recov.together.png"), width = 13, height = 6, bg = "white")
 
 
-## ----map, fig.height=8, fig.width=12, message=FALSE, warning=FALSE----------------------------------------------------------------------------------
+## ----map, fig.height=8, fig.width=12, message=FALSE, warning=FALSE--------------------------------------------
 ## Prep Herd Bounds
 herd.bounds <- st_read(here::here("data/Spatial/herds/u_bc_herds_2021_CL.shp")) %>%
   st_transform(3005) %>%
@@ -1492,7 +1516,7 @@ herd.bounds <- herd.bounds %>%
   dplyr::select(herd, human) %>%
   left_join(
     demog %>%
-      filter(trt %in% c("Reference")) %>%
+      filter(trt %in% c("Reference","transplant")) %>%
       group_by(herd) %>%
       filter(yrs %in% (max(yrs) - 9):max(yrs)) %>% ## filter to 10 years before intervention started
       summarise(r = mean(log(lambda), na.rm = TRUE)), ## geo mean per herd
@@ -1609,7 +1633,7 @@ map <- ggRGB(bmap.big, r = 1, g = 2, b = 3) +
     st_transform(cust.crs), size = 1, fill = NA, linetype = "dashed") +
   geom_sf(data = herd.bounds, aes(fill = r.class2), inherit.aes = FALSE, alpha = 0.7) +
   geom_sf(data = herd.bounds %>%
-    filter(ext %in% 1), aes(color = "Extirpated"), fill = NA, inherit.aes = FALSE, alpha = 0.7) +
+    filter(ext %in% 1), aes(color = "fnl extirpation"), fill = NA, inherit.aes = FALSE, alpha = 0.7,linewidth=0.75) +
   geom_sf_text(data = st_centroid(herd.bounds), aes(label = number_label), inherit.aes = FALSE, size = 3, color = "white") +
   geom_sf_text(data = st_centroid(herd.bounds %>% filter(r.class2 == "stable")), aes(label = number_label), inherit.aes = FALSE, size = 2.5, color = "black") +
   geom_sf(data = cities %>% st_transform(cust.crs), inherit.aes = FALSE, size = 3, pch = 21, fill = "white", color = "black") +
@@ -1637,7 +1661,7 @@ map <- ggRGB(bmap.big, r = 1, g = 2, b = 3) +
   scale_x_continuous(expand = c(0, 0), limits = c(5E4, 105E4)) +
   labs(fill = "Population growth\nw/o intervention", title = "a) Southern Mountain Caribou", color = "") +
   scale_fill_viridis_d() +
-  scale_color_manual(values = c("Extirpated" = "red")) +
+  scale_color_manual(values = c("fnl extirpation" = "red")) +
   guides(fill = guide_legend(nrow = 2, byrow = TRUE))
 
 
