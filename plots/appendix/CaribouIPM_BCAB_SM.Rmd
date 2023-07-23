@@ -27,6 +27,8 @@ library(hrbrthemes)
 library(broom.mixed)
 library(lme4)
 library(gt)
+library(ggrepel)
+library(knitr)
 library(tidyverse)
 
 #display.brewer.pal(8, "Accent")
@@ -314,7 +316,7 @@ for(i in 1:length(herds)){
     coord_cartesian(
       clip = "off")
   
-  ggsave(here::here("plots","with_treatments", paste0(herds[i]%>%str_replace_all("[:punct:]", " "),".png")), width=4,height=4, bg="white")
+  ggsave(here::here("plots","by_herd","with_treatments", paste0(herds[i]%>%str_replace_all("[:punct:]", " "),".png")), width=4,height=4, bg="white")
   
   
   ggplot() +
@@ -339,7 +341,7 @@ for(i in 1:length(herds)){
     coord_cartesian(
       clip = "off")
   
-  ggsave(here::here("plots","without_treatments", paste0(herds[i]%>%str_replace_all("[:punct:]", " "),".png")), width=4,height=4, bg="white")
+  ggsave(here::here("plots", "by_herd","without_treatments", paste0(herds[i]%>%str_replace_all("[:punct:]", " "),".png")), width=4,height=4, bg="white")
   
   
   
@@ -363,7 +365,7 @@ for(i in 1:length(herds)){
     coord_cartesian(
       clip = "off")
   
-  ggsave(here::here("plots","without_rug or treatment", paste0(herds[i]%>%str_replace_all("[:punct:]", " "),".png")), width=4,height=4, bg="white")
+  ggsave(here::here("plots", "by_herd", "without_rug or treatment", paste0(herds[i]%>%str_replace_all("[:punct:]", " "),".png")), width=4,height=4, bg="white")
   
 }
 ```
