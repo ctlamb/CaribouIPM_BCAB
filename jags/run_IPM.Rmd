@@ -571,14 +571,10 @@ out <- jagsUI::jags(ipm_dat,
 	n.burnin = nbu,
 	n.thin = nth,
 	n.adapt = nad)
-
-
-# Error in setParameters(init.values[[i]], i) : Error in node meanR
-# Cannot set value of non-variable node
 ```
 
 ## Save outputs
 ```{r Save outputs, results='hide', message=FALSE, warning=FALSE, eval=FALSE}
 #mcmcplots::mcmcplot(out$samples, par = c("S", "R", "totNMF")) 
-saveRDS(out, file = here::here("jags/output/BCAB_CaribouIPM_posteriors_2023_06_13_breakouticha_JNgammaedits.rds"))
+saveRDS(out, file = here::here("jags/output/BCAB_CaribouIPM_posteriors_2023_07_24.rds"))
 ```
