@@ -232,6 +232,7 @@ ggplot(demog, aes(y = log(lambda), x = totNMF)) +
     y = "Instanteous rate of increase (r)"
   )
 ```
+
 ## First year of demographic data for each herd
 ```{r Firstyr, message=FALSE, warning=FALSE}
 raw.demog <- rbind(

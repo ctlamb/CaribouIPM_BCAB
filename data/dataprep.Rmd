@@ -692,6 +692,14 @@ recruitment <- tibble(
   )
 
 
+##export raw recruitment with adult-calf #s
+write_csv(recruitment%>%
+            drop_na(recruitment)%>%
+              mutate(year = case_when(
+    season %in% c("spring", "fall") ~ year + 1,
+    TRUE ~ year)),
+    here::here("data", "clean", "recruitment_counts.csv"))
+
 
 ## choose which recruitment to use, hierarchy is MNKA>OTC>OSC
 
@@ -750,8 +758,6 @@ recruitment %>%
     n = n()
   ) %>%
   kable()
-
-
 
 # ##add in Tonquin recruitment
 ## fall counts
