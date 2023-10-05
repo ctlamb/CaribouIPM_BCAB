@@ -10,6 +10,7 @@
 
 
 ## ----Load packages and data, results='hide', message=FALSE, warning=FALSE------------------------------------------------------------
+library(packrat)
 library(here)
 library(RColorBrewer)
 library(ggridges)
@@ -134,6 +135,34 @@ first.yr.summary <-first.yr%>%
   ungroup
   
 kable(first.yr.summary)
+
+
+## ----r2 plot, message=FALSE, warning=FALSE-------------------------------------------------------------------------------------------
+trt.plot <- trt%>%
+  filter(applied==1)%>%
+  mutate(intensity=replace_na(intensity, "standard"))%>%
+  group_by(herd,treatment,intensity)%>%
+  count()%>%
+  pivot_wider(names_from="intensity", values_from="n")%>%
+  mutate(low=replace_na(low,0),
+        total=sum(low,standard, na.rm=TRUE),
+         label=paste0(total, " (",low,")"))
+
+ggplot(trt.plot, aes(y=herd, x=treatment)) + 
+    geom_tile(aes(fill=total)) + 
+    geom_text(aes(label=label), color="white")+
+  scale_fill_viridis_c()+
+  theme_ipsum()+
+      theme(axis.title.x = element_text(size=18),
+          axis.title.y = element_text(size=18),
+          axis.text.x = element_text(size=15, angle=20,hjust=1),
+          axis.text.y = element_text(size=15),
+          legend.text = element_text(size=13),
+          legend.title=element_text(size=15))+
+  labs(x="Recovery action", y="Subpopulation", fill="Years applied")
+
+ggsave(here::here("plots", "appendix","treatment_matrix.png"), width = 10, height = 10, bg = "white")
+
 
 
 ## ----trajectory by ECCC ecotype, echo=TRUE, fig.height=6, fig.width=18, message=FALSE, warning=FALSE---------------------------------

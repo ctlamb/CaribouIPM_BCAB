@@ -6,6 +6,7 @@ Clayton T. Lamb
 ## Load Data
 
 ``` r
+library(packrat)
 library(here)
 library(RColorBrewer)
 library(ggridges)
@@ -143,6 +144,39 @@ kable(first.yr.summary)
 | Graham    | Northern Group |       1988 |     1 |      5 | 0.5555556 |
 | Duncan    | Southern Group |       1991 |     1 |     10 | 0.5263158 |
 | Klinse-Za | Central Group  |       1996 |     1 |      6 | 0.5000000 |
+
+## Treatment plot for R2
+
+``` r
+trt.plot <- trt%>%
+  filter(applied==1)%>%
+  mutate(intensity=replace_na(intensity, "standard"))%>%
+  group_by(herd,treatment,intensity)%>%
+  count()%>%
+  pivot_wider(names_from="intensity", values_from="n")%>%
+  mutate(low=replace_na(low,0),
+        total=sum(low,standard, na.rm=TRUE),
+         label=paste0(total, " (",low,")"))
+
+ggplot(trt.plot, aes(y=herd, x=treatment)) + 
+    geom_tile(aes(fill=total)) + 
+    geom_text(aes(label=label), color="white")+
+  scale_fill_viridis_c()+
+  theme_ipsum()+
+      theme(axis.title.x = element_text(size=18),
+          axis.title.y = element_text(size=18),
+          axis.text.x = element_text(size=15, angle=20,hjust=1),
+          axis.text.y = element_text(size=15),
+          legend.text = element_text(size=13),
+          legend.title=element_text(size=15))+
+  labs(x="Recovery action", y="Subpopulation", fill="Years applied")
+```
+
+![](README_files/figure-gfm/r2%20plot-1.png)<!-- -->
+
+``` r
+ggsave(here::here("plots", "appendix","treatment_matrix.png"), width = 10, height = 10, bg = "white")
+```
 
 ## Plot trajectory by ECCC ecotype
 
