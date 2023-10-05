@@ -1,4 +1,4 @@
-## ----render, eval=FALSE,include=FALSE-----------------------------------------------------------------------------------------------
+## ----render, eval=FALSE,include=FALSE-------------------------------------------------------------------------------------------------
 ## rmarkdown::render(here::here("jags", 'run_IPM.Rmd'),
 ##                   output_file =  "README.md")
 ## 
@@ -6,7 +6,7 @@
 ##                   output =  here::here("scripts_r", '2.run_IPM.r'))
 
 
-## ----Load packages and data, results='hide', message=FALSE, warning=FALSE-----------------------------------------------------------
+## ----Load packages and data, results='hide', message=FALSE, warning=FALSE-------------------------------------------------------------
 library(tidybayes)
 library(ggmcmc)
 library(hrbrthemes)
@@ -14,6 +14,7 @@ library(tidylog)
 library(tidyverse)
 
 # Load data ---------------------------------------------------------------
+
 
 hd <- read.csv(here::here("data/clean/blueprint.csv"))
 hn <- hd %>%
@@ -48,14 +49,18 @@ sexratio_summary <-  read.csv(here::here("data/clean/sexratio_summary.csv"))
 #trt$applied[is.na(trt$applied)] <- 0
 
 
-## ----Prep data for IPM, results='hide', message=FALSE, warning=FALSE----------------------------------------------------------------
+## ----Prep data for IPM, results='hide', message=FALSE, warning=FALSE------------------------------------------------------------------
 
 
 # Herds and herd number
 herds <- unique(hd$herd)
 nherd <- nrow(hn)
 hd <- hd%>%
-  left_join(ecotype, by="herd")
+  left_join(ecotype%>%
+              add_row(herd="Quintette Full",
+                      ECCC="Central Group",
+                      COSEWIC="DU8",
+                      Heard_Vagt1998="Northern"), by="herd")
 hd$demog_grp <- hd$ECCC%>%factor%>%as.numeric() 
 hd[hd$herd%in%c("Charlotte Alplands","Itcha-Ilgachuz","Rainbows"),"demog_grp"]<-4
 nsight_grp <- length(unique(hd$sight_grp))
@@ -428,7 +433,7 @@ nyr <- rest_yr
 
 
 
-## ----Gather data inputs in a list, results='hide', message=FALSE, warning=FALSE-----------------------------------------------------
+## ----Gather data inputs in a list, results='hide', message=FALSE, warning=FALSE-------------------------------------------------------
 ipm_dat <- list(
 	nherd = nherd,
 	nyr = nyr,
@@ -529,18 +534,13 @@ model_parms <- c(
 	)
 
 
-## ----Run IPM, results='hide', message=FALSE, warning=FALSE, eval=FALSE--------------------------------------------------------------
+## ----Run IPM, results='hide', message=FALSE, warning=FALSE, eval=FALSE----------------------------------------------------------------
 ## nth <- 90
 ## nbu <- 30000
 ## nch <- 3
 ## nad <- 60000
 ## nit <- 400000
 ## 
-## # nth <- 10
-## # nbu <- 2000
-## # nch <- 3
-## # nad <- 3000
-## # nit <- 12000
 ## 
 ## out <- jagsUI::jags(ipm_dat,
 ## 	inits = ipm_inits,
@@ -554,11 +554,9 @@ model_parms <- c(
 ## 	n.adapt = nad)
 ## 
 ## 
-## # Error in setParameters(init.values[[i]], i) : Error in node meanR
-## # Cannot set value of non-variable node
 
 
-## ----Save outputs, results='hide', message=FALSE, warning=FALSE, eval=FALSE---------------------------------------------------------
+## ----Save outputs, results='hide', message=FALSE, warning=FALSE, eval=FALSE-----------------------------------------------------------
 ## #mcmcplots::mcmcplot(out$samples, par = c("S", "R", "totNMF"))
-## saveRDS(out, file = here::here("jags/output/BCAB_CaribouIPM_posteriors_2023_06_13_breakouticha_JNgammaedits.rds"))
+## saveRDS(out, file = here::here("jags/output/BCAB_CaribouIPM_23update.rds"))
 

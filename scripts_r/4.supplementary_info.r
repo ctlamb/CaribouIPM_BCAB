@@ -1,4 +1,4 @@
-## ----render, eval=FALSE,include=FALSE----------------------------------------------------------------------------------------------
+## ----render, eval=FALSE,include=FALSE------------------------------------------------------------------------------------------------
 ## rmarkdown::render(here::here("plots", "appendix", "CaribouIPM_BCAB_SM.Rmd"),
 ##   output_file = "README.md"
 ## )
@@ -9,7 +9,7 @@
 ## )
 
 
-## ----Load packages and data, results='hide', message=FALSE, warning=FALSE----------------------------------------------------------
+## ----Load packages and data, results='hide', message=FALSE, warning=FALSE------------------------------------------------------------
 library(here)
 library(RColorBrewer)
 library(ggridges)
@@ -21,41 +21,59 @@ library(tidyverse)
 
 #display.brewer.pal(8, "Accent")
 cols <- RColorBrewer::brewer.pal(8, "Accent")
+hd <- read.csv(here::here("data/clean/blueprint.csv"))
+herds.keep <- hd%>%
+  filter(herd!="Quintette Full")%>%
+  distinct(herd)%>%
+  pull()
 
-demog.draws <- read_csv(here::here("tables/draws/demog.draws.csv"))
-demog <- read_csv(here::here("tables/demog.csv"))
-eff.draws <- read_csv(here::here("tables/draws/eff.draws.csv"))
-eff.draws.app <- read_csv(here::here("tables/draws/eff.draws.app.csv"))
+demog.draws <- read_csv(here::here("tables/draws/demog.draws.csv"))%>%
+  filter(herd%in%herds.keep)
+demog <- read_csv(here::here("tables/demog.csv"))%>%
+  filter(herd%in%herds.keep)
+eff.draws <- read_csv(here::here("tables/draws/eff.draws.csv"))%>%
+  filter(herd%in%herds.keep)
+eff.draws.app <- read_csv(here::here("tables/draws/eff.draws.app.csv"))%>%
+  filter(herd%in%herds.keep)
 ecotype <- read.csv(here::here("data/raw/treatment.csv")) %>%
   dplyr::select(herd = Herd, ECCC = ECCC_Recov_Grp, COSEWIC = COSEWIC_Grp, Heard_Vagt1998 = Heard.and.Vagt.1998.grouping) %>%
   distinct()%>%
   mutate(herd=case_when(herd%in%"Narraway BC"~"Bearhole Redwillow",
-         TRUE~herd))
+         TRUE~herd))%>%
+  filter(herd%in%herds.keep)
 trt_eff_ba_table<-read_csv(here::here("tables", "trt_eff_ba.csv"))
-sims <- read_csv(here::here("tables/draws/sims.draws.csv"))
+sims <- read_csv(here::here("tables/draws/sims.draws.csv"))%>%
+  filter(herd%in%herds.keep)
+label.lookup <-  read.csv(here::here("data/clean/label_lookup.csv"))
 
 ##for first plots
-hd <- read.csv(here::here("data/clean/blueprint.csv"))
 hn <- hd %>%
-  dplyr::select(herd, herd_num)
+  dplyr::select(herd, herd_num)%>%
+  filter(herd%in%herds.keep)
 hn <- hd %>%
-  dplyr::select(herd, herd_num)
+  dplyr::select(herd, herd_num)%>%
+  filter(herd%in%herds.keep)
 trt <- read.csv(here::here("data/clean/treatments.csv")) %>%
   arrange(herd) %>%
-  left_join(hn, by = "herd")
+  left_join(hn, by = "herd")%>%
+  filter(herd%in%herds.keep)
 
 afs <- read.csv(here::here("data/clean/survival.csv")) %>%
   arrange(herd) %>%
-  left_join(hn, by = "herd")
+  left_join(hn, by = "herd")%>%
+  filter(herd%in%herds.keep)
 afr <- read.csv(here::here("data/clean/recruitment.csv")) %>%
   arrange(herd) %>%
-  left_join(hn, by = "herd")
+  left_join(hn, by = "herd")%>%
+  filter(herd%in%herds.keep)
 counts <- read.csv(here::here("data/clean/counts.csv")) %>%
   arrange(herd) %>%
-  left_join(hn, by = "herd")
+  left_join(hn, by = "herd")%>%
+  filter(herd%in%herds.keep)
 ecotype <- read.csv(here::here("data/raw/treatment.csv")) %>%
   dplyr::select(herd = Herd, ECCC = ECCC_Recov_Grp, COSEWIC = COSEWIC_Grp, Heard_Vagt1998 = Heard.and.Vagt.1998.grouping) %>%
-  distinct()
+  distinct()%>%
+  filter(herd%in%herds.keep)
 
 ##bearhole naming
 counts <- counts %>% mutate(herd = case_when(herd %in% "Narraway BC" ~ "Bearhole Redwillow", TRUE ~ herd))
@@ -65,7 +83,7 @@ afs <- afs %>% mutate(herd = case_when(herd %in% "Narraway BC" ~ "Bearhole Redwi
 ecotype <- ecotype %>% mutate(herd = case_when(herd %in% "Narraway BC" ~ "Bearhole Redwillow", TRUE ~ herd))
 
 
-## ----Firstyr, message=FALSE, warning=FALSE-----------------------------------------------------------------------------------------
+## ----Firstyr, message=FALSE, warning=FALSE-------------------------------------------------------------------------------------------
 raw.demog <- rbind(
   afr %>% dplyr::select(herd, year, est) %>% mutate(type = "Recruit"),
   afs %>% dplyr::select(herd, year, est) %>% mutate(type = "Surv"),
@@ -89,7 +107,7 @@ ggplot(first.yr, aes(x = first.year, y=cumsum)) +
   theme_ipsum() +
   labs(
     x = "Year", y = "Cumulative count",
-    title = "First year of demographic data for the 41 SMC herds between 1973-2021",
+    title = "First year of demographic data for the 41 SMC herds between 1973-2023",
     subtitle = "Cumulative count of herds being monitored through time"
   ) +
   theme(
@@ -118,7 +136,7 @@ first.yr.summary <-first.yr%>%
 kable(first.yr.summary)
 
 
-## ----trajectory by ECCC ecotype, echo=TRUE, fig.height=6, fig.width=18, message=FALSE, warning=FALSE-------------------------------
+## ----trajectory by ECCC ecotype, echo=TRUE, fig.height=6, fig.width=18, message=FALSE, warning=FALSE---------------------------------
 sims.plot <- sims %>%
   filter(.variable%in%c("totNMF", "pred_totNMF"))%>%
   left_join(ecotype, by="herd")%>%
@@ -145,7 +163,7 @@ abundance.all.plot <- ggplot(data = sims.plot %>%
   ))) +
   geom_ribbon(alpha = 0.3, aes(x = yrs, y = mean, ymin = LCL, ymax = UCL, fill = fct_relevel(.variable, "Status quo", "Observed")), color = NA) +
   geom_line(size = 1, aes(x = yrs, y = mean, ymin = LCL, ymax = UCL, color = fct_relevel(.variable, "Status quo", "Observed"), fill = fct_relevel(.variable, "Status quo", "Observed"))) +
-  geom_text(data = sims.plot %>% filter(yrs == 2021) %>%
+  geom_text(data = sims.plot %>% filter(yrs == 2023) %>%
     mutate(.variable = case_when(
       .variable == "totNMF" ~ "Observed",
       TRUE ~ "Status quo"
@@ -207,7 +225,7 @@ abundance.all.plot
 ggsave(plot = abundance.all.plot, here::here("plots", "appendix","abundance_byecotype.png"), width = 18, height = 6, bg = "white")
 
 
-current.yr <-2021
+current.yr <-2023
 cosewic.abund <- sims.plot%>%
   group_by(ECCC)%>%
   dplyr::select(-first.year)%>%
@@ -223,15 +241,15 @@ cosewic.abund <- sims.plot%>%
 cosewic.abund%>%
   dplyr::select(ECCC,yrs,mean)%>%
   pivot_wider(values_from=mean, names_from=yrs)%>%
-  dplyr::select(ECCC, `1993`,`1996`, `2012`, `2021`)%>%
-  mutate(decline.10yr=(((`2021`-`2012`)/`2012`)*100)%>%round(0),
-         decline.3generation=case_when(ECCC!="Central Group"~(((`2021`-`1993`)/`1993`)*100)%>%round(0),
-                                       ECCC=="Central Group"~(((`2021`-`1996`)/`1996`)*100)%>%round(0)))%>%
+  dplyr::select(ECCC, `1995`,`1996`, `2014`, `2023`)%>%
+  mutate(decline.10yr=(((`2023`-`2014`)/`2014`)*100)%>%round(0),
+         decline.3generation=case_when(ECCC!="Central Group"~(((`2023`-`1995`)/`1995`)*100)%>%round(0),
+                                       ECCC=="Central Group"~(((`2023`-`1996`)/`1996`)*100)%>%round(0)))%>%
     gt()%>%
   gtsave(here::here("tables", "appendix", "ecotype_change.rtf"))
 
 
-## ----plotbyherd, message=FALSE, warning=FALSE--------------------------------------------------------------------------------------
+## ----plotbyherd, message=FALSE, warning=FALSE----------------------------------------------------------------------------------------
 ## prep data
 trt.plot <- trt %>%
   filter(applied == 1) %>%
@@ -286,7 +304,7 @@ for(i in 1:length(herds)){
     geom_linerange(data=counts%>%filter(herd==!!herds[i])%>%mutate(Est_CL.max=case_when(Est_CL.max>5000~5000,TRUE~Est_CL.max)),aes(x=year, ymin=Est_CL.min,  ymax=Est_CL.max),alpha=0.5)+
     geom_point(data=trt.plot%>%filter(herd==!!herds[i]),aes(x=year, y=y, group=treatment, color=treatment),size=0.5)+
     scale_color_manual(values=cols[-4])+
-    geom_text_repel(data =  trt.dat.i, aes(label = treatment, colour = treatment, x = 2021, y = y*0.97), 
+    geom_text_repel(data =  trt.dat.i, aes(label = treatment, colour = treatment, x = 2023, y = y*0.97), 
                     direction = "y",
                     seed=999,
                     force=0.5,
@@ -300,7 +318,7 @@ for(i in 1:length(herds)){
     coord_cartesian(
       clip = "off")
   
-  ggsave(here::here("plots","with_treatments", paste0(herds[i]%>%str_replace_all("[:punct:]", " "),".png")), width=4,height=4, bg="white")
+  ggsave(here::here("plots","by_herd","with_treatments", paste0(herds[i]%>%str_replace_all("[:punct:]", " "),".png")), width=4,height=4, bg="white")
   
   
   ggplot() +
@@ -325,7 +343,7 @@ for(i in 1:length(herds)){
     coord_cartesian(
       clip = "off")
   
-  ggsave(here::here("plots","without_treatments", paste0(herds[i]%>%str_replace_all("[:punct:]", " "),".png")), width=4,height=4, bg="white")
+  ggsave(here::here("plots","by_herd","without_treatments", paste0(herds[i]%>%str_replace_all("[:punct:]", " "),".png")), width=4,height=4, bg="white")
   
   
   
@@ -349,12 +367,12 @@ for(i in 1:length(herds)){
     coord_cartesian(
       clip = "off")
   
-  ggsave(here::here("plots","without_rug or treatment", paste0(herds[i]%>%str_replace_all("[:punct:]", " "),".png")), width=4,height=4, bg="white")
+  ggsave(here::here("plots","by_herd","without_rug or treatment", paste0(herds[i]%>%str_replace_all("[:punct:]", " "),".png")), width=4,height=4, bg="white")
   
 }
 
 
-## ----summarize by ECCC, echo=TRUE, message=FALSE, warning=FALSE--------------------------------------------------------------------
+## ----summarize by ECCC, echo=TRUE, message=FALSE, warning=FALSE----------------------------------------------------------------------
 trt.yrs.app <- demog.draws %>%
   group_by(herd, yrs, trt) %>%
   mutate(totNMF.median = median(totNMF)) %>% # get average pop size so popsize threshold doesnt split low/standard in some years due to draws being above/below threshold
@@ -386,7 +404,7 @@ eff.draws.app%>%
   gtsave(here::here("tables", "appendix", "ecotype_trt_eff_summary_ECCC.rtf"))
 
 
-## ----summarize by HV, echo=TRUE, message=FALSE, warning=FALSE----------------------------------------------------------------------
+## ----summarize by HV, echo=TRUE, message=FALSE, warning=FALSE------------------------------------------------------------------------
 trt.yrs.app.hv <- demog.draws %>%
   group_by(herd, yrs, trt) %>%
   mutate(totNMF.median = median(totNMF)) %>% # get average pop size so popsize threshold doesnt split low/standard in some years due to draws being above/below threshold
@@ -418,7 +436,7 @@ eff.draws.app%>%
   gtsave(here::here("tables", "appendix", "ecotype_trt_eff_summary_Heard_Vagt1998.rtf"))
 
 
-## ----trt eff- BACI w ECCC ecotype, echo=TRUE, fig.height=9, fig.width=13, message=FALSE, warning=FALSE-----------------------------
+## ----trt eff- BACI w ECCC ecotype, echo=TRUE, fig.height=9, fig.width=13, message=FALSE, warning=FALSE-------------------------------
 
 ##add ecotype from ECCC and from Heard Vagt 1998
 demog.mod.baci <- demog.draws %>%
@@ -596,7 +614,7 @@ ggsave(here::here("plots", "appendix", "baci_all_ECCC.png"), width = 10, height 
 
 
 
-## ----trt eff- BACI w HV1998 ecotype, echo=TRUE, message=FALSE, warning=FALSE-------------------------------------------------------
+## ----trt eff- BACI w HV1998 ecotype, echo=TRUE, message=FALSE, warning=FALSE---------------------------------------------------------
 
 #### Heard and Vagt grouping
 
@@ -766,7 +784,7 @@ ggsave(here::here("plots", "appendix", "baci_all_Heard_Vagt1998.png"), width = 1
 
 
 
-## ----trt eff- BACI compare w BA, echo=TRUE, message=FALSE, warning=FALSE-----------------------------------------------------------
+## ----trt eff- BACI compare w BA, echo=TRUE, message=FALSE, warning=FALSE-------------------------------------------------------------
 hv.summary <- baci.hv.draws %>%
   group_by(trt.grp) %>%
   summarise(
@@ -776,7 +794,9 @@ hv.summary <- baci.hv.draws %>%
   ) %>%
   arrange(-delta.l) %>%
   mutate(delta.r = paste0(delta.l, " (", lower, "-", upper, ")")) %>%
-  dplyr::select(Treatment = trt.grp, `Delta r (BACI): Heard Vagt (1998)` = delta.r)
+  rename(trt=trt.grp)%>%
+  left_join(label.lookup, by="trt")%>%
+  dplyr::select(Treatment = new, `Delta r (BACI): Heard Vagt (1998)` = delta.r)
 
 
 eccc.summary <- baci.eccc.draws %>%
@@ -788,7 +808,9 @@ eccc.summary <- baci.eccc.draws %>%
   ) %>%
   arrange(-delta.l) %>%
   mutate(delta.r = paste0(delta.l, " (", lower, "-", upper, ")")) %>%
-  dplyr::select(Treatment = trt.grp, `Delta r (BACI): ECCC` = delta.r)
+    rename(trt=trt.grp)%>%
+  left_join(label.lookup, by="trt")%>%
+  dplyr::select(Treatment = new, `Delta r (BACI): ECCC` = delta.r)
 
 
 trt_eff_ba_table %>%
@@ -800,7 +822,7 @@ trt_eff_ba_table %>%
   gtsave(here::here("tables", "appendix", "trt_eff_baci_compare.rtf"))
 
 
-## ----r and delta r by ECCC ecotype, echo=TRUE, message=FALSE, warning=FALSE--------------------------------------------------------
+## ----r and delta r by ECCC ecotype, echo=TRUE, message=FALSE, warning=FALSE----------------------------------------------------------
 
 demog.draws.combotreat.ecotype <- demog.draws %>%
   filter(yrs >= 2010) %>%
@@ -884,7 +906,7 @@ ggplot() +
 ggsave(here::here("plots", "appendix", "baci_treatments_ecotype.png"), width = 8, height = 7, bg = "white")
 
 
-## ----individual by ECCC ecotype, echo=TRUE, message=FALSE, warning=FALSE-----------------------------------------------------------
+## ----individual by ECCC ecotype, echo=TRUE, message=FALSE, warning=FALSE-------------------------------------------------------------
 ind.eff.ecotype <- eff.draws %>%
   filter(name == "Rate of increase (r)" & !trt %in% "transplant") %>%
   left_join(ecotype) %>%
@@ -954,7 +976,7 @@ ind.eff.ecotype.raw <- eff.draws %>%
   mutate(ECCC = str_split(ECCC, " ", simplify = TRUE)[, 1])
 
 
-## ----individual by HV ecotype, echo=TRUE, fig.height=9, fig.width=13, message=FALSE, warning=FALSE---------------------------------
+## ----individual by HV ecotype, echo=TRUE, fig.height=9, fig.width=13, message=FALSE, warning=FALSE-----------------------------------
 ind.eff.ecotype.hv <- eff.draws %>%
   filter(name == "Rate of increase (r)" & !trt %in% "transplant") %>%
   left_join(ecotype) %>%
@@ -1006,7 +1028,7 @@ ind.eff.ecotype.hv %>%
 
 
 
-## ----raw results ECCC ecotype, echo=TRUE, message=FALSE, warning=FALSE-------------------------------------------------------------
+## ----raw results ECCC ecotype, echo=TRUE, message=FALSE, warning=FALSE---------------------------------------------------------------
 ggplot() +
   geom_boxplot(data = ind.eff.ecotype.raw, aes(x = ECCC, y = delta.r), outlier.alpha = 0) +
   geom_jitter(data = ind.eff.ecotype.raw, aes(x = ECCC, y = delta.r, color = trt), width = 0.2) +
@@ -1075,7 +1097,7 @@ ggplot() +
 ggsave(here::here("plots", "appendix", "ind.trt_eff_boxplot_ecotype.png"), width = 8, height = 7, bg = "white")
 
 
-## ----raw results HV1998 ecotype, echo=TRUE, message=FALSE, warning=FALSE-----------------------------------------------------------
+## ----raw results HV1998 ecotype, echo=TRUE, message=FALSE, warning=FALSE-------------------------------------------------------------
 ggplot() +
   geom_boxplot(data = ind.eff.ecotype.raw, aes(x = Heard_Vagt1998, y = delta.r), outlier.alpha = 0) +
   geom_jitter(data = ind.eff.ecotype.raw, aes(x = Heard_Vagt1998, y = delta.r, color = trt), width = 0.2) +

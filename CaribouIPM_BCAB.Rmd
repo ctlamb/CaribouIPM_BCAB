@@ -21,6 +21,9 @@ knitr::purl(
 ## Load Data
 ```{r Load packages and data, results='hide', message=FALSE, warning=FALSE}
 library(packrat)
+# packrat::init()
+# packrat::snapshot()
+# packrat::status()
 library(ggmap)
 library(RStoolbox)
 library(ggsn)

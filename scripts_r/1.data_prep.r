@@ -1,4 +1,4 @@
-## ----render, eval=FALSE,include=FALSE----------------------------------------------------------------------------------------------
+## ----render, eval=FALSE,include=FALSE------------------------------------------------------------------------------------------------
 ## rmarkdown::render(here::here("data", "dataprep.Rmd"),
 ##   output_file = "README.md"
 ## )
@@ -9,7 +9,7 @@
 ## )
 
 
-## ----Load packages and data, results='hide', message=FALSE, warning=FALSE----------------------------------------------------------
+## ----Load packages and data, results='hide', message=FALSE, warning=FALSE------------------------------------------------------------
 library(here)
 library(tidyverse)
 library(lubridate)
@@ -23,7 +23,7 @@ library(tidylog)
 set.seed(2023)
 
 #### Year cut off, for trimming of data that is being updated
-year.cut <- 2021
+year.cut <- 2023
 
 count.raw <- read_csv(here::here("data", "raw", "count.csv"))
 surv.raw <- read_csv(here::here("data", "raw", "surv.csv"))
@@ -45,19 +45,17 @@ tonq <- read_csv(here::here("data", "raw", "Tonquin_Moeller2020.csv")) ## poster
 tonq.abund <- read_csv(here::here("data", "raw", "Tonquin_Moeller2020_totalN.csv")) ## overall totalN from Anna Feb 9, 2023
 
 
-## ----filter, results='hide', message=FALSE, warning=FALSE--------------------------------------------------------------------------
+## ----filter, results='hide', message=FALSE, warning=FALSE----------------------------------------------------------------------------
 herds <- treat.raw %>%
   filter(!Exclude %in% "Y") %>% ## remove herds that don't have enough data/years
   filter(!Herd %in% "Central Selkirks") %>% ## now split into Nakusp/Duncan
   distinct(Herd) %>%
   pull(Herd)
 
+herds <- c(herds, "Quintette Full") ##add in new QT
+
 treat.raw <- treat.raw %>%
-  filter(Herd %in% herds) %>%
-  mutate(end.year = case_when(
-    end.year > year.cut ~ year.cut,
-    TRUE ~ end.year
-  ))
+  filter(Herd %in% herds)
 
 count.raw <- count.raw %>%
   rename(herd = Herd) %>%
@@ -70,18 +68,25 @@ surv.raw <- surv.raw %>%
   filter(herd %in% herds)
 
 
-## ----survival prep, message=FALSE, warning=FALSE-----------------------------------------------------------------------------------
+## ----add new data, results='hide', message=FALSE, warning=FALSE----------------------------------------------------------------------
 unique(surv.raw$Outcome)
 unique(surv.raw$`Sex (F, M)`)
 unique(surv.raw$Age.when.collard)
 
-## format dates, calculate monitoring days, and trim to only adult females
+## SURVIVAL: format dates, calculate monitoring days, and trim to only adult females
 surv <- surv.raw %>%
-  # filter(!(herd%in%"Columbia North" & Comment%in%c("wild","release")))%>% ##to remove penned animals in CN
   mutate(
     DateEntry = ymd(`Date entry`), # get dates dialed
     DateExit = ymd(`Date exit`)
   ) %>%
+  select(herd, `Animal ID`, WLHID, Sex = `Sex (F, M)`, Ageclass = Age.when.collard, DateEntry, DateExit, Outcome) %>% ## slim down to only needed columns
+  # filter(!(herd%in%"Columbia North" & Comment%in%c("wild","release")))%>% ##to remove penned animals in CN
+  rbind(read_csv(here::here("data/raw/surv.2022onwards.csv")) %>%
+    mutate(
+      DateEntry = ymd(`Date entry`), # get dates dialed
+      DateExit = ymd(`Date exit`)
+    ) %>%
+    select(herd, `Animal ID`, WLHID, Sex, Ageclass, DateEntry, DateExit, Outcome)) %>% ## add in 2022 onwards data
   mutate(
     id = case_when(
       is.na(WLHID) ~ `Animal ID`, ## fix ID's
@@ -94,35 +99,70 @@ surv <- surv.raw %>%
     TRUE ~ 0
   )) %>%
   filter(
-    !`Sex (F, M)` %in% c("M"),
-    !Age.when.collard %in% c("Juv", "Calf"),
+    !`Sex` %in% c("M"),
+    !Ageclass %in% c("Calf"),
     MonitoringDays > 0
   ) %>%
   dplyr::select(id, herd, DateEntry, DateExit, event)
 
 
-# surv.raw%>%
-#   #filter(!(herd%in%"Columbia North" & Comment%in%c("wild","release")))%>% ##to remove penned animals in CN
-#   mutate(DateEntry=ymd(`Date entry`), #get dates dialed
-#          DateExit=ymd(`Date exit`))%>%
-#   mutate(id=case_when(is.na(WLHID)~ `Animal ID`, ##fix ID's
-#                          TRUE~WLHID),
-#          MonitoringDays=(DateExit-DateEntry)%>%as.numeric)%>%
-#   mutate(event=case_when(Outcome%in%c("Mortality")~1,
-#                          TRUE~0))
-#   filter(`Sex (F, M)`%in%c("M","F"),
-#          Age.when.collard%in%c("Adult", "Calf"),
-#          MonitoringDays>0)%>%
-#   group_by(`Sex (F, M)`,Age.when.collard)%>%
-#   summarise(morts=sum(event),
-#             days=sum(MonitoringDays),
-#             n=n())%>%
-#   mutate((1-(morts/days))^365)
+## COUNTS
+count.raw <- count.raw%>%
+  select(herd,
+        Year,
+        `Official Survey Timing`,
+        NFG,
+        `NFG-Reason`,
+        `N collar available`,
+        `N collars detected`,
+        `Survey Count (KMB = SO, Total count) OTC`,
+        `KMB = Observed sample count, OSC; Min count (survey for recruitment - cannot be used for trend analyses in the IPM or otherwise)`,
+        `MinCount (KMB = Minimum # known alive)`,
+        `N. Calves (OTC)`,
+        `Yrling - Unclas Sex (OTC)`,
+        `N. Adult F (OTC)`,
+        `N. Adult M (OTC)`,
+        `N. Adult (Sex Unclassified) (OTC)`,
+        `Unclassified Life Stage and Sex (OTC)`,
+        `N. Calves (OSC)`,
+        `Yrling - Unclas Sex (OSC)`,
+        `N. Adult F (OSC)`,
+        `N. Adult M (OSC)`,
+        `N. Adult (Sex Unclassified) (OSC)`,
+        `Unclassified Life Stage and Sex (OSC)`,
+        `N. Calves (Min # Known Alive)`,
+        `Yrling - Unclas Sex (Min # Known Alive)`,
+        `N. Adult F (Min # Known Alive)`,
+        `N. Adult M (Min # Known Alive)`,
+        `N. Adult (Sex Unclassified) (Min # Known Alive)`,
+        `Unclassified Life Stage and Sex (Min # Known Alive)`,
+        `Estimate (MC, eg JHE)`
+      )%>%
+  rbind(read_csv(here::here("data/raw/count.2022onwards.csv")))
 
+
+##TREATMENTS
+# clean up names of treatments
+treat.raw <- treat.raw %>%
+  mutate(treatment = case_when(
+    treatment %in% "sterilization" ~ "sterilize wolves",
+    treatment %in% "pen" ~ "pen",
+    treatment %in% "feeding" ~ "feed",
+    treatment %in% "wolf reduction" ~ "reduce wolves",
+    treatment %in% "moose reduction" ~ "reduce moose",
+    treatment %in% "moose reduction" ~ "reduce moose",
+    TRUE ~ treatment
+  )) %>%
+  select(herd = Herd, treatment, start.year, end.year, intensity, Exclude)%>%
+  rbind(read_csv(here::here("data/raw/trt.2022onwards.csv")))
+
+
+
+## ----survival prep, message=FALSE, warning=FALSE-------------------------------------------------------------------------------------
 
 ## remove some duplicated columns
 surv <- surv %>%
-  distinct() ## 2
+  distinct() # none
 
 ## fix trailing letter in Chase and Wolverine animal names
 surv <- surv %>%
@@ -179,17 +219,12 @@ surv.yr <- surv.day %>%
     time = (exit.date - enter.date) %>% as.numeric()
   )
 
-
-## keep only years we are interested in
-surv.yr <- surv.yr %>%
-  filter(year < year.cut)
-
 ## save
 write_csv(surv.day, here::here("data", "raw", "survival_day_noCNpen.csv"))
 write_csv(surv.yr, here::here("data", "raw", "survival_yrly.csv"))
 
 
-## ----check surv, message=FALSE, warning=FALSE--------------------------------------------------------------------------------------
+## ----check surv, message=FALSE, warning=FALSE----------------------------------------------------------------------------------------
 fit <- survfit(Surv(time, event) ~ herd, data = surv.yr)
 ggsurvplot(fit,
   pval = TRUE,
@@ -205,7 +240,7 @@ ggsurvplot(fit,
 # summary(survfit(Surv(time, event) ~ herd, data = surv.yr), times = 360)
 
 
-## ----surv est, fig.height=10, fig.width=10, message=FALSE, warning=FALSE-----------------------------------------------------------
+## ----surv est, fig.height=10, fig.width=10, message=FALSE, warning=FALSE-------------------------------------------------------------
 surv.yr$herd <- as.character(surv.yr$herd)
 surv.herds <- unique(surv.yr$herd) %>% as.character()
 
@@ -325,7 +360,7 @@ mean(surv.yr.est$est)
 mean(surv.yr.est$se, na.rm = TRUE)
 
 
-## ----surv est low samp, fig.height=10, fig.width=10, message=FALSE, warning=FALSE--------------------------------------------------
+## ----surv est low samp, fig.height=10, fig.width=10, message=FALSE, warning=FALSE----------------------------------------------------
 ## remove herd-years with <=2 animals (means survival est could only be 0,0.5,or 1)
 surv.yr.est <- surv.yr.est %>%
   mutate(
@@ -433,15 +468,12 @@ ggplot(
 ggsave(here::here("data", "plots", "input_survival2_fixsmallSS.png"), width = 11, height = 9, bg = "white")
 
 
-## keep only years we are interested in
-surv.yr.est <- surv.yr.est %>%
-  filter(year < year.cut)
 
 ## save
 write_csv(surv.yr.est %>% dplyr::select(herd, year, est, sd), here::here("data", "clean", "survival.csv"))
 
 
-## ----sex ratio, fig.height=10, fig.width=12, message=FALSE, warning=FALSE----------------------------------------------------------
+## ----sex ratio, fig.height=10, fig.width=12, message=FALSE, warning=FALSE------------------------------------------------------------
 ## extract sex ratio data from counts
 sr <- count.raw %>%
   filter(!NFG %in% c("Y")) %>%
@@ -566,7 +598,7 @@ sr.sd <- sd(sr.otc %>% rbind(kz.sr) %>% pull(sratio))
 write_csv(tibble(sr = sr.median, sr.sd = sr.sd), here::here("data", "clean", "sexratio_summary.csv"))
 
 
-## ----recruitment, fig.height=10, fig.width=10, message=FALSE, warning=FALSE--------------------------------------------------------
+## ----recruitment, fig.height=10, fig.width=10, message=FALSE, warning=FALSE----------------------------------------------------------
 
 ## extract all 3 types of counts and remove unknown age+sex from the totals (assumes these animals have same calf/cow ratio as pop. Likely if these are just whole groups in the trees)
 ##* sorry that some of these column names are terribly long, I shorten them here**
@@ -597,9 +629,9 @@ recruitment <- count.raw %>%
   ) %>%
   ungroup() %>%
   mutate(season = case_when(
-    `Official Survey Timing` %in% c("Winter", "March", "April", "February") ~ "winter",
+    `Official Survey Timing` %in% c("Winter", "March", "April", "February","January") ~ "winter",
     `Official Survey Timing` %in% c("August", "September", "October", "November") ~ "fall",
-    `Official Survey Timing` %in% c("June", "July") ~ "spring",
+    `Official Survey Timing` %in% c("June", "July","May") ~ "spring",
     is.na(`Official Survey Timing`) ~ NA_character_,
     TRUE ~ "needs class"
   )) %>%
@@ -610,8 +642,12 @@ recruitment <- count.raw %>%
   ) %>%
   drop_na(season)
 
+if(any(recruitment$season=="needs class")){
+      stop("Missing seasons")
+    }
+
 ## remove one record, Itcha's 1978, May survey
-recruitment <- recruitment %>% filter(!season %in% "needs class")
+recruitment <- recruitment %>% filter(!(herd=="Itcha-Ilgachuz" & year==1978 & `N. Adults (OSC)`==1 & is.na(r.OTC)))
 
 ## have a look at OTC vs MNA when they are both present
 recruitment %>%
@@ -823,11 +859,6 @@ recruitment <- recruitment %>%
   filter(season_int <= min(season_int))
 
 
-## keep only complete years of data
-recruitment <- recruitment %>%
-  ungroup() %>%
-  filter(year <= year.cut)
-
 ## offset OSC and MNKA b/c sex ratios are higher. Use observed sex ratios when possible.
 otc.sr <- sr.summary %>%
   filter(type %in% "OTC") %>%
@@ -840,7 +871,7 @@ mnka.sr <- sr.summary %>%
   pull(mean)
 
 recruitment <- recruitment %>%
-  left_join(sr %>% filter(type %in% c("OSC", "MNKA")) %>% dplyr::select(herd, year, season, sratio), by = c("herd", "season", "year")) %>%
+  left_join(sr %>% filter(type %in% c("OSC", "MNKA")) %>% dplyr::select(herd, year, season, sratio,type), by = c("herd", "season", "year","count.used"="type")) %>%
   mutate(
     sratio = case_when(
       count.used %in% "OSC" & is.na(sratio) ~ osc.sr,
@@ -900,7 +931,7 @@ ggplot(recruitment, aes(x = est, y = est.adj, color = count.used)) +
   )
 
 
-## ----counts, fig.height=10, fig.width=12, message=FALSE, warning=FALSE-------------------------------------------------------------
+## ----counts, fig.height=10, fig.width=12, message=FALSE, warning=FALSE---------------------------------------------------------------
 
 ## clean up counts
 counts <- count.raw %>%
@@ -1219,9 +1250,6 @@ ggplot(
 ggsave(here::here("data", "plots", "abundance2.png"), width = 12, height = 10, bg = "white")
 
 
-## keep only complete years of data
-counts <- counts %>%
-  filter(year <= year.cut)
 
 write_csv(counts %>% dplyr::select(herd, year, count, Sightability, sd, MinUsed, Est_CL, Est_CL.min, Est_CL.max), here::here("data", "clean", "counts.csv"))
 
@@ -1239,23 +1267,9 @@ counts %>%
   write_csv(here::here("data", "clean", "herd_sightability_summary.csv"))
 
 
-## ----treatment, fig.height=8, fig.width=12, message=FALSE, warning=FALSE-----------------------------------------------------------
-# clean up names of treatments
-treat.raw <- treat.raw %>%
-  mutate(treatment = case_when(
-    treatment %in% "sterilization" ~ "sterilize wolves",
-    treatment %in% "pen" ~ "pen",
-    treatment %in% "feeding" ~ "feed",
-    treatment %in% "wolf reduction" ~ "reduce wolves",
-    treatment %in% "moose reduction" ~ "reduce moose",
-    treatment %in% "moose reduction" ~ "reduce moose",
-    TRUE ~ treatment
-  ))
+## ----treatment, fig.height=8, fig.width=12, message=FALSE, warning=FALSE-------------------------------------------------------------
 
-
-# Read in raw treament data
 trt_raw <- treat.raw %>%
-  rename(herd = Herd) %>%
   filter(
     herd %in% c(counts$herd, surv$herd, recruitment$herd),
     !treatment %in% "all"
@@ -1284,6 +1298,7 @@ trt_raw <- trt_raw %>%
       TRUE ~ end.year
     )
   )
+
 
 # Herds and herd number
 herds <- unique(trt_raw$herd)
@@ -1328,6 +1343,10 @@ for (i in 1:nherd) {
     arrange(start.year) %>%
     slice(1)
   first_st <- first_st$start.year
+  
+    if(sum(none_st)==0){
+    none_st <- first_st ##for QT full, which had no "none"
+  }
 
   trt_ls <- list()
   for (j in 1:length(u_trts_h)) {
@@ -1372,7 +1391,7 @@ trt_int <- treat.raw %>%
 trt_intensity.df <- tibble()
 for (i in 1:nrow(trt_int)) {
   a <- tibble(
-    herd = trt_int[i, ]$Herd,
+    herd = trt_int[i, ]$herd,
     year = c((trt_int[i, ]$start.year + 1):(trt_int[i, ]$end.year + 1)),
     treatment = trt_int[i, ]$treatment,
     intensity = trt_int[i, ]$intensity
@@ -1385,10 +1404,9 @@ for (i in 1:nrow(trt_int)) {
 trt_long <- trt_long %>%
   left_join(trt_intensity.df, by = c("herd", "year", "treatment"))
 
-
-## keep only complete years of data
-trt_long <- trt_long %>%
-  filter(year <= year.cut)
+##remove years that exceed available demographic data (happens due to +1 above)
+trt_long<- trt_long %>%
+  filter(year<=year.cut)
 
 write_csv(trt_long, here::here("data", "clean", "treatments.csv"))
 
@@ -1412,11 +1430,10 @@ trt_long %>%
   )
 
 
-## ----assess herds, results='hide', message=FALSE, warning=FALSE--------------------------------------------------------------------
+## ----assess herds, results='hide', message=FALSE, warning=FALSE----------------------------------------------------------------------
 herds.present <- treat.raw %>%
   filter(!Exclude %in% "Y") %>%
-  distinct(Herd) %>%
-  rename(herd = Herd) %>%
+  distinct(herd) %>%
   left_join(counts %>%
     distinct(herd) %>%
     dplyr::select(herd) %>%
@@ -1455,7 +1472,7 @@ herds.present %>%
   labs(color = "Present?")
 
 
-## ----bp, message=FALSE, warning=FALSE----------------------------------------------------------------------------------------------
+## ----bp, message=FALSE, warning=FALSE------------------------------------------------------------------------------------------------
 bp <- tibble(
   herd = unique(trt_long$herd),
   herd_num = unique(trt_long$herd) %>% as.factor() %>% as.numeric()
@@ -1485,32 +1502,15 @@ sight_group <- herd.sight %>%
     is.na(est) ~ 2
   )) %>%
   dplyr::select(herd, sight_grp) %>%
-  add_row(herd = "Tonquin", sight_grp = 3) %>%
   distinct()
 
 bp <- bp %>%
   left_join(sight_group)
 
-demog_group <- treat.raw %>%
-  mutate(demog_grp = draft.demog.cluster %>% as.factor() %>% as.numeric()) %>%
-  dplyr::select(herd = Herd, demog_grp) %>%
-  distinct()
-
-bp <- bp %>%
-  left_join(demog_group)
-
-baci_group <- treat.raw %>%
-  mutate(baci_grp = draft.BACI.cluster %>% as.factor() %>% as.numeric()) %>%
-  dplyr::select(herd = Herd, baci_grp) %>%
-  distinct()
-
-bp <- bp %>%
-  left_join(baci_group)
-
 write_csv(bp, here::here("data", "clean", "blueprint.csv"))
 
 
-## ----data check, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE-----------------------------------------------------------
+## ----data check, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE-------------------------------------------------------------
 ## 
 ## for (i in 1:length(herds)) {
 ##   if (herds[i] != "Redrock/Prairie Creek") {
@@ -1665,7 +1665,7 @@ write_csv(bp, here::here("data", "clean", "blueprint.csv"))
 ## }
 
 
-## ----ss, message=FALSE, warning=FALSE----------------------------------------------------------------------------------------------
+## ----ss, message=FALSE, warning=FALSE------------------------------------------------------------------------------------------------
 ## herds
 nherd
 
@@ -1723,10 +1723,8 @@ trt_long %>%
   filter(n > 1)
 
 trt_long %>%
-  drop_na(intensity) %>%
-  group_by(herd, year) %>%
-  count() %>%
-  filter(n > 1)
+  filter(intensity=="low")
+
 
 trt_long %>%
   left_join(read_csv(here::here("tables", "demog.csv")) %>% dplyr::select(year = yrs, herd, totNMF)) %>%
