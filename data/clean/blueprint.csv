@@ -1,41 +1,42 @@
-herd,herd_num,sight_grp,demog_grp,baci_grp
-A La Peche,1,3,1,1
-Banff,2,2,1,1
-Barkerville,3,2,3,6
-Brazeau,4,2,1,1
-Burnt Pine,5,3,1,2
-Central Rockies,6,3,3,3
-Charlotte Alplands,7,3,2,4
-Chase,8,3,2,2
-Columbia North,9,3,3,3
-Columbia South,10,3,3,3
-Duncan,11,3,3,3
-Frisby-Boulder,12,2,3,3
-George Mountain,13,2,3,6
-Graham,14,1,2,2
-Groundhog,15,3,3,3
-Hart North,16,2,3,6
-Hart South,17,3,3,6
-Itcha-Ilgachuz,18,2,2,4
-Kennedy Siding,19,3,1,2
-Klinse-Za,20,3,1,2
-Maligne,21,2,1,1
-Monashee,22,3,3,5
-Nakusp,23,3,3,3
-Narraway AB,24,3,1,1
-Narraway BC,25,2,1,1
-Narrow Lake,26,3,3,6
-North Cariboo,27,2,3,6
-Purcells Central,28,2,3,5
-Purcells South,29,2,3,5
-Quintette,30,2,1,2
-Rainbows,31,2,2,4
-Redrock/Prairie Creek,32,3,1,1
-South Selkirks,33,2,3,5
-Takla,34,2,2,4
-Telkwa,35,3,2,4
-Tonquin,36,3,1,1
-Tweedsmuir,37,2,2,4
-Wells Gray North,38,3,3,6
-Wells Gray South,39,2,3,3
-Wolverine,40,3,2,4
+herd,herd_num,sight_grp
+A La Peche,1,3
+Banff,2,2
+Barkerville,3,2
+Brazeau,4,2
+Burnt Pine,5,3
+Central Rockies,6,3
+Charlotte Alplands,7,3
+Chase,8,3
+Columbia North,9,3
+Columbia South,10,3
+Duncan,11,3
+Frisby-Boulder,12,2
+George Mountain,13,2
+Graham,14,1
+Groundhog,15,3
+Hart North,16,2
+Hart South,17,3
+Itcha-Ilgachuz,18,2
+Kennedy Siding,19,3
+Klinse-Za,20,3
+Maligne,21,2
+Monashee,22,3
+Nakusp,23,3
+Narraway AB,24,3
+Narraway BC,25,2
+Narrow Lake,26,3
+North Cariboo,27,2
+Purcells Central,28,2
+Purcells South,29,2
+Quintette,30,2
+Quintette Full,31,2
+Rainbows,32,2
+Redrock/Prairie Creek,33,3
+South Selkirks,34,2
+Takla,35,3
+Telkwa,36,3
+Tonquin,37,2
+Tweedsmuir,38,2
+Wells Gray North,39,3
+Wells Gray South,40,1
+Wolverine,41,3

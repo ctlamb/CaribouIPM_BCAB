@@ -25,6 +25,7 @@ library(tidyverse)
 
 # Load data ---------------------------------------------------------------
 
+
 hd <- read.csv(here::here("data/clean/blueprint.csv"))
 hn <- hd %>%
 	dplyr::select(herd, herd_num)
@@ -69,7 +70,11 @@ sexratio_summary <-  read.csv(here::here("data/clean/sexratio_summary.csv"))
 herds <- unique(hd$herd)
 nherd <- nrow(hn)
 hd <- hd%>%
-  left_join(ecotype, by="herd")
+  left_join(ecotype%>%
+              add_row(herd="Quintette Full",
+                      ECCC="Central Group",
+                      COSEWIC="DU8",
+                      Heard_Vagt1998="Northern"), by="herd")
 hd$demog_grp <- hd$ECCC%>%factor%>%as.numeric() 
 hd[hd$herd%in%c("Charlotte Alplands","Itcha-Ilgachuz","Rainbows"),"demog_grp"]<-4
 nsight_grp <- length(unique(hd$sight_grp))
@@ -550,16 +555,11 @@ model_parms <- c(
 ## Run IPM
 ```{r Run IPM, results='hide', message=FALSE, warning=FALSE, eval=FALSE}
 nth <- 90
-nbu <- 30000 
+nbu <- 30000
 nch <- 3
 nad <- 60000
-nit <- 400000 
+nit <- 400000
 
-# nth <- 10
-# nbu <- 2000
-# nch <- 3
-# nad <- 3000
-# nit <- 12000
 
 out <- jagsUI::jags(ipm_dat, 
 	inits = ipm_inits,
@@ -571,10 +571,12 @@ out <- jagsUI::jags(ipm_dat,
 	n.burnin = nbu,
 	n.thin = nth,
 	n.adapt = nad)
+
+
 ```
 
 ## Save outputs
 ```{r Save outputs, results='hide', message=FALSE, warning=FALSE, eval=FALSE}
 #mcmcplots::mcmcplot(out$samples, par = c("S", "R", "totNMF")) 
-saveRDS(out, file = here::here("jags/output/BCAB_CaribouIPM_posteriors_2023_07_24.rds"))
+saveRDS(out, file = here::here("jags/output/BCAB_CaribouIPM_23update.rds"))
 ```
