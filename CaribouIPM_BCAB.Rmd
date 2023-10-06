@@ -846,7 +846,7 @@ abundance.all.plot <- ggplot(data = sims.plot %>%
     mutate(.variable = case_when(
       .variable == "totNMF" ~ "With recovery\nactions",
       TRUE ~ "Status quo"
-    )), aes(label = fct_relevel(.variable, "Status quo", "With recovery\nactions"), colour = .variable, x = Inf, y = mean), hjust = 0) +
+    )), aes(label = fct_relevel(.variable, "Status quo", "With recovery\nactions"), colour = .variable, x = Inf, y = mean), hjust = 0, size=4) +
   geom_jitter(data = ext.yr, size = 1, aes(x = yrs, y = mean), alpha = 0.5) +
   theme_ipsum() +
   theme(legend.position = "none") +
@@ -862,25 +862,28 @@ abundance.all.plot <- ggplot(data = sims.plot %>%
   theme(
     axis.title.x = element_text(size = 15),
     axis.title.y = element_text(size = 15),
+    axis.text.x = element_text(size = 13),
+    axis.text.y = element_text(size = 13),
     strip.text.x = element_text(size = 15),
     strip.text.y = element_text(size = 15),
     legend.text = element_text(size = 13),
+    plot.subtitle = element_text(size = 15),
     legend.title = element_text(size = 15),
     plot.margin = unit(c(1, 5, 1, 1), "lines")
   ) +
-  geom_text(data = trt %>% filter(applied %in% 1) %>% group_by(year) %>% summarise(n = n_distinct(herd)) %>% filter(year %% 2 == 1), aes(x = year, y = 200, label = n), size = 3) +
+  geom_text(data = trt %>% filter(applied %in% 1) %>% group_by(year) %>% summarise(n = n_distinct(herd)) %>% filter(year %% 2 == 1), aes(x = year, y = 200, label = n), size = 3.5) +
   scale_color_manual(values = cols[c(3, 1)]) +
-  annotate(geom = "text", x = 1992, y = 2500, label = "Subpopulations w/\nrecovery actions", hjust = "left") +
+  annotate(geom = "text", x = 1992, y = 2500, label = "Subpopulations w/\nrecovery actions", hjust = "left", size=5) +
   annotate(
     geom = "curve", x = 1996, y = 1800, xend = 1998, yend = 500,
     curvature = 0, arrow = arrow(length = unit(2, "mm"))
   ) +
-  annotate(geom = "text", x = 2010, y = 10000, label = "Subpopulations w/\ndemographic data", hjust = "left") +
+  annotate(geom = "text", x = 2010, y = 10000, label = "Subpopulations w/\ndemographic data", hjust = "left", size=5) +
   annotate(
     geom = "curve", x = 2015, y = 10600, xend = 2013, yend = 11500,
     curvature = 0, arrow = arrow(length = unit(2, "mm"))
   ) +
-  annotate(geom = "text", x = 1994, y = 7000, label = "Subpopulation\nextirpation event", hjust = "left") +
+  annotate(geom = "text", x = 1991, y = 7000, label = "Subpopulation\nextirpation event", hjust = "left", size=5) +
   annotate(
     geom = "curve", x = 1998, y = 7800, xend = (ext.yr %>% ungroup() %>% filter(herd == "Banff") %>% pull(yrs)) + 0.4, yend = (ext.yr %>% ungroup() %>% filter(herd == "Banff") %>% pull(mean)) - 200,
     curvature = 0, arrow = arrow(length = unit(2, "mm"))
@@ -888,7 +891,7 @@ abundance.all.plot <- ggplot(data = sims.plot %>%
   coord_cartesian(
     clip = "off"
   ) +
-  geom_text(data = raw.demog %>% group_by(year) %>% summarise(n = n_distinct(herd)) %>% filter(year %% 2 == 0), aes(x = year, y = 11800, label = n), size = 3)
+  geom_text(data = raw.demog %>% group_by(year) %>% summarise(n = n_distinct(herd)) %>% filter(year %% 2 == 0), aes(x = year, y = 11800, label = n), size = 3.5)
 abundance.all.plot
 
 ggsave(plot = abundance.all.plot, here::here("plots", "abundance_all.png"), width = 6, height = 6, bg = "white")
@@ -1159,7 +1162,7 @@ trt_eff_ba_table <- eff.draws %>%
     upper = quantile(delta, 0.95, na.rm = TRUE) %>% round(2)
   ) %>%
   arrange(-delta.l) %>%
-  mutate(delta.r = paste0(delta.l, " (", lower, "-", upper, ")")) %>%
+  mutate(delta.r = paste0(delta.l, " [", lower, "-", upper, "]")) %>%
   filter(new != "transplant") %>%
   dplyr::select(`Recovery action` = new, `Change in instantaneous growth rate (r)` = delta.r)
 
