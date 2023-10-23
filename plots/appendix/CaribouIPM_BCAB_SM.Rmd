@@ -20,13 +20,14 @@ knitr::purl(
 
 ## Load Data
 ```{r Load packages and data, results='hide', message=FALSE, warning=FALSE}
-library(packrat)
+library(renv)
 library(here)
 library(RColorBrewer)
 library(ggridges)
 library(hrbrthemes)
 library(broom.mixed)
 library(lme4)
+library(knitr)
 library(gt)
 library(tidyverse)
 

@@ -20,13 +20,8 @@ knitr::purl(
 
 ## Load Data
 ```{r Load packages and data, results='hide', message=FALSE, warning=FALSE}
-library(packrat)
-# packrat::init()
-# packrat::snapshot()
-# packrat::status()
+library(renv)
 library(ggmap)
-library(RStoolbox)
-library(ggsn)
 library(MCMCvis)
 library(tidybayes)
 library(ggmcmc)
@@ -526,6 +521,8 @@ ggplot() +
   ) +
   geom_rug(
     data = raw.demog %>%
+      filter(herd!="Quintette Full")%>%
+      tibble%>%
       ungroup() %>%
       left_join(labels, by = "herd") %>%
       mutate(herd = paste0(number_label, ".", herd, " (", human, "%)") %>%
@@ -558,6 +555,7 @@ ggplot() +
   ) +
   geom_point(
     data = counts %>%
+      filter(herd!="Quintette Full")%>%
       ungroup() %>%
       left_join(labels, by = "herd") %>%
       mutate(herd = paste0(number_label, ".", herd, " (", human, "%)") %>%
@@ -567,6 +565,7 @@ ggplot() +
   ) +
   geom_linerange(
     data = counts %>%
+      filter(herd!="Quintette Full")%>%
       ungroup() %>%
       mutate(Est_CL.max = case_when(Est_CL.max > 5000 ~ 5000, TRUE ~ Est_CL.max)) %>%
       left_join(labels, by = "herd") %>% mutate(herd = paste0(number_label, ".", herd, " (", human, "%)") %>%
@@ -576,6 +575,7 @@ ggplot() +
   ) +
   geom_point(
     data = trt.plot %>%
+      filter(herd!="Quintette Full")%>%
       ungroup() %>%
       left_join(labels, by = "herd") %>%
       mutate(herd = paste0(number_label, ".", herd, " (", human, "%)") %>%
@@ -586,6 +586,7 @@ ggplot() +
   scale_color_manual(values = cols[-4]) +
   geom_text(
     data = trt.plot %>%
+      filter(herd!="Quintette Full")%>%
       ungroup() %>%
       distinct(herd, treatment, y) %>%
       mutate(t = str_remove(treatment, "reduce ") %>% str_sub(1, 1)) %>%
@@ -624,6 +625,7 @@ ggplot() +
   ) +
   geom_rug(
     data = raw.demog %>%
+      filter(herd!="Quintette Full")%>%
       ungroup() %>%
       left_join(labels, by = "herd") %>%
       mutate(herd = paste0(number_label, ".", herd, " (", human, "%)") %>%
@@ -656,6 +658,7 @@ ggplot() +
   ) +
   geom_point(
     data = counts %>%
+      filter(herd!="Quintette Full")%>%
       ungroup() %>%
       left_join(labels, by = "herd") %>%
       mutate(herd = paste0(number_label, ".", herd, " (", human, "%)") %>%
@@ -665,6 +668,7 @@ ggplot() +
   ) +
   geom_linerange(
     data = counts %>%
+      filter(herd!="Quintette Full")%>%
       ungroup() %>%
       mutate(Est_CL.max = case_when(Est_CL.max > 5000 ~ 5000, TRUE ~ Est_CL.max)) %>%
       left_join(labels, by = "herd") %>% mutate(herd = paste0(number_label, ".", herd, " (", human, "%)") %>%
@@ -674,6 +678,7 @@ ggplot() +
   ) +
   geom_point(
     data = trt.plot %>%
+      filter(herd!="Quintette Full")%>%
       ungroup() %>%
       left_join(labels, by = "herd") %>%
       mutate(herd = paste0(number_label, ".", herd, " (", human, "%)") %>%
@@ -684,6 +689,7 @@ ggplot() +
   scale_color_manual(values = cols[-4]) +
   geom_text(
     data = trt.plot %>%
+      filter(herd!="Quintette Full")%>%
       ungroup() %>%
       distinct(herd, treatment, y) %>%
       mutate(t = str_remove(treatment, "reduce ") %>% str_sub(1, 1)) %>%
@@ -1762,7 +1768,17 @@ inset <- ggplot() +
 
 bmap.big <- rast(here::here("data","Spatial","basemap.tif"))
 
-map <- ggRGB(bmap.big, r = 1, g = 2, b = 3) +
+bmap.big <-bmap.big%>%as.data.frame(xy=TRUE)
+
+
+
+map <- ggplot()+
+geom_raster(data=bmap.big, aes(x=x, y=y),
+            fill = rgb(red =bmap.big$basemap_1,
+                         green = bmap.big$basemap_2,
+                         blue = bmap.big$basemap_3,
+                         maxColorValue = 255),
+                         show.legend = FALSE) +
   theme_bw() +
   geom_sf(data = pnw %>%
     st_transform(cust.crs), size = 1, fill = NA, linetype = "dashed") +
@@ -1790,7 +1806,7 @@ map <- ggRGB(bmap.big, r = 1, g = 2, b = 3) +
     legend.box.margin = margin(0, 0, 0, 0),
     legend.position = "top"
   ) +
-  ggsn::scalebar(x.min = 10E4, x.max = 105E4, y.min = -19E4, y.max = 85E4, dist = 150, height = 0.03, dist_unit = "km", transform = FALSE, location = "bottomleft", st.color = "white", st.bottom = FALSE) +
+  #ggsn::scalebar(x.min = 10E4, x.max = 105E4, y.min = -19E4, y.max = 85E4, dist = 150, height = 0.03, dist_unit = "km", transform = FALSE, location = "bottomleft", st.color = "white", st.bottom = FALSE) +
   annotation_custom(ggplotGrob(inset), xmin = 65E4, xmax = 108E4, ymin = 52E4, ymax = 85E4) +
   scale_y_continuous(expand = c(0, 0), limits = c(-20E4, 85E4)) +
   scale_x_continuous(expand = c(0, 0), limits = c(5E4, 105E4)) +
