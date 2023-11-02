@@ -1096,12 +1096,12 @@ counts <- counts %>%
       !is.na(Sightability) ~ count / Sightability
     ),
     Est_CL.min = case_when(
-      is.na(Sightability) | Sightability %in% 0 ~ count / (Sightability.pooled + mean(se, na.rm = TRUE)),
-      !is.na(Sightability) ~ count / (Sightability + sd)
+      is.na(Sightability) | Sightability %in% 0 ~ count / (Sightability.pooled + (1.96*mean(se, na.rm = TRUE))),
+      !is.na(Sightability) ~ count / (Sightability + (1.96*sd))
     ),
     Est_CL.max = case_when(
-      is.na(Sightability) | Sightability %in% 0 ~ count / (Sightability.pooled - mean(se, na.rm = TRUE)),
-      !is.na(Sightability) ~ count / (Sightability - sd)
+      is.na(Sightability) | Sightability %in% 0 ~ count / (Sightability.pooled - (1.96*mean(se, na.rm = TRUE))),
+      !is.na(Sightability) ~ count / (Sightability - (1.96*sd))
     )
   ) %>%
   drop_na(count)
