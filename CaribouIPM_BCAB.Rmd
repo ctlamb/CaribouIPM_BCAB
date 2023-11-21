@@ -21,6 +21,8 @@ knitr::purl(
 ## Load Data
 ```{r Load packages and data, results='hide', message=FALSE, warning=FALSE}
 library(renv)
+##to pull packages
+#restore(repos="https://cloud.r-project.org")
 library(ggmap)
 library(MCMCvis)
 library(tidybayes)
