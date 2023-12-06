@@ -557,16 +557,28 @@ model_parms <- c(
 
 ## Run IPM
 ```{r Run IPM, results='hide', message=FALSE, warning=FALSE, eval=FALSE}
+# nth <- 90
+# nbu <- 30000
+# nch <- 3
+# nad <- 60000
+# nit <- 400000
+# 
+# nth <- 1
+# nbu <- 200
+# nch <- 3
+# nad <- 100
+# nit <- 300
+
 nth <- 90
-nbu <- 30000
+nbu <- 0
 nch <- 3
 nad <- 60000
 nit <- 400000
 
 
-out <- jagsUI::jags(ipm_dat, 
+out <- jagsUI::jags(data=ipm_dat, 
 	inits = ipm_inits,
-	model_parms,
+	parameters.to.save=model_parms,
 	model.file = here::here("jags/BCAB_IPM_20230611.txt"),
 	n.chains = nch,
 	n.cores = nch,
@@ -574,8 +586,6 @@ out <- jagsUI::jags(ipm_dat,
 	n.burnin = nbu,
 	n.thin = nth,
 	n.adapt = nad)
-
-
 ```
 
 ## Save outputs

@@ -2,6 +2,7 @@ herd,treatment,application,start,end
 Kennedy Siding,feed,standard,2015,2023
 Columbia North,pen,low,2015,2019
 Klinse-Za,pen,standard,2015,2023
+Nakusp,pen,low,2023,2023
 Columbia North,reduce moose,standard,2005,2023
 Columbia South,reduce moose,low,2008,2023
 Columbia South,reduce moose,standard,2005,2007
@@ -25,7 +26,6 @@ Itcha-Ilgachuz,reduce wolves,standard,2020,2023
 Kennedy Siding,reduce wolves,standard,2016,2023
 Klinse-Za,reduce wolves,standard,2014,2023
 Nakusp,reduce wolves,low,2021,2023
-Nakusp,reduce wolves,standard,2022,2022
 Narraway AB,reduce wolves,low,2017,2018
 Narraway AB,reduce wolves,standard,2019,2023
 Narraway BC,reduce wolves,standard,2023,2023
@@ -44,8 +44,8 @@ Barkerville,sterilize wolves,low,2002,2005
 Barkerville,sterilize wolves,standard,2006,2012
 Wells Gray North,sterilize wolves,low,2002,2005
 Wells Gray North,sterilize wolves,standard,2006,2012
-Charlotte Alplands,transplant,low,2014,2022
-Charlotte Alplands,transplant,standard,1992,2013
+Charlotte Alplands,transplant,low,2015,2022
+Charlotte Alplands,transplant,standard,1992,2014
 Purcells South,transplant,low,2013,2022
 South Selkirks,transplant,low,2014,2022
 South Selkirks,transplant,standard,1988,2013

@@ -87,6 +87,9 @@ surv.raw <- surv.raw %>%
 
 ## Add in 2022+ data
 ```{r add new data, results='hide', message=FALSE, warning=FALSE}
+##update the data
+source("/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/prepupdates.R")
+
 unique(surv.raw$Outcome)
 unique(surv.raw$`Sex (F, M)`)
 unique(surv.raw$Age.when.collard)
@@ -97,7 +100,7 @@ surv <- surv.raw %>%
     DateEntry = ymd(`Date entry`), # get dates dialed
     DateExit = ymd(`Date exit`)
   ) %>%
-  select(herd, `Animal ID`, WLHID, Sex = `Sex (F, M)`, Ageclass = Age.when.collard, DateEntry, DateExit, Outcome) %>% ## slim down to only needed columns
+  select(herd, `Animal ID`=`Animal ID (RS, CL)`, WLHID, Sex = `Sex (F, M)`, Ageclass = Age.when.collard, DateEntry, DateExit, Outcome) %>% ## slim down to only needed columns
   # filter(!(herd%in%"Columbia North" & Comment%in%c("wild","release")))%>% ##to remove penned animals in CN
   rbind(read_csv(here::here("data/raw/surv.2022onwards.csv")) %>%
     mutate(
