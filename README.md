@@ -1,15 +1,15 @@
 BC AB Caribou IPM Results
 ================
 Clayton T. Lamb
-05 October, 2023
+07 December, 2023
 
 ## Load Data
 
 ``` r
-library(packrat)
+library(renv)
+##to pull packages
+#restore(repos="https://cloud.r-project.org")
 library(ggmap)
-library(RStoolbox)
-library(ggsn)
 library(MCMCvis)
 library(tidybayes)
 library(ggmcmc)
@@ -452,11 +452,6 @@ ggplot() +
   coord_cartesian(clip = "off")
 ```
 
-    ## Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
-    ## ℹ Please use `linewidth` instead.
-    ## This warning is displayed once every 8 hours.
-    ## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.
-
     ## Warning in geom_line(data = demog %>% ungroup() %>% left_join(labels, by = "herd") %>% : Ignoring unknown aesthetics: ymin and ymax
 
     ## Warning in geom_text(data = trt.plot %>% filter(herd %in% herds.keep) %>% : Ignoring unknown parameters: `direction`
@@ -521,14 +516,14 @@ n.recovery.all <- sims.draws %>%
 median(n.recovery.all)
 ```
 
-    ## [1] 1561.585
+    ## [1] 1569.216
 
 ``` r
 quantile(n.recovery.all, c(0.05, 0.5, 0.95)) %>% round(0)
 ```
 
     ##   5%  50%  95% 
-    ## 1198 1562 2006
+    ## 1176 1569 2017
 
 ``` r
 n.recovery <- median(n.recovery.all) %>% round(0)
@@ -549,7 +544,7 @@ quantile(calves.recovered.all, c(0.05, 0.5, 0.95)) %>% round(0)
 ```
 
     ##   5%  50%  95% 
-    ## 1180 1562 1932
+    ## 1200 1607 2020
 
 ``` r
 calves.recovered <- median(calves.recovered.all) %>% round(0)
@@ -557,7 +552,7 @@ calves.recovered <- median(calves.recovered.all) %>% round(0)
 sum(out$mean$totCalvesMF - out$mean$pred_totCalvesMF)
 ```
 
-    ## [1] 1578.078
+    ## [1] 1639.581
 
 ``` r
 #### Total Abundance####
@@ -572,7 +567,7 @@ abundance.all.plot <- ggplot(data = sims.plot %>%
     mutate(.variable = case_when(
       .variable == "totNMF" ~ "With recovery\nactions",
       TRUE ~ "Status quo"
-    )), aes(label = fct_relevel(.variable, "Status quo", "With recovery\nactions"), colour = .variable, x = Inf, y = mean), hjust = 0) +
+    )), aes(label = fct_relevel(.variable, "Status quo", "With recovery\nactions"), colour = .variable, x = Inf, y = mean), hjust = 0, size=4) +
   geom_jitter(data = ext.yr, size = 1, aes(x = yrs, y = mean), alpha = 0.5) +
   theme_ipsum() +
   theme(legend.position = "none") +
@@ -588,25 +583,28 @@ abundance.all.plot <- ggplot(data = sims.plot %>%
   theme(
     axis.title.x = element_text(size = 15),
     axis.title.y = element_text(size = 15),
+    axis.text.x = element_text(size = 13),
+    axis.text.y = element_text(size = 13),
     strip.text.x = element_text(size = 15),
     strip.text.y = element_text(size = 15),
     legend.text = element_text(size = 13),
+    plot.subtitle = element_text(size = 15),
     legend.title = element_text(size = 15),
     plot.margin = unit(c(1, 5, 1, 1), "lines")
   ) +
-  geom_text(data = trt %>% filter(applied %in% 1) %>% group_by(year) %>% summarise(n = n_distinct(herd)) %>% filter(year %% 2 == 1), aes(x = year, y = 200, label = n), size = 3) +
+  geom_text(data = trt %>% filter(applied %in% 1) %>% group_by(year) %>% summarise(n = n_distinct(herd)) %>% filter(year %% 2 == 1), aes(x = year, y = 200, label = n), size = 3.5) +
   scale_color_manual(values = cols[c(3, 1)]) +
-  annotate(geom = "text", x = 1992, y = 2500, label = "Subpopulations w/\nrecovery actions", hjust = "left") +
+  annotate(geom = "text", x = 1992, y = 2500, label = "Subpopulations w/\nrecovery actions", hjust = "left", size=5) +
   annotate(
     geom = "curve", x = 1996, y = 1800, xend = 1998, yend = 500,
     curvature = 0, arrow = arrow(length = unit(2, "mm"))
   ) +
-  annotate(geom = "text", x = 2010, y = 10000, label = "Subpopulations w/\ndemographic data", hjust = "left") +
+  annotate(geom = "text", x = 2010, y = 10000, label = "Subpopulations w/\ndemographic data", hjust = "left", size=5) +
   annotate(
     geom = "curve", x = 2015, y = 10600, xend = 2013, yend = 11500,
     curvature = 0, arrow = arrow(length = unit(2, "mm"))
   ) +
-  annotate(geom = "text", x = 1994, y = 7000, label = "Subpopulation\nextirpation event", hjust = "left") +
+  annotate(geom = "text", x = 1991, y = 7000, label = "Subpopulation\nextirpation event", hjust = "left", size=5) +
   annotate(
     geom = "curve", x = 1998, y = 7800, xend = (ext.yr %>% ungroup() %>% filter(herd == "Banff") %>% pull(yrs)) + 0.4, yend = (ext.yr %>% ungroup() %>% filter(herd == "Banff") %>% pull(mean)) - 200,
     curvature = 0, arrow = arrow(length = unit(2, "mm"))
@@ -614,7 +612,7 @@ abundance.all.plot <- ggplot(data = sims.plot %>%
   coord_cartesian(
     clip = "off"
   ) +
-  geom_text(data = raw.demog %>% group_by(year) %>% summarise(n = n_distinct(herd)) %>% filter(year %% 2 == 0), aes(x = year, y = 11800, label = n), size = 3)
+  geom_text(data = raw.demog %>% group_by(year) %>% summarise(n = n_distinct(herd)) %>% filter(year %% 2 == 0), aes(x = year, y = 11800, label = n), size = 3.5)
 abundance.all.plot
 ```
 
@@ -787,14 +785,14 @@ kable(lambda.table)
 
 | trt                          | r.med | lower | upper | r                  |
 |:-----------------------------|------:|------:|------:|:-------------------|
-| pen-reducewolves             |  0.13 |  0.10 |  0.15 | 0.13 (0.1-0.15)    |
-| feed-reducewolves            |  0.12 |  0.09 |  0.15 | 0.12 (0.09-0.15)   |
-| reducemoose-reducewolves     |  0.12 |  0.06 |  0.18 | 0.12 (0.06-0.18)   |
-| feed                         |  0.11 | -0.29 |  0.44 | 0.11 (-0.29-0.44)  |
-| pen-reducemoose              |  0.06 | -0.08 |  0.19 | 0.06 (-0.08-0.19)  |
-| reducewolves                 |  0.04 | -0.04 |  0.12 | 0.04 (-0.04-0.12)  |
+| feed                         |  0.13 | -0.26 |  0.48 | 0.13 (-0.26-0.48)  |
+| feed-reducewolves            |  0.12 |  0.10 |  0.15 | 0.12 (0.1-0.15)    |
+| reducemoose-reducewolves     |  0.11 |  0.06 |  0.17 | 0.11 (0.06-0.17)   |
+| pen-reducemoose              |  0.06 | -0.08 |  0.20 | 0.06 (-0.08-0.2)   |
+| reducewolves                 |  0.04 | -0.03 |  0.13 | 0.04 (-0.03-0.13)  |
 | reducewolves-sterilizewolves |  0.04 |  0.02 |  0.06 | 0.04 (0.02-0.06)   |
-| pen-reducemoose-reducewolves |  0.00 | -0.19 |  0.21 | 0 (-0.19-0.21)     |
+| pen-reducewolves             |  0.02 | -0.18 |  0.21 | 0.02 (-0.18-0.21)  |
+| pen-reducemoose-reducewolves | -0.01 | -0.18 |  0.20 | -0.01 (-0.18-0.2)  |
 | Reference                    | -0.02 | -0.02 | -0.01 | -0.02 (-0.02–0.01) |
 | transplant                   | -0.03 | -0.04 | -0.02 | -0.03 (-0.04–0.02) |
 | reducemoose                  | -0.07 | -0.09 | -0.04 | -0.07 (-0.09–0.04) |
@@ -909,7 +907,7 @@ trt_eff_ba_table <- eff.draws %>%
     upper = quantile(delta, 0.95, na.rm = TRUE) %>% round(2)
   ) %>%
   arrange(-delta.l) %>%
-  mutate(delta.r = paste0(delta.l, " (", lower, "-", upper, ")")) %>%
+  mutate(delta.r = paste0(delta.l, " [", lower, "-", upper, "]")) %>%
   filter(new != "transplant") %>%
   dplyr::select(`Recovery action` = new, `Change in instantaneous growth rate (r)` = delta.r)
 
@@ -926,15 +924,15 @@ kable(trt_eff_ba_table)
 
 | Recovery action                  | Change in instantaneous growth rate (r) |
 |:---------------------------------|:----------------------------------------|
-| penning + wolf reduction         | 0.17 (0.15-0.2)                         |
-| feeding + wolf reduction         | 0.14 (0.11-0.17)                        |
-| feeding                          | 0.13 (-0.27-0.48)                       |
-| moose & wolf reduction           | 0.12 (0.03-0.21)                        |
-| penning + moose reduction        | 0.08 (-0.07-0.2)                        |
-| wolf reduction                   | 0.06 (0.02-0.11)                        |
-| wolf reduction + sterilization   | 0.05 (0.02-0.07)                        |
-| penning + moose & wolf reduction | 0.01 (-0.18-0.23)                       |
-| moose reduction                  | -0.05 (-0.07–0.03)                      |
+| feeding                          | 0.15 \[-0.24-0.51\]                     |
+| feeding + wolf reduction         | 0.14 \[0.12-0.17\]                      |
+| moose & wolf reduction           | 0.11 \[0.02-0.2\]                       |
+| penning + moose reduction        | 0.07 \[-0.07-0.21\]                     |
+| penning + wolf reduction         | 0.07 \[-0.14-0.25\]                     |
+| wolf reduction                   | 0.07 \[0.02-0.12\]                      |
+| wolf reduction + sterilization   | 0.05 \[0.03-0.08\]                      |
+| penning + moose & wolf reduction | 0.01 \[-0.17-0.21\]                     |
+| moose reduction                  | -0.05 \[-0.07–0.03\]                    |
 
 ``` r
 eff.draws %>%
@@ -950,7 +948,7 @@ eff.draws %>%
 | delta \> 0 |   n |
 |:-----------|----:|
 | FALSE      |   5 |
-| TRUE       |  26 |
+| TRUE       |  27 |
 
 ## Summarize results by recovery action, including application intensity
 
@@ -1146,13 +1144,13 @@ ind.eff.table %>%
 kable(ind.eff.table)
 ```
 
-| Treatment       | delta.lambda      |
-|:----------------|:------------------|
-| feed            | 0.11 (-0.09-0.29) |
-| reducewolves    | 0.08 (0.02-0.15)  |
-| pen             | 0.04 (-0.03-0.13) |
-| reducemoose     | 0 (-0.06-0.06)    |
-| sterilizewolves | -0.02 (-0.1-0.06) |
+| Treatment       | delta.lambda       |
+|:----------------|:-------------------|
+| feed            | 0.12 (-0.07-0.31)  |
+| reducewolves    | 0.08 (0.01-0.14)   |
+| reducemoose     | 0.01 (-0.05-0.07)  |
+| pen             | 0 (-0.12-0.13)     |
+| sterilizewolves | -0.01 (-0.09-0.06) |
 
 ``` r
 eff.draws %>% write_csv(here::here("tables", "draws", "eff.draws.csv"))
@@ -1177,7 +1175,7 @@ sim.ref <- demog.draws %>%
 median(sim.ref)
 ```
 
-    ## [1] -0.07329392
+    ## [1] -0.07361697
 
 ``` r
 sim.trt <- ind.eff %>%
@@ -1191,7 +1189,7 @@ sim.trt <- ind.eff %>%
 median(sim.ref)
 ```
 
-    ## [1] -0.07329392
+    ## [1] -0.07361697
 
 ``` r
 test <- c()
@@ -1422,23 +1420,19 @@ herd.bounds <- st_read(here::here("data/Spatial/herds/u_bc_herds_2021_CL.shp")) 
   filter(herd %in% c(herds, "Scott West"))
 ```
 
-    ## Reading layer `u_bc_herds_2021_CL' from data source 
-    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/herds/u_bc_herds_2021_CL.shp' 
-    ##   using driver `ESRI Shapefile'
+    ## Reading layer `u_bc_herds_2021_CL' from data source `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/herds/u_bc_herds_2021_CL.shp' using driver `ESRI Shapefile'
     ## Simple feature collection with 57 features and 19 fields
     ## Geometry type: MULTIPOLYGON
     ## Dimension:     XY
     ## Bounding box:  xmin: -165343.7 ymin: 5422045 xmax: 1031821 ymax: 6709569
     ## Projected CRS: NAD83 / UTM zone 10N
-    ## Reading layer `Caribou_Range' from data source 
-    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/herds/Caribou_Range.shp' using driver `ESRI Shapefile'
+    ## Reading layer `Caribou_Range' from data source `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/herds/Caribou_Range.shp' using driver `ESRI Shapefile'
     ## Simple feature collection with 25 features and 9 fields
     ## Geometry type: MULTIPOLYGON
     ## Dimension:     XY
     ## Bounding box:  xmin: 170844.4 ymin: 5689840 xmax: 819119.1 ymax: 6659319
     ## Projected CRS: NAD83 / Alberta 10-TM (Forest)
-    ## Reading layer `BC_RRPC' from data source 
-    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/herds/rrpc/BC_RRPC.shp' using driver `ESRI Shapefile'
+    ## Reading layer `BC_RRPC' from data source `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/herds/rrpc/BC_RRPC.shp' using driver `ESRI Shapefile'
     ## Simple feature collection with 1 feature and 17 fields
     ## Geometry type: POLYGON
     ## Dimension:     XY
@@ -1541,9 +1535,7 @@ cities <- st_read(here::here("data/Spatial/administrative/places.shp")) %>%
   st_transform(3005)
 ```
 
-    ## Reading layer `places' from data source 
-    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/administrative/places.shp' 
-    ##   using driver `ESRI Shapefile'
+    ## Reading layer `places' from data source `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/administrative/places.shp' using driver `ESRI Shapefile'
     ## Simple feature collection with 787 features and 3 fields
     ## Geometry type: POINT
     ## Dimension:     XY
@@ -1565,9 +1557,7 @@ pnw <- st_read(here::here("data/Spatial/administrative/North_America.shp")) %>%
   st_transform(3005)
 ```
 
-    ## Reading layer `North_America' from data source 
-    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/administrative/North_America.shp' 
-    ##   using driver `ESRI Shapefile'
+    ## Reading layer `North_America' from data source `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/administrative/North_America.shp' using driver `ESRI Shapefile'
     ## Simple feature collection with 70 features and 2 fields
     ## Geometry type: MULTIPOLYGON
     ## Dimension:     XY
@@ -1613,7 +1603,17 @@ inset <- ggplot() +
 
 bmap.big <- rast(here::here("data","Spatial","basemap.tif"))
 
-map <- ggRGB(bmap.big, r = 1, g = 2, b = 3) +
+bmap.big <-bmap.big%>%as.data.frame(xy=TRUE)
+
+
+
+map <- ggplot()+
+geom_raster(data=bmap.big, aes(x=x, y=y),
+            fill = rgb(red =bmap.big$basemap_1,
+                         green = bmap.big$basemap_2,
+                         blue = bmap.big$basemap_3,
+                         maxColorValue = 255),
+                         show.legend = FALSE) +
   theme_bw() +
   geom_sf(data = pnw %>%
     st_transform(cust.crs), size = 1, fill = NA, linetype = "dashed") +
@@ -1641,7 +1641,7 @@ map <- ggRGB(bmap.big, r = 1, g = 2, b = 3) +
     legend.box.margin = margin(0, 0, 0, 0),
     legend.position = "top"
   ) +
-  ggsn::scalebar(x.min = 10E4, x.max = 105E4, y.min = -19E4, y.max = 85E4, dist = 150, height = 0.03, dist_unit = "km", transform = FALSE, location = "bottomleft", st.color = "white", st.bottom = FALSE) +
+  #ggsn::scalebar(x.min = 10E4, x.max = 105E4, y.min = -19E4, y.max = 85E4, dist = 150, height = 0.03, dist_unit = "km", transform = FALSE, location = "bottomleft", st.color = "white", st.bottom = FALSE) +
   annotation_custom(ggplotGrob(inset), xmin = 65E4, xmax = 108E4, ymin = 52E4, ymax = 85E4) +
   scale_y_continuous(expand = c(0, 0), limits = c(-20E4, 85E4)) +
   scale_x_continuous(expand = c(0, 0), limits = c(5E4, 105E4)) +

@@ -1,11 +1,14 @@
 BC AB IPM data prep
 ================
 Clayton T. Lamb
-05 October, 2023
+07 December, 2023
 
 ## Load Data
 
 ``` r
+library(renv)
+##to pull packages
+#restore(repos="https://cloud.r-project.org")
 library(here)
 library(tidyverse)
 library(lubridate)
@@ -17,6 +20,8 @@ library(gt)
 library(knitr)
 library(tidylog)
 set.seed(2023)
+
+
 
 #### Year cut off, for trimming of data that is being updated
 year.cut <- 2023
@@ -37,8 +42,8 @@ ab <- read_csv(here::here("data", "raw", "ab", "Caribou_Demographic_Vital_Rates_
 tweed <- read_csv(here::here("data", "raw", "TweedsmuirSummary.csv"))
 
 ## Tonquin
-tonq <- read_csv(here::here("data", "raw", "Tonquin_Moeller2020.csv")) ## posteriors by age-sex in appendix
-tonq.abund <- read_csv(here::here("data", "raw", "Tonquin_Moeller2020_totalN.csv")) ## overall totalN from Anna Feb 9, 2023
+tonq.surv <- read_csv(here::here("data", "raw", "TonquinSurvivalAnnualMedian(nodatafor2022).csv")) ## posteriors by age-sex in appendix
+tonq.abund <- read_csv(here::here("data", "raw", "TonquinAbundanceAnnualEstimates.csv")) ## overall totalN from Layla Nov 16, 2023
 ```
 
 ## Keep herds with treatment data
@@ -69,6 +74,9 @@ surv.raw <- surv.raw %>%
 ## Add in 2022+ data
 
 ``` r
+##update the data
+source("/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/prepupdates.R")
+
 unique(surv.raw$Outcome)
 unique(surv.raw$`Sex (F, M)`)
 unique(surv.raw$Age.when.collard)
@@ -79,7 +87,7 @@ surv <- surv.raw %>%
     DateEntry = ymd(`Date entry`), # get dates dialed
     DateExit = ymd(`Date exit`)
   ) %>%
-  select(herd, `Animal ID`, WLHID, Sex = `Sex (F, M)`, Ageclass = Age.when.collard, DateEntry, DateExit, Outcome) %>% ## slim down to only needed columns
+  select(herd, `Animal ID`=`Animal ID (RS, CL)`, WLHID, Sex = `Sex (F, M)`, Ageclass = Age.when.collard, DateEntry, DateExit, Outcome) %>% ## slim down to only needed columns
   # filter(!(herd%in%"Columbia North" & Comment%in%c("wild","release")))%>% ##to remove penned animals in CN
   rbind(read_csv(here::here("data/raw/surv.2022onwards.csv")) %>%
     mutate(
@@ -321,16 +329,15 @@ surv.yr.est <- rbind(
 )
 
 ## add in Tonquin
-tonq.surv <- tonq %>% filter(Parameter %in% "Survival", Sex %in% "F", Age %in% "A")
 surv.yr.est <- rbind(
   surv.yr.est,
   data.frame(
     herd = "Tonquin",
     year = tonq.surv$Year,
-    est = tonq.surv$Median,
+    est = tonq.surv$Mean,
     se = tonq.surv$SD,
-    lower = NA,
-    upper = NA,
+    lower = tonq.surv$LCL,
+    upper = tonq.surv$UCL,
     n = NA,
     sd = tonq.surv$SD,
     type = "Frequentist"
@@ -372,13 +379,13 @@ ggsave(here::here("data", "plots", "input_survival1.png"), width = 11, height = 
 mean(surv.yr.est$est)
 ```
 
-    ## [1] 0.8767769
+    ## [1] 0.8789993
 
 ``` r
 mean(surv.yr.est$se, na.rm = TRUE)
 ```
 
-    ## [1] 0.06325593
+    ## [1] 0.06355233
 
 ## Deal with low sample size herds and times when surv==0
 
@@ -819,30 +826,6 @@ recruitment %>%
 | OTC        | 0.20 | 0.12 | 0.83 | 356 |
 
 ``` r
-# ##add in Tonquin recruitment
-## fall counts
-tonq.recruit <- tonq %>%
-  filter(Parameter %in% "Abundance") %>%
-  mutate(ageclass = case_when(Age == "Y" ~ "calf", TRUE ~ "adult")) %>%
-  group_by(Year, ageclass) %>%
-  summarise(count = sum(Median)) %>%
-  pivot_wider(values_from = count, names_from = ageclass) %>%
-  ungroup() %>%
-  mutate(recruit = (calf / adult))
-
-recruitment <- recruitment %>%
-  rbind(tonq.recruit %>%
-    mutate(
-      herd = "Tonquin",
-      year = Year,
-      season = "fall",
-      calves = calf,
-      adults = adult,
-      recruitment = recruit,
-      count.used = "IPM"
-    ) %>%
-    dplyr::select(colnames(recruitment)))
-
 ## remove herd-years with <=2 adults seen (means r est could only be 0,0.5,or 1)
 recruitment <- recruitment %>%
   mutate(adults = case_when(
@@ -1130,12 +1113,14 @@ counts <- counts %>%
       !is.na(Sightability) ~ count / Sightability
     ),
     Est_CL.min = case_when(
-      is.na(Sightability) | Sightability %in% 0 ~ count / (Sightability.pooled + mean(se, na.rm = TRUE)),
-      !is.na(Sightability) ~ count / (Sightability + sd)
+      is.na(Sightability) | Sightability %in% 0 ~ count / (Sightability.pooled + (1.64485*mean(se, na.rm = TRUE))),
+      !is.na(Sightability) & (Sightability + (1.64485*sd))<1 & Sightability!=0 ~ count / (Sightability + (1.64485*sd)),
+      !is.na(Sightability) & (Sightability + (1.64485*sd))>=1 & Sightability!=0 ~ count / 1
     ),
     Est_CL.max = case_when(
-      is.na(Sightability) | Sightability %in% 0 ~ count / (Sightability.pooled - mean(se, na.rm = TRUE)),
-      !is.na(Sightability) ~ count / (Sightability - sd)
+      is.na(Sightability) | Sightability %in% 0 ~ count / (Sightability.pooled - (1.64485*mean(se, na.rm = TRUE))),
+      !is.na(Sightability) & (Sightability - (1.64485*sd))>0 & Sightability!=0 ~ count / (Sightability - (1.64485*sd)),
+      !is.na(Sightability) & (Sightability - (1.64485*sd))<=0 & Sightability!=0 ~ count / (Sightability*0.75)
     )
   ) %>%
   drop_na(count)
@@ -1178,12 +1163,12 @@ herd.sight <- herd.sight %>%
 
 
 
-# Add Tonquin abundance from Moeller
+# Add Tonquin abundance 
 counts <- counts %>%
   rbind(tonq.abund %>%
     mutate(
-      SurveyCount = Mean * 0.8,
-      Sightability = 0.8
+      SurveyCount = Mean * 0.9,
+      Sightability = 0.9
     ) %>%
     mutate(
       herd = c("Tonquin"),
@@ -1204,32 +1189,6 @@ counts <- counts %>%
     ) %>%
     dplyr::select(colnames(counts)))
 
-a <- tonq.abund %>%
-  mutate(
-    SurveyCount = Mean * 0.8,
-    Sightability = 0.8
-  ) %>%
-  mutate(
-    herd = c("Tonquin"),
-    year = Year,
-    timing = "October",
-    MinCount = NA,
-    CollarsSeen = NA,
-    CollarsAvailable = NA,
-    Sightability = Sightability,
-    se = NA,
-    sd = (SD * Sightability^2) / (SD * Sightability + SurveyCount),
-    Sightability.pooled = NA,
-    Est_CL = SurveyCount / Sightability,
-    count = SurveyCount / Sightability,
-    MinUsed = 0,
-    Est_CL.min = (SurveyCount / (Sightability + sd)),
-    Est_CL.max = (SurveyCount / (Sightability - sd))
-  ) %>%
-  mutate(
-    sdup = Est_CL.max - Est_CL,
-    sdmin = Est_CL - Est_CL.min
-  )
 
 ## plot
 ggplot(
@@ -1605,7 +1564,7 @@ nherd
 nrow(counts)
 ```
 
-    ## [1] 504
+    ## [1] 503
 
 ``` r
 length(unique(counts$herd)) ## n herds with counts
@@ -1618,7 +1577,7 @@ length(unique(counts$herd)) ## n herds with counts
 nrow(recruitment)
 ```
 
-    ## [1] 608
+    ## [1] 591
 
 ``` r
 length(unique(recruitment$herd)) ## n herds with recruit
@@ -1631,7 +1590,7 @@ length(unique(recruitment$herd)) ## n herds with recruit
 nrow(surv.yr.est)
 ```
 
-    ## [1] 559
+    ## [1] 558
 
 ``` r
 length(unique(surv.yr.est$herd)) ## n herds with recruit
@@ -1655,7 +1614,7 @@ sum(surv.yr$event) # n dead
 length(surv.yr$id %>% unique()) # n animals for survival
 ```
 
-    ## [1] 1565
+    ## [1] 1586
 
 ``` r
 ## timeframe

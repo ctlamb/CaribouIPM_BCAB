@@ -1,18 +1,20 @@
 BC AB Caribou IPM Appendix
 ================
 Clayton T. Lamb
-05 October, 2023
+07 December, 2023
 
 ## Load Data
 
 ``` r
-library(packrat)
+library(renv)
 library(here)
 library(RColorBrewer)
 library(ggridges)
 library(hrbrthemes)
 library(broom.mixed)
 library(lme4)
+library(knitr)
+library(ggrepel)
 library(gt)
 library(tidyverse)
 
@@ -364,7 +366,17 @@ for(i in 1:length(herds)){
                     segment.ncp = 3,
                     segment.angle = 20)+
     coord_cartesian(
-      clip = "off")
+      clip = "off")+
+  geom_text(
+    data = trt.plot%>%filter(herd==!!herds[i])%>%
+      group_by(herd, treatment, y) %>%
+      summarize(year=mean(year))%>%
+      mutate(t = str_remove(treatment, "reduce ") %>% str_sub(1, 1)),
+    aes(label = treatment, x = year, y = y),
+    direction = "y",
+    size=3,
+    vjust=-1
+  ) 
   
   ggsave(here::here("plots","by_herd","with_treatments", paste0(herds[i]%>%str_replace_all("[:punct:]", " "),".png")), width=4,height=4, bg="white")
   

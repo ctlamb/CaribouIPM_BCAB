@@ -1,4 +1,4 @@
-## ----render, eval=FALSE,include=FALSE------------------------------------------------------------------------------------------------
+## ----render, eval=FALSE,include=FALSE----------------------------------------------------------------------------------------------------------------------------------
 ## rmarkdown::render(here::here("CaribouIPM_BCAB.Rmd"),
 ##   output_file = "README.md"
 ## )
@@ -9,11 +9,11 @@
 ## )
 
 
-## ----Load packages and data, results='hide', message=FALSE, warning=FALSE------------------------------------------------------------
-library(packrat)
+## ----Load packages and data, results='hide', message=FALSE, warning=FALSE----------------------------------------------------------------------------------------------
+library(renv)
+##to pull packages
+#restore(repos="https://cloud.r-project.org")
 library(ggmap)
-library(RStoolbox)
-library(ggsn)
 library(MCMCvis)
 library(tidybayes)
 library(ggmcmc)
@@ -74,7 +74,7 @@ rm(nyr)
 rm(yr_idx)
 
 
-## ----Check posteriors, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, results='hide'---------------------------------------
+## ----Check posteriors, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, results='hide'-------------------------------------------------------------------------
 ## 
 ## ## check posteriors for convergence
 ## mcmcplots::mcmcplot(out$samples, par = "lambda")
@@ -107,7 +107,7 @@ rm(yr_idx)
 ## ## feed (9), pen (14), and sterilize (22) have lowest sample sizes, makes sense why convergence is poorer
 
 
-## ----Data housekeeping, message=FALSE, warning=FALSE---------------------------------------------------------------------------------
+## ----Data housekeeping, message=FALSE, warning=FALSE-------------------------------------------------------------------------------------------------------------------
 ## set up colors for plotting
 display.brewer.pal(8, "Accent")
 cols <- RColorBrewer::brewer.pal(8, "Accent")
@@ -238,7 +238,7 @@ counts%>%
 
 
 
-## ----Firstyr, message=FALSE, warning=FALSE-------------------------------------------------------------------------------------------
+## ----Firstyr, message=FALSE, warning=FALSE-----------------------------------------------------------------------------------------------------------------------------
 raw.demog <- rbind(
   afr %>% dplyr::select(herd, year, est) %>% mutate(type = "Recruit"),
   afs %>% dplyr::select(herd, year, est) %>% mutate(type = "Surv"),
@@ -274,7 +274,7 @@ ggplot(first.yr, aes(x = first.year)) +
   )
 
 
-## ----Plot herd abundance, fig.height=11, fig.width=15, message=FALSE-----------------------------------------------------------------
+## ----Plot herd abundance, fig.height=11, fig.width=15, message=FALSE---------------------------------------------------------------------------------------------------
 
 ## Prep data and layout for plot
 
@@ -482,7 +482,7 @@ ggsave(here::here("plots", "abundance.png"), width = 15, height = 11, bg = "whit
 # ggsave(here::here("plots", "abundance_forFUSE.svg"), width = 15, height = 11, bg = "transparent")
 
 
-## ----Plot herd abundance split, message=FALSE, include=FALSE-------------------------------------------------------------------------
+## ----Plot herd abundance split, message=FALSE, include=FALSE-----------------------------------------------------------------------------------------------------------
 ## split into two
 ## TOP
 ggplot() +
@@ -506,6 +506,8 @@ ggplot() +
   ) +
   geom_rug(
     data = raw.demog %>%
+      filter(herd!="Quintette Full")%>%
+      tibble%>%
       ungroup() %>%
       left_join(labels, by = "herd") %>%
       mutate(herd = paste0(number_label, ".", herd, " (", human, "%)") %>%
@@ -538,6 +540,7 @@ ggplot() +
   ) +
   geom_point(
     data = counts %>%
+      filter(herd!="Quintette Full")%>%
       ungroup() %>%
       left_join(labels, by = "herd") %>%
       mutate(herd = paste0(number_label, ".", herd, " (", human, "%)") %>%
@@ -547,6 +550,7 @@ ggplot() +
   ) +
   geom_linerange(
     data = counts %>%
+      filter(herd!="Quintette Full")%>%
       ungroup() %>%
       mutate(Est_CL.max = case_when(Est_CL.max > 5000 ~ 5000, TRUE ~ Est_CL.max)) %>%
       left_join(labels, by = "herd") %>% mutate(herd = paste0(number_label, ".", herd, " (", human, "%)") %>%
@@ -556,6 +560,7 @@ ggplot() +
   ) +
   geom_point(
     data = trt.plot %>%
+      filter(herd!="Quintette Full")%>%
       ungroup() %>%
       left_join(labels, by = "herd") %>%
       mutate(herd = paste0(number_label, ".", herd, " (", human, "%)") %>%
@@ -566,6 +571,7 @@ ggplot() +
   scale_color_manual(values = cols[-4]) +
   geom_text(
     data = trt.plot %>%
+      filter(herd!="Quintette Full")%>%
       ungroup() %>%
       distinct(herd, treatment, y) %>%
       mutate(t = str_remove(treatment, "reduce ") %>% str_sub(1, 1)) %>%
@@ -604,6 +610,7 @@ ggplot() +
   ) +
   geom_rug(
     data = raw.demog %>%
+      filter(herd!="Quintette Full")%>%
       ungroup() %>%
       left_join(labels, by = "herd") %>%
       mutate(herd = paste0(number_label, ".", herd, " (", human, "%)") %>%
@@ -636,6 +643,7 @@ ggplot() +
   ) +
   geom_point(
     data = counts %>%
+      filter(herd!="Quintette Full")%>%
       ungroup() %>%
       left_join(labels, by = "herd") %>%
       mutate(herd = paste0(number_label, ".", herd, " (", human, "%)") %>%
@@ -645,6 +653,7 @@ ggplot() +
   ) +
   geom_linerange(
     data = counts %>%
+      filter(herd!="Quintette Full")%>%
       ungroup() %>%
       mutate(Est_CL.max = case_when(Est_CL.max > 5000 ~ 5000, TRUE ~ Est_CL.max)) %>%
       left_join(labels, by = "herd") %>% mutate(herd = paste0(number_label, ".", herd, " (", human, "%)") %>%
@@ -654,6 +663,7 @@ ggplot() +
   ) +
   geom_point(
     data = trt.plot %>%
+      filter(herd!="Quintette Full")%>%
       ungroup() %>%
       left_join(labels, by = "herd") %>%
       mutate(herd = paste0(number_label, ".", herd, " (", human, "%)") %>%
@@ -664,6 +674,7 @@ ggplot() +
   scale_color_manual(values = cols[-4]) +
   geom_text(
     data = trt.plot %>%
+      filter(herd!="Quintette Full")%>%
       ungroup() %>%
       distinct(herd, treatment, y) %>%
       mutate(t = str_remove(treatment, "reduce ") %>% str_sub(1, 1)) %>%
@@ -750,7 +761,7 @@ ggsave(here::here("plots", "abundance_legend.png"), width = 2.7, height = 3, bg 
 
 
 
-## ----Plot total abundance, fig.height=6, fig.width=6, message=FALSE, warning=FALSE---------------------------------------------------
+## ----Plot total abundance, fig.height=6, fig.width=6, message=FALSE, warning=FALSE-------------------------------------------------------------------------------------
 
 #### Summarize bou pop in '91 vs 2023####
 sims.summary <- sims.plot %>%
@@ -824,7 +835,7 @@ abundance.all.plot <- ggplot(data = sims.plot %>%
     mutate(.variable = case_when(
       .variable == "totNMF" ~ "With recovery\nactions",
       TRUE ~ "Status quo"
-    )), aes(label = fct_relevel(.variable, "Status quo", "With recovery\nactions"), colour = .variable, x = Inf, y = mean), hjust = 0) +
+    )), aes(label = fct_relevel(.variable, "Status quo", "With recovery\nactions"), colour = .variable, x = Inf, y = mean), hjust = 0, size=4) +
   geom_jitter(data = ext.yr, size = 1, aes(x = yrs, y = mean), alpha = 0.5) +
   theme_ipsum() +
   theme(legend.position = "none") +
@@ -840,25 +851,28 @@ abundance.all.plot <- ggplot(data = sims.plot %>%
   theme(
     axis.title.x = element_text(size = 15),
     axis.title.y = element_text(size = 15),
+    axis.text.x = element_text(size = 13),
+    axis.text.y = element_text(size = 13),
     strip.text.x = element_text(size = 15),
     strip.text.y = element_text(size = 15),
     legend.text = element_text(size = 13),
+    plot.subtitle = element_text(size = 15),
     legend.title = element_text(size = 15),
     plot.margin = unit(c(1, 5, 1, 1), "lines")
   ) +
-  geom_text(data = trt %>% filter(applied %in% 1) %>% group_by(year) %>% summarise(n = n_distinct(herd)) %>% filter(year %% 2 == 1), aes(x = year, y = 200, label = n), size = 3) +
+  geom_text(data = trt %>% filter(applied %in% 1) %>% group_by(year) %>% summarise(n = n_distinct(herd)) %>% filter(year %% 2 == 1), aes(x = year, y = 200, label = n), size = 3.5) +
   scale_color_manual(values = cols[c(3, 1)]) +
-  annotate(geom = "text", x = 1992, y = 2500, label = "Subpopulations w/\nrecovery actions", hjust = "left") +
+  annotate(geom = "text", x = 1992, y = 2500, label = "Subpopulations w/\nrecovery actions", hjust = "left", size=5) +
   annotate(
     geom = "curve", x = 1996, y = 1800, xend = 1998, yend = 500,
     curvature = 0, arrow = arrow(length = unit(2, "mm"))
   ) +
-  annotate(geom = "text", x = 2010, y = 10000, label = "Subpopulations w/\ndemographic data", hjust = "left") +
+  annotate(geom = "text", x = 2010, y = 10000, label = "Subpopulations w/\ndemographic data", hjust = "left", size=5) +
   annotate(
     geom = "curve", x = 2015, y = 10600, xend = 2013, yend = 11500,
     curvature = 0, arrow = arrow(length = unit(2, "mm"))
   ) +
-  annotate(geom = "text", x = 1994, y = 7000, label = "Subpopulation\nextirpation event", hjust = "left") +
+  annotate(geom = "text", x = 1991, y = 7000, label = "Subpopulation\nextirpation event", hjust = "left", size=5) +
   annotate(
     geom = "curve", x = 1998, y = 7800, xend = (ext.yr %>% ungroup() %>% filter(herd == "Banff") %>% pull(yrs)) + 0.4, yend = (ext.yr %>% ungroup() %>% filter(herd == "Banff") %>% pull(mean)) - 200,
     curvature = 0, arrow = arrow(length = unit(2, "mm"))
@@ -866,13 +880,13 @@ abundance.all.plot <- ggplot(data = sims.plot %>%
   coord_cartesian(
     clip = "off"
   ) +
-  geom_text(data = raw.demog %>% group_by(year) %>% summarise(n = n_distinct(herd)) %>% filter(year %% 2 == 0), aes(x = year, y = 11800, label = n), size = 3)
+  geom_text(data = raw.demog %>% group_by(year) %>% summarise(n = n_distinct(herd)) %>% filter(year %% 2 == 0), aes(x = year, y = 11800, label = n), size = 3.5)
 abundance.all.plot
 
 ggsave(plot = abundance.all.plot, here::here("plots", "abundance_all.png"), width = 6, height = 6, bg = "white")
 
 
-## ----trt eff- r, message=FALSE, warning=FALSE----------------------------------------------------------------------------------------
+## ----trt eff- r, message=FALSE, warning=FALSE--------------------------------------------------------------------------------------------------------------------------
 
 ## Gather draws
 demog.draws <- out %>%
@@ -1026,7 +1040,7 @@ lambda.table <- demog.draws.combotreat %>%
 kable(lambda.table)
 
 
-## ----trt eff- BA, fig.height=7, fig.width=10, message=FALSE, warning=FALSE-----------------------------------------------------------
+## ----trt eff- BA, fig.height=7, fig.width=10, message=FALSE, warning=FALSE---------------------------------------------------------------------------------------------
 # Before-After ---------------------------------------------
 
 ## pull draws and organize into treatment and untreated (reference) timeframes for each herd
@@ -1130,7 +1144,7 @@ trt_eff_ba_table <- eff.draws %>%
     upper = quantile(delta, 0.95, na.rm = TRUE) %>% round(2)
   ) %>%
   arrange(-delta.l) %>%
-  mutate(delta.r = paste0(delta.l, " (", lower, "-", upper, ")")) %>%
+  mutate(delta.r = paste0(delta.l, " [", lower, "-", upper, "]")) %>%
   filter(new != "transplant") %>%
   dplyr::select(`Recovery action` = new, `Change in instantaneous growth rate (r)` = delta.r)
 
@@ -1155,7 +1169,7 @@ eff.draws %>%
   kable()
 
 
-## ----application, message=FALSE, warning=FALSE---------------------------------------------------------------------------------------
+## ----application, message=FALSE, warning=FALSE-------------------------------------------------------------------------------------------------------------------------
 
 eff.draws.app <- demog.draws %>%
   group_by(herd, yrs, trt) %>%
@@ -1272,7 +1286,7 @@ ind.eff.app %>%
 
 
 
-## ----ind trt eff, message=FALSE, warning=FALSE---------------------------------------------------------------------------------------
+## ----ind trt eff, message=FALSE, warning=FALSE-------------------------------------------------------------------------------------------------------------------------
 ## prep data with individual treatments 1/0
 eff.draws <- eff.draws %>%
   mutate(
@@ -1345,7 +1359,7 @@ kable(ind.eff.table)
 eff.draws %>% write_csv(here::here("tables", "draws", "eff.draws.csv"))
 
 
-## ----cons sims, message=FALSE, warning=FALSE-----------------------------------------------------------------------------------------
+## ----cons sims, message=FALSE, warning=FALSE---------------------------------------------------------------------------------------------------------------------------
 n.sims <- 1000
 start.pop <- 100
 
@@ -1559,7 +1573,7 @@ recov.together <- ind.eff.plot + recov.sims.plot + plot_layout(widths = c(1.3, 1
 ggsave(plot = recov.together, here::here("plots/recov.together.png"), width = 13, height = 6, bg = "white")
 
 
-## ----map, fig.height=8, fig.width=12, message=FALSE, warning=FALSE-------------------------------------------------------------------
+## ----map, fig.height=8, fig.width=12, message=FALSE, warning=FALSE-----------------------------------------------------------------------------------------------------
 ## Prep Herd Bounds
 herd.bounds <- st_read(here::here("data/Spatial/herds/u_bc_herds_2021_CL.shp")) %>%
   st_transform(3005) %>%
@@ -1722,7 +1736,17 @@ inset <- ggplot() +
 
 bmap.big <- rast(here::here("data","Spatial","basemap.tif"))
 
-map <- ggRGB(bmap.big, r = 1, g = 2, b = 3) +
+bmap.big <-bmap.big%>%as.data.frame(xy=TRUE)
+
+
+
+map <- ggplot()+
+geom_raster(data=bmap.big, aes(x=x, y=y),
+            fill = rgb(red =bmap.big$basemap_1,
+                         green = bmap.big$basemap_2,
+                         blue = bmap.big$basemap_3,
+                         maxColorValue = 255),
+                         show.legend = FALSE) +
   theme_bw() +
   geom_sf(data = pnw %>%
     st_transform(cust.crs), size = 1, fill = NA, linetype = "dashed") +
@@ -1750,7 +1774,7 @@ map <- ggRGB(bmap.big, r = 1, g = 2, b = 3) +
     legend.box.margin = margin(0, 0, 0, 0),
     legend.position = "top"
   ) +
-  ggsn::scalebar(x.min = 10E4, x.max = 105E4, y.min = -19E4, y.max = 85E4, dist = 150, height = 0.03, dist_unit = "km", transform = FALSE, location = "bottomleft", st.color = "white", st.bottom = FALSE) +
+  #ggsn::scalebar(x.min = 10E4, x.max = 105E4, y.min = -19E4, y.max = 85E4, dist = 150, height = 0.03, dist_unit = "km", transform = FALSE, location = "bottomleft", st.color = "white", st.bottom = FALSE) +
   annotation_custom(ggplotGrob(inset), xmin = 65E4, xmax = 108E4, ymin = 52E4, ymax = 85E4) +
   scale_y_continuous(expand = c(0, 0), limits = c(-20E4, 85E4)) +
   scale_x_continuous(expand = c(0, 0), limits = c(5E4, 105E4)) +

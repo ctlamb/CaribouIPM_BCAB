@@ -602,48 +602,51 @@ padding-top: 0px;
 <body>
 
 <h1 id="bc-ab-caribou-ipm-run">BC AB Caribou IPM run</h1>
-<p>Clayton T. Lamb 05 October, 2023</p>
+<p>Clayton T. Lamb 07 December, 2023</p>
 <h2 id="load-data">Load Data</h2>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(tidybayes)</span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(ggmcmc)</span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">library</span>(hrbrthemes)</span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="fu">library</span>(tidylog)</span>
-<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co"># Load data ---------------------------------------------------------------</span></span>
-<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a></span>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(renv)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="do">##to pull packages</span></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="co">#restore(repos=&quot;https://cloud.r-project.org&quot;)</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="fu">library</span>(tidybayes)</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="fu">library</span>(ggmcmc)</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="fu">library</span>(hrbrthemes)</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="fu">library</span>(tidylog)</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a></span>
-<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>hd <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data/clean/blueprint.csv&quot;</span>))</span>
-<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>hn <span class="ot">&lt;-</span> hd <span class="sc">%&gt;%</span></span>
-<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(herd, herd_num)</span>
-<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>sgt <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data/clean/herd_sightability.csv&quot;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>    <span class="fu">arrange</span>(herd) <span class="sc">%&gt;%</span></span>
-<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a>    <span class="fu">left_join</span>(hn, <span class="at">by =</span> <span class="st">&quot;herd&quot;</span>)</span>
-<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a>afs <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data/clean/survival.csv&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="co"># Load data ---------------------------------------------------------------</span></span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a>hd <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data/clean/blueprint.csv&quot;</span>))</span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a>hn <span class="ot">&lt;-</span> hd <span class="sc">%&gt;%</span></span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(herd, herd_num)</span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a>sgt <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data/clean/herd_sightability.csv&quot;</span>)) <span class="sc">%&gt;%</span></span>
 <span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a>    <span class="fu">arrange</span>(herd) <span class="sc">%&gt;%</span></span>
 <span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a>    <span class="fu">left_join</span>(hn, <span class="at">by =</span> <span class="st">&quot;herd&quot;</span>)</span>
-<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a>afr <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data/clean/recruitment.csv&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a>afs <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data/clean/survival.csv&quot;</span>)) <span class="sc">%&gt;%</span></span>
 <span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a>    <span class="fu">arrange</span>(herd) <span class="sc">%&gt;%</span></span>
 <span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a>    <span class="fu">left_join</span>(hn, <span class="at">by =</span> <span class="st">&quot;herd&quot;</span>)</span>
-<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a>counts <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data/clean/counts.csv&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a>afr <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data/clean/recruitment.csv&quot;</span>)) <span class="sc">%&gt;%</span></span>
 <span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a>    <span class="fu">arrange</span>(herd) <span class="sc">%&gt;%</span></span>
 <span id="cb1-24"><a href="#cb1-24" tabindex="-1"></a>    <span class="fu">left_join</span>(hn, <span class="at">by =</span> <span class="st">&quot;herd&quot;</span>)</span>
-<span id="cb1-25"><a href="#cb1-25" tabindex="-1"></a>trt <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data/clean/treatments.csv&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb1-25"><a href="#cb1-25" tabindex="-1"></a>counts <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data/clean/counts.csv&quot;</span>)) <span class="sc">%&gt;%</span></span>
 <span id="cb1-26"><a href="#cb1-26" tabindex="-1"></a>    <span class="fu">arrange</span>(herd) <span class="sc">%&gt;%</span></span>
 <span id="cb1-27"><a href="#cb1-27" tabindex="-1"></a>    <span class="fu">left_join</span>(hn, <span class="at">by =</span> <span class="st">&quot;herd&quot;</span>)</span>
-<span id="cb1-28"><a href="#cb1-28" tabindex="-1"></a>ecotype <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data/raw/treatment.csv&quot;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb1-29"><a href="#cb1-29" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="at">herd=</span>Herd,<span class="at">ECCC=</span>ECCC_Recov_Grp, <span class="at">COSEWIC=</span>COSEWIC_Grp, <span class="at">Heard_Vagt1998=</span>Heard.and.Vagt.<span class="fl">1998.</span>grouping)<span class="sc">%&gt;%</span></span>
-<span id="cb1-30"><a href="#cb1-30" tabindex="-1"></a>  <span class="fu">distinct</span>()</span>
-<span id="cb1-31"><a href="#cb1-31" tabindex="-1"></a></span>
-<span id="cb1-32"><a href="#cb1-32" tabindex="-1"></a>sexratios <span class="ot">&lt;-</span>  <span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data/clean/sexratios.csv&quot;</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb1-33"><a href="#cb1-33" tabindex="-1"></a>  <span class="fu">arrange</span>(herd) <span class="sc">%&gt;%</span></span>
-<span id="cb1-34"><a href="#cb1-34" tabindex="-1"></a>  <span class="fu">left_join</span>(hn, <span class="at">by =</span> <span class="st">&quot;herd&quot;</span>)</span>
-<span id="cb1-35"><a href="#cb1-35" tabindex="-1"></a>sexratio_summary <span class="ot">&lt;-</span>  <span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data/clean/sexratio_summary.csv&quot;</span>))</span>
-<span id="cb1-36"><a href="#cb1-36" tabindex="-1"></a></span>
-<span id="cb1-37"><a href="#cb1-37" tabindex="-1"></a><span class="co"># 0 = treatment did not occur for that herd in that year</span></span>
-<span id="cb1-38"><a href="#cb1-38" tabindex="-1"></a><span class="co"># 1 = treatment did occur</span></span>
-<span id="cb1-39"><a href="#cb1-39" tabindex="-1"></a><span class="co"># NA = herd not monitored? Possibly change to 0s</span></span>
-<span id="cb1-40"><a href="#cb1-40" tabindex="-1"></a><span class="co">#trt$applied[is.na(trt$applied)] &lt;- 0</span></span></code></pre></div>
+<span id="cb1-28"><a href="#cb1-28" tabindex="-1"></a>trt <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data/clean/treatments.csv&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb1-29"><a href="#cb1-29" tabindex="-1"></a>    <span class="fu">arrange</span>(herd) <span class="sc">%&gt;%</span></span>
+<span id="cb1-30"><a href="#cb1-30" tabindex="-1"></a>    <span class="fu">left_join</span>(hn, <span class="at">by =</span> <span class="st">&quot;herd&quot;</span>)</span>
+<span id="cb1-31"><a href="#cb1-31" tabindex="-1"></a>ecotype <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data/raw/treatment.csv&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb1-32"><a href="#cb1-32" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="at">herd=</span>Herd,<span class="at">ECCC=</span>ECCC_Recov_Grp, <span class="at">COSEWIC=</span>COSEWIC_Grp, <span class="at">Heard_Vagt1998=</span>Heard.and.Vagt.<span class="fl">1998.</span>grouping)<span class="sc">%&gt;%</span></span>
+<span id="cb1-33"><a href="#cb1-33" tabindex="-1"></a>  <span class="fu">distinct</span>()</span>
+<span id="cb1-34"><a href="#cb1-34" tabindex="-1"></a></span>
+<span id="cb1-35"><a href="#cb1-35" tabindex="-1"></a>sexratios <span class="ot">&lt;-</span>  <span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data/clean/sexratios.csv&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb1-36"><a href="#cb1-36" tabindex="-1"></a>  <span class="fu">arrange</span>(herd) <span class="sc">%&gt;%</span></span>
+<span id="cb1-37"><a href="#cb1-37" tabindex="-1"></a>  <span class="fu">left_join</span>(hn, <span class="at">by =</span> <span class="st">&quot;herd&quot;</span>)</span>
+<span id="cb1-38"><a href="#cb1-38" tabindex="-1"></a>sexratio_summary <span class="ot">&lt;-</span>  <span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;data/clean/sexratio_summary.csv&quot;</span>))</span>
+<span id="cb1-39"><a href="#cb1-39" tabindex="-1"></a></span>
+<span id="cb1-40"><a href="#cb1-40" tabindex="-1"></a><span class="co"># 0 = treatment did not occur for that herd in that year</span></span>
+<span id="cb1-41"><a href="#cb1-41" tabindex="-1"></a><span class="co"># 1 = treatment did occur</span></span>
+<span id="cb1-42"><a href="#cb1-42" tabindex="-1"></a><span class="co"># NA = herd not monitored? Possibly change to 0s</span></span>
+<span id="cb1-43"><a href="#cb1-43" tabindex="-1"></a><span class="co">#trt$applied[is.na(trt$applied)] &lt;- 0</span></span></code></pre></div>
 <h2 id="prep-data-for-ipm">Prep data for IPM</h2>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Herds and herd number</span></span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>herds <span class="ot">&lt;-</span> <span class="fu">unique</span>(hd<span class="sc">$</span>herd)</span>
@@ -1123,23 +1126,35 @@ padding-top: 0px;
 <span id="cb3-97"><a href="#cb3-97" tabindex="-1"></a>    <span class="st">&quot;penwolf&quot;</span></span>
 <span id="cb3-98"><a href="#cb3-98" tabindex="-1"></a>    )</span></code></pre></div>
 <h2 id="run-ipm">Run IPM</h2>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>nth <span class="ot">&lt;-</span> <span class="dv">90</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>nbu <span class="ot">&lt;-</span> <span class="dv">30000</span></span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>nch <span class="ot">&lt;-</span> <span class="dv">3</span></span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>nad <span class="ot">&lt;-</span> <span class="dv">60000</span></span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>nit <span class="ot">&lt;-</span> <span class="dv">400000</span></span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a></span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a></span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>out <span class="ot">&lt;-</span> jagsUI<span class="sc">::</span><span class="fu">jags</span>(ipm_dat, </span>
-<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>    <span class="at">inits =</span> ipm_inits,</span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>    model_parms,</span>
-<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>    <span class="at">model.file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;jags/BCAB_IPM_20230611.txt&quot;</span>),</span>
-<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>    <span class="at">n.chains =</span> nch,</span>
-<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>    <span class="at">n.cores =</span> nch,</span>
-<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a>    <span class="at">n.iter =</span> nit,</span>
-<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a>    <span class="at">n.burnin =</span> nbu,</span>
-<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a>    <span class="at">n.thin =</span> nth,</span>
-<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a>    <span class="at">n.adapt =</span> nad)</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># nth &lt;- 90</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co"># nbu &lt;- 30000</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co"># nch &lt;- 3</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co"># nad &lt;- 60000</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co"># nit &lt;- 400000</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co"># nth &lt;- 1</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co"># nbu &lt;- 200</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co"># nch &lt;- 3</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co"># nad &lt;- 100</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co"># nit &lt;- 300</span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>nth <span class="ot">&lt;-</span> <span class="dv">90</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a>nbu <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a>nch <span class="ot">&lt;-</span> <span class="dv">3</span></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a>nad <span class="ot">&lt;-</span> <span class="dv">60000</span></span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a>nit <span class="ot">&lt;-</span> <span class="dv">400000</span></span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a></span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a></span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a>out <span class="ot">&lt;-</span> jagsUI<span class="sc">::</span><span class="fu">jags</span>(<span class="at">data=</span>ipm_dat, </span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a>    <span class="at">inits =</span> ipm_inits,</span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a>    <span class="at">parameters.to.save=</span>model_parms,</span>
+<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a>    <span class="at">model.file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;jags/BCAB_IPM_20230611.txt&quot;</span>),</span>
+<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a>    <span class="at">n.chains =</span> nch,</span>
+<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a>    <span class="at">n.cores =</span> nch,</span>
+<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a>    <span class="at">n.iter =</span> nit,</span>
+<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a>    <span class="at">n.burnin =</span> nbu,</span>
+<span id="cb4-28"><a href="#cb4-28" tabindex="-1"></a>    <span class="at">n.thin =</span> nth,</span>
+<span id="cb4-29"><a href="#cb4-29" tabindex="-1"></a>    <span class="at">n.adapt =</span> nad)</span></code></pre></div>
 <h2 id="save-outputs">Save outputs</h2>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co">#mcmcplots::mcmcplot(out$samples, par = c(&quot;S&quot;, &quot;R&quot;, &quot;totNMF&quot;)) </span></span>
 <span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="fu">saveRDS</span>(out, <span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;jags/output/BCAB_CaribouIPM_23update.rds&quot;</span>))</span></code></pre></div>

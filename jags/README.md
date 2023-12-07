@@ -1,11 +1,14 @@
 BC AB Caribou IPM run
 ================
 Clayton T. Lamb
-05 October, 2023
+07 December, 2023
 
 ## Load Data
 
 ``` r
+library(renv)
+##to pull packages
+#restore(repos="https://cloud.r-project.org")
 library(tidybayes)
 library(ggmcmc)
 library(hrbrthemes)
@@ -537,16 +540,28 @@ model_parms <- c(
 ## Run IPM
 
 ``` r
+# nth <- 90
+# nbu <- 30000
+# nch <- 3
+# nad <- 60000
+# nit <- 400000
+# 
+# nth <- 1
+# nbu <- 200
+# nch <- 3
+# nad <- 100
+# nit <- 300
+
 nth <- 90
-nbu <- 30000
+nbu <- 0
 nch <- 3
 nad <- 60000
 nit <- 400000
 
 
-out <- jagsUI::jags(ipm_dat, 
+out <- jagsUI::jags(data=ipm_dat, 
     inits = ipm_inits,
-    model_parms,
+    parameters.to.save=model_parms,
     model.file = here::here("jags/BCAB_IPM_20230611.txt"),
     n.chains = nch,
     n.cores = nch,

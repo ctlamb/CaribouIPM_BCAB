@@ -246,33 +246,4 @@ model{
 			
 			}
 		}
-	
-
-##test treatment eff
-	##reducemoose-reducewolves, Columbia North (9; 48:49 vs 2:32),Groundhog (15; 46:49 vs 2:45),Hart North (16; 49 vs 2:34)
-	cn_ref <- mean(logla[9,2:32])
-	cn_trt <- mean(logla[9,48:49])
-	
-	gh_ref <- mean(logla[15,2:45])
-	gh_trt <- mean(logla[15,46:49])
-	
-	hn_ref <- mean(logla[16,2:34])
-	hn_trt <- mean(logla[16,49])
-	
-	##dif
-	cn_dif <- cn_trt-cn_ref
-	gh_dif <- gh_trt-gh_ref
-	hn_dif <- hn_trt-hn_ref
-	
-	##mean effect
-	moosewolf <- (cn_dif+gh_dif+hn_dif)/3
-	
-	
-	
-	##pen-reducewolves, Klinse-Za (20; 43:49 vs 2:41)
-	kz_ref <- mean(logla[20,2:41])
-	kz_trt <- mean(logla[20,43:49])
-	
-	##dif, which is also the mean/global effect because only 1 herd
-	penwolf <- kz_trt-kz_ref
 	}   
