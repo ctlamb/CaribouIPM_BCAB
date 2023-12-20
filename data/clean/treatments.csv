@@ -4283,6 +4283,57 @@ Graham,2020,feed,0,NA
 Graham,2021,feed,0,NA
 Graham,2022,feed,0,NA
 Graham,2023,feed,0,NA
+Groundhog,1973,feed,NA,NA
+Groundhog,1974,feed,NA,NA
+Groundhog,1975,feed,NA,NA
+Groundhog,1976,feed,NA,NA
+Groundhog,1977,feed,NA,NA
+Groundhog,1978,feed,NA,NA
+Groundhog,1979,feed,NA,NA
+Groundhog,1980,feed,NA,NA
+Groundhog,1981,feed,NA,NA
+Groundhog,1982,feed,NA,NA
+Groundhog,1983,feed,NA,NA
+Groundhog,1984,feed,NA,NA
+Groundhog,1985,feed,NA,NA
+Groundhog,1986,feed,NA,NA
+Groundhog,1987,feed,NA,NA
+Groundhog,1988,feed,NA,NA
+Groundhog,1989,feed,NA,NA
+Groundhog,1990,feed,NA,NA
+Groundhog,1991,feed,NA,NA
+Groundhog,1992,feed,NA,NA
+Groundhog,1993,feed,NA,NA
+Groundhog,1994,feed,NA,NA
+Groundhog,1995,feed,NA,NA
+Groundhog,1996,feed,NA,NA
+Groundhog,1997,feed,NA,NA
+Groundhog,1998,feed,NA,NA
+Groundhog,1999,feed,0,NA
+Groundhog,2000,feed,0,NA
+Groundhog,2001,feed,0,NA
+Groundhog,2002,feed,0,NA
+Groundhog,2003,feed,0,NA
+Groundhog,2004,feed,0,NA
+Groundhog,2005,feed,0,NA
+Groundhog,2006,feed,0,NA
+Groundhog,2007,feed,0,NA
+Groundhog,2008,feed,0,NA
+Groundhog,2009,feed,0,NA
+Groundhog,2010,feed,0,NA
+Groundhog,2011,feed,0,NA
+Groundhog,2012,feed,0,NA
+Groundhog,2013,feed,0,NA
+Groundhog,2014,feed,0,NA
+Groundhog,2015,feed,0,NA
+Groundhog,2016,feed,0,NA
+Groundhog,2017,feed,0,NA
+Groundhog,2018,feed,0,NA
+Groundhog,2019,feed,0,NA
+Groundhog,2020,feed,0,NA
+Groundhog,2021,feed,0,NA
+Groundhog,2022,feed,0,NA
+Groundhog,2023,feed,0,NA
 Groundhog,1973,reduce moose,NA,NA
 Groundhog,1974,reduce moose,NA,NA
 Groundhog,1975,reduce moose,NA,NA
@@ -4333,7 +4384,7 @@ Groundhog,2019,reduce moose,1,NA
 Groundhog,2020,reduce moose,1,NA
 Groundhog,2021,reduce moose,1,NA
 Groundhog,2022,reduce moose,1,NA
-Groundhog,2023,reduce moose,0,NA
+Groundhog,2023,reduce moose,1,NA
 Groundhog,1973,reduce wolves,NA,NA
 Groundhog,1974,reduce wolves,NA,NA
 Groundhog,1975,reduce wolves,NA,NA
@@ -4538,57 +4589,6 @@ Groundhog,2020,pen,0,NA
 Groundhog,2021,pen,0,NA
 Groundhog,2022,pen,0,NA
 Groundhog,2023,pen,0,NA
-Groundhog,1973,feed,NA,NA
-Groundhog,1974,feed,NA,NA
-Groundhog,1975,feed,NA,NA
-Groundhog,1976,feed,NA,NA
-Groundhog,1977,feed,NA,NA
-Groundhog,1978,feed,NA,NA
-Groundhog,1979,feed,NA,NA
-Groundhog,1980,feed,NA,NA
-Groundhog,1981,feed,NA,NA
-Groundhog,1982,feed,NA,NA
-Groundhog,1983,feed,NA,NA
-Groundhog,1984,feed,NA,NA
-Groundhog,1985,feed,NA,NA
-Groundhog,1986,feed,NA,NA
-Groundhog,1987,feed,NA,NA
-Groundhog,1988,feed,NA,NA
-Groundhog,1989,feed,NA,NA
-Groundhog,1990,feed,NA,NA
-Groundhog,1991,feed,NA,NA
-Groundhog,1992,feed,NA,NA
-Groundhog,1993,feed,NA,NA
-Groundhog,1994,feed,NA,NA
-Groundhog,1995,feed,NA,NA
-Groundhog,1996,feed,NA,NA
-Groundhog,1997,feed,NA,NA
-Groundhog,1998,feed,NA,NA
-Groundhog,1999,feed,0,NA
-Groundhog,2000,feed,0,NA
-Groundhog,2001,feed,0,NA
-Groundhog,2002,feed,0,NA
-Groundhog,2003,feed,0,NA
-Groundhog,2004,feed,0,NA
-Groundhog,2005,feed,0,NA
-Groundhog,2006,feed,0,NA
-Groundhog,2007,feed,0,NA
-Groundhog,2008,feed,0,NA
-Groundhog,2009,feed,0,NA
-Groundhog,2010,feed,0,NA
-Groundhog,2011,feed,0,NA
-Groundhog,2012,feed,0,NA
-Groundhog,2013,feed,0,NA
-Groundhog,2014,feed,0,NA
-Groundhog,2015,feed,0,NA
-Groundhog,2016,feed,0,NA
-Groundhog,2017,feed,0,NA
-Groundhog,2018,feed,0,NA
-Groundhog,2019,feed,0,NA
-Groundhog,2020,feed,0,NA
-Groundhog,2021,feed,0,NA
-Groundhog,2022,feed,0,NA
-Groundhog,2023,feed,0,NA
 Hart North,1973,reduce moose,NA,NA
 Hart North,1974,reduce moose,NA,NA
 Hart North,1975,reduce moose,NA,NA
@@ -9179,312 +9179,6 @@ Quintette,2020,feed,0,NA
 Quintette,2021,feed,0,NA
 Quintette,2022,feed,0,NA
 Quintette,2023,feed,0,NA
-Quintette Full,1973,reduce wolves,NA,NA
-Quintette Full,1974,reduce wolves,NA,NA
-Quintette Full,1975,reduce wolves,NA,NA
-Quintette Full,1976,reduce wolves,NA,NA
-Quintette Full,1977,reduce wolves,NA,NA
-Quintette Full,1978,reduce wolves,NA,NA
-Quintette Full,1979,reduce wolves,NA,NA
-Quintette Full,1980,reduce wolves,NA,NA
-Quintette Full,1981,reduce wolves,NA,NA
-Quintette Full,1982,reduce wolves,NA,NA
-Quintette Full,1983,reduce wolves,NA,NA
-Quintette Full,1984,reduce wolves,NA,NA
-Quintette Full,1985,reduce wolves,NA,NA
-Quintette Full,1986,reduce wolves,NA,NA
-Quintette Full,1987,reduce wolves,NA,NA
-Quintette Full,1988,reduce wolves,NA,NA
-Quintette Full,1989,reduce wolves,NA,NA
-Quintette Full,1990,reduce wolves,NA,NA
-Quintette Full,1991,reduce wolves,NA,NA
-Quintette Full,1992,reduce wolves,NA,NA
-Quintette Full,1993,reduce wolves,NA,NA
-Quintette Full,1994,reduce wolves,NA,NA
-Quintette Full,1995,reduce wolves,NA,NA
-Quintette Full,1996,reduce wolves,NA,NA
-Quintette Full,1997,reduce wolves,NA,NA
-Quintette Full,1998,reduce wolves,NA,NA
-Quintette Full,1999,reduce wolves,NA,NA
-Quintette Full,2000,reduce wolves,NA,NA
-Quintette Full,2001,reduce wolves,NA,NA
-Quintette Full,2002,reduce wolves,NA,NA
-Quintette Full,2003,reduce wolves,NA,NA
-Quintette Full,2004,reduce wolves,NA,NA
-Quintette Full,2005,reduce wolves,NA,NA
-Quintette Full,2006,reduce wolves,NA,NA
-Quintette Full,2007,reduce wolves,NA,NA
-Quintette Full,2008,reduce wolves,NA,NA
-Quintette Full,2009,reduce wolves,NA,NA
-Quintette Full,2010,reduce wolves,NA,NA
-Quintette Full,2011,reduce wolves,NA,NA
-Quintette Full,2012,reduce wolves,NA,NA
-Quintette Full,2013,reduce wolves,NA,NA
-Quintette Full,2014,reduce wolves,NA,NA
-Quintette Full,2015,reduce wolves,NA,NA
-Quintette Full,2016,reduce wolves,NA,NA
-Quintette Full,2017,reduce wolves,NA,NA
-Quintette Full,2018,reduce wolves,NA,NA
-Quintette Full,2019,reduce wolves,NA,NA
-Quintette Full,2020,reduce wolves,NA,NA
-Quintette Full,2021,reduce wolves,NA,NA
-Quintette Full,2022,reduce wolves,1,NA
-Quintette Full,2023,reduce wolves,1,NA
-Quintette Full,1973,sterilize wolves,NA,NA
-Quintette Full,1974,sterilize wolves,NA,NA
-Quintette Full,1975,sterilize wolves,NA,NA
-Quintette Full,1976,sterilize wolves,NA,NA
-Quintette Full,1977,sterilize wolves,NA,NA
-Quintette Full,1978,sterilize wolves,NA,NA
-Quintette Full,1979,sterilize wolves,NA,NA
-Quintette Full,1980,sterilize wolves,NA,NA
-Quintette Full,1981,sterilize wolves,NA,NA
-Quintette Full,1982,sterilize wolves,NA,NA
-Quintette Full,1983,sterilize wolves,NA,NA
-Quintette Full,1984,sterilize wolves,NA,NA
-Quintette Full,1985,sterilize wolves,NA,NA
-Quintette Full,1986,sterilize wolves,NA,NA
-Quintette Full,1987,sterilize wolves,NA,NA
-Quintette Full,1988,sterilize wolves,NA,NA
-Quintette Full,1989,sterilize wolves,NA,NA
-Quintette Full,1990,sterilize wolves,NA,NA
-Quintette Full,1991,sterilize wolves,NA,NA
-Quintette Full,1992,sterilize wolves,NA,NA
-Quintette Full,1993,sterilize wolves,NA,NA
-Quintette Full,1994,sterilize wolves,NA,NA
-Quintette Full,1995,sterilize wolves,NA,NA
-Quintette Full,1996,sterilize wolves,NA,NA
-Quintette Full,1997,sterilize wolves,NA,NA
-Quintette Full,1998,sterilize wolves,NA,NA
-Quintette Full,1999,sterilize wolves,NA,NA
-Quintette Full,2000,sterilize wolves,NA,NA
-Quintette Full,2001,sterilize wolves,NA,NA
-Quintette Full,2002,sterilize wolves,NA,NA
-Quintette Full,2003,sterilize wolves,NA,NA
-Quintette Full,2004,sterilize wolves,NA,NA
-Quintette Full,2005,sterilize wolves,NA,NA
-Quintette Full,2006,sterilize wolves,NA,NA
-Quintette Full,2007,sterilize wolves,NA,NA
-Quintette Full,2008,sterilize wolves,NA,NA
-Quintette Full,2009,sterilize wolves,NA,NA
-Quintette Full,2010,sterilize wolves,NA,NA
-Quintette Full,2011,sterilize wolves,NA,NA
-Quintette Full,2012,sterilize wolves,NA,NA
-Quintette Full,2013,sterilize wolves,NA,NA
-Quintette Full,2014,sterilize wolves,NA,NA
-Quintette Full,2015,sterilize wolves,NA,NA
-Quintette Full,2016,sterilize wolves,NA,NA
-Quintette Full,2017,sterilize wolves,NA,NA
-Quintette Full,2018,sterilize wolves,NA,NA
-Quintette Full,2019,sterilize wolves,NA,NA
-Quintette Full,2020,sterilize wolves,NA,NA
-Quintette Full,2021,sterilize wolves,NA,NA
-Quintette Full,2022,sterilize wolves,0,NA
-Quintette Full,2023,sterilize wolves,0,NA
-Quintette Full,1973,transplant,NA,NA
-Quintette Full,1974,transplant,NA,NA
-Quintette Full,1975,transplant,NA,NA
-Quintette Full,1976,transplant,NA,NA
-Quintette Full,1977,transplant,NA,NA
-Quintette Full,1978,transplant,NA,NA
-Quintette Full,1979,transplant,NA,NA
-Quintette Full,1980,transplant,NA,NA
-Quintette Full,1981,transplant,NA,NA
-Quintette Full,1982,transplant,NA,NA
-Quintette Full,1983,transplant,NA,NA
-Quintette Full,1984,transplant,NA,NA
-Quintette Full,1985,transplant,NA,NA
-Quintette Full,1986,transplant,NA,NA
-Quintette Full,1987,transplant,NA,NA
-Quintette Full,1988,transplant,NA,NA
-Quintette Full,1989,transplant,NA,NA
-Quintette Full,1990,transplant,NA,NA
-Quintette Full,1991,transplant,NA,NA
-Quintette Full,1992,transplant,NA,NA
-Quintette Full,1993,transplant,NA,NA
-Quintette Full,1994,transplant,NA,NA
-Quintette Full,1995,transplant,NA,NA
-Quintette Full,1996,transplant,NA,NA
-Quintette Full,1997,transplant,NA,NA
-Quintette Full,1998,transplant,NA,NA
-Quintette Full,1999,transplant,NA,NA
-Quintette Full,2000,transplant,NA,NA
-Quintette Full,2001,transplant,NA,NA
-Quintette Full,2002,transplant,NA,NA
-Quintette Full,2003,transplant,NA,NA
-Quintette Full,2004,transplant,NA,NA
-Quintette Full,2005,transplant,NA,NA
-Quintette Full,2006,transplant,NA,NA
-Quintette Full,2007,transplant,NA,NA
-Quintette Full,2008,transplant,NA,NA
-Quintette Full,2009,transplant,NA,NA
-Quintette Full,2010,transplant,NA,NA
-Quintette Full,2011,transplant,NA,NA
-Quintette Full,2012,transplant,NA,NA
-Quintette Full,2013,transplant,NA,NA
-Quintette Full,2014,transplant,NA,NA
-Quintette Full,2015,transplant,NA,NA
-Quintette Full,2016,transplant,NA,NA
-Quintette Full,2017,transplant,NA,NA
-Quintette Full,2018,transplant,NA,NA
-Quintette Full,2019,transplant,NA,NA
-Quintette Full,2020,transplant,NA,NA
-Quintette Full,2021,transplant,NA,NA
-Quintette Full,2022,transplant,0,NA
-Quintette Full,2023,transplant,0,NA
-Quintette Full,1973,pen,NA,NA
-Quintette Full,1974,pen,NA,NA
-Quintette Full,1975,pen,NA,NA
-Quintette Full,1976,pen,NA,NA
-Quintette Full,1977,pen,NA,NA
-Quintette Full,1978,pen,NA,NA
-Quintette Full,1979,pen,NA,NA
-Quintette Full,1980,pen,NA,NA
-Quintette Full,1981,pen,NA,NA
-Quintette Full,1982,pen,NA,NA
-Quintette Full,1983,pen,NA,NA
-Quintette Full,1984,pen,NA,NA
-Quintette Full,1985,pen,NA,NA
-Quintette Full,1986,pen,NA,NA
-Quintette Full,1987,pen,NA,NA
-Quintette Full,1988,pen,NA,NA
-Quintette Full,1989,pen,NA,NA
-Quintette Full,1990,pen,NA,NA
-Quintette Full,1991,pen,NA,NA
-Quintette Full,1992,pen,NA,NA
-Quintette Full,1993,pen,NA,NA
-Quintette Full,1994,pen,NA,NA
-Quintette Full,1995,pen,NA,NA
-Quintette Full,1996,pen,NA,NA
-Quintette Full,1997,pen,NA,NA
-Quintette Full,1998,pen,NA,NA
-Quintette Full,1999,pen,NA,NA
-Quintette Full,2000,pen,NA,NA
-Quintette Full,2001,pen,NA,NA
-Quintette Full,2002,pen,NA,NA
-Quintette Full,2003,pen,NA,NA
-Quintette Full,2004,pen,NA,NA
-Quintette Full,2005,pen,NA,NA
-Quintette Full,2006,pen,NA,NA
-Quintette Full,2007,pen,NA,NA
-Quintette Full,2008,pen,NA,NA
-Quintette Full,2009,pen,NA,NA
-Quintette Full,2010,pen,NA,NA
-Quintette Full,2011,pen,NA,NA
-Quintette Full,2012,pen,NA,NA
-Quintette Full,2013,pen,NA,NA
-Quintette Full,2014,pen,NA,NA
-Quintette Full,2015,pen,NA,NA
-Quintette Full,2016,pen,NA,NA
-Quintette Full,2017,pen,NA,NA
-Quintette Full,2018,pen,NA,NA
-Quintette Full,2019,pen,NA,NA
-Quintette Full,2020,pen,NA,NA
-Quintette Full,2021,pen,NA,NA
-Quintette Full,2022,pen,0,NA
-Quintette Full,2023,pen,0,NA
-Quintette Full,1973,reduce moose,NA,NA
-Quintette Full,1974,reduce moose,NA,NA
-Quintette Full,1975,reduce moose,NA,NA
-Quintette Full,1976,reduce moose,NA,NA
-Quintette Full,1977,reduce moose,NA,NA
-Quintette Full,1978,reduce moose,NA,NA
-Quintette Full,1979,reduce moose,NA,NA
-Quintette Full,1980,reduce moose,NA,NA
-Quintette Full,1981,reduce moose,NA,NA
-Quintette Full,1982,reduce moose,NA,NA
-Quintette Full,1983,reduce moose,NA,NA
-Quintette Full,1984,reduce moose,NA,NA
-Quintette Full,1985,reduce moose,NA,NA
-Quintette Full,1986,reduce moose,NA,NA
-Quintette Full,1987,reduce moose,NA,NA
-Quintette Full,1988,reduce moose,NA,NA
-Quintette Full,1989,reduce moose,NA,NA
-Quintette Full,1990,reduce moose,NA,NA
-Quintette Full,1991,reduce moose,NA,NA
-Quintette Full,1992,reduce moose,NA,NA
-Quintette Full,1993,reduce moose,NA,NA
-Quintette Full,1994,reduce moose,NA,NA
-Quintette Full,1995,reduce moose,NA,NA
-Quintette Full,1996,reduce moose,NA,NA
-Quintette Full,1997,reduce moose,NA,NA
-Quintette Full,1998,reduce moose,NA,NA
-Quintette Full,1999,reduce moose,NA,NA
-Quintette Full,2000,reduce moose,NA,NA
-Quintette Full,2001,reduce moose,NA,NA
-Quintette Full,2002,reduce moose,NA,NA
-Quintette Full,2003,reduce moose,NA,NA
-Quintette Full,2004,reduce moose,NA,NA
-Quintette Full,2005,reduce moose,NA,NA
-Quintette Full,2006,reduce moose,NA,NA
-Quintette Full,2007,reduce moose,NA,NA
-Quintette Full,2008,reduce moose,NA,NA
-Quintette Full,2009,reduce moose,NA,NA
-Quintette Full,2010,reduce moose,NA,NA
-Quintette Full,2011,reduce moose,NA,NA
-Quintette Full,2012,reduce moose,NA,NA
-Quintette Full,2013,reduce moose,NA,NA
-Quintette Full,2014,reduce moose,NA,NA
-Quintette Full,2015,reduce moose,NA,NA
-Quintette Full,2016,reduce moose,NA,NA
-Quintette Full,2017,reduce moose,NA,NA
-Quintette Full,2018,reduce moose,NA,NA
-Quintette Full,2019,reduce moose,NA,NA
-Quintette Full,2020,reduce moose,NA,NA
-Quintette Full,2021,reduce moose,NA,NA
-Quintette Full,2022,reduce moose,0,NA
-Quintette Full,2023,reduce moose,0,NA
-Quintette Full,1973,feed,NA,NA
-Quintette Full,1974,feed,NA,NA
-Quintette Full,1975,feed,NA,NA
-Quintette Full,1976,feed,NA,NA
-Quintette Full,1977,feed,NA,NA
-Quintette Full,1978,feed,NA,NA
-Quintette Full,1979,feed,NA,NA
-Quintette Full,1980,feed,NA,NA
-Quintette Full,1981,feed,NA,NA
-Quintette Full,1982,feed,NA,NA
-Quintette Full,1983,feed,NA,NA
-Quintette Full,1984,feed,NA,NA
-Quintette Full,1985,feed,NA,NA
-Quintette Full,1986,feed,NA,NA
-Quintette Full,1987,feed,NA,NA
-Quintette Full,1988,feed,NA,NA
-Quintette Full,1989,feed,NA,NA
-Quintette Full,1990,feed,NA,NA
-Quintette Full,1991,feed,NA,NA
-Quintette Full,1992,feed,NA,NA
-Quintette Full,1993,feed,NA,NA
-Quintette Full,1994,feed,NA,NA
-Quintette Full,1995,feed,NA,NA
-Quintette Full,1996,feed,NA,NA
-Quintette Full,1997,feed,NA,NA
-Quintette Full,1998,feed,NA,NA
-Quintette Full,1999,feed,NA,NA
-Quintette Full,2000,feed,NA,NA
-Quintette Full,2001,feed,NA,NA
-Quintette Full,2002,feed,NA,NA
-Quintette Full,2003,feed,NA,NA
-Quintette Full,2004,feed,NA,NA
-Quintette Full,2005,feed,NA,NA
-Quintette Full,2006,feed,NA,NA
-Quintette Full,2007,feed,NA,NA
-Quintette Full,2008,feed,NA,NA
-Quintette Full,2009,feed,NA,NA
-Quintette Full,2010,feed,NA,NA
-Quintette Full,2011,feed,NA,NA
-Quintette Full,2012,feed,NA,NA
-Quintette Full,2013,feed,NA,NA
-Quintette Full,2014,feed,NA,NA
-Quintette Full,2015,feed,NA,NA
-Quintette Full,2016,feed,NA,NA
-Quintette Full,2017,feed,NA,NA
-Quintette Full,2018,feed,NA,NA
-Quintette Full,2019,feed,NA,NA
-Quintette Full,2020,feed,NA,NA
-Quintette Full,2021,feed,NA,NA
-Quintette Full,2022,feed,0,NA
-Quintette Full,2023,feed,0,NA
 Rainbows,1973,reduce wolves,NA,NA
 Rainbows,1974,reduce wolves,NA,NA
 Rainbows,1975,reduce wolves,NA,NA
@@ -12545,3 +12239,309 @@ Wolverine,2020,feed,0,NA
 Wolverine,2021,feed,0,NA
 Wolverine,2022,feed,0,NA
 Wolverine,2023,feed,0,NA
+Quintette Full,1973,reduce wolves,NA,NA
+Quintette Full,1974,reduce wolves,NA,NA
+Quintette Full,1975,reduce wolves,NA,NA
+Quintette Full,1976,reduce wolves,NA,NA
+Quintette Full,1977,reduce wolves,NA,NA
+Quintette Full,1978,reduce wolves,NA,NA
+Quintette Full,1979,reduce wolves,NA,NA
+Quintette Full,1980,reduce wolves,NA,NA
+Quintette Full,1981,reduce wolves,NA,NA
+Quintette Full,1982,reduce wolves,NA,NA
+Quintette Full,1983,reduce wolves,NA,NA
+Quintette Full,1984,reduce wolves,NA,NA
+Quintette Full,1985,reduce wolves,NA,NA
+Quintette Full,1986,reduce wolves,NA,NA
+Quintette Full,1987,reduce wolves,NA,NA
+Quintette Full,1988,reduce wolves,NA,NA
+Quintette Full,1989,reduce wolves,NA,NA
+Quintette Full,1990,reduce wolves,NA,NA
+Quintette Full,1991,reduce wolves,NA,NA
+Quintette Full,1992,reduce wolves,NA,NA
+Quintette Full,1993,reduce wolves,NA,NA
+Quintette Full,1994,reduce wolves,NA,NA
+Quintette Full,1995,reduce wolves,NA,NA
+Quintette Full,1996,reduce wolves,NA,NA
+Quintette Full,1997,reduce wolves,NA,NA
+Quintette Full,1998,reduce wolves,NA,NA
+Quintette Full,1999,reduce wolves,NA,NA
+Quintette Full,2000,reduce wolves,NA,NA
+Quintette Full,2001,reduce wolves,NA,NA
+Quintette Full,2002,reduce wolves,NA,NA
+Quintette Full,2003,reduce wolves,NA,NA
+Quintette Full,2004,reduce wolves,NA,NA
+Quintette Full,2005,reduce wolves,NA,NA
+Quintette Full,2006,reduce wolves,NA,NA
+Quintette Full,2007,reduce wolves,NA,NA
+Quintette Full,2008,reduce wolves,NA,NA
+Quintette Full,2009,reduce wolves,NA,NA
+Quintette Full,2010,reduce wolves,NA,NA
+Quintette Full,2011,reduce wolves,NA,NA
+Quintette Full,2012,reduce wolves,NA,NA
+Quintette Full,2013,reduce wolves,NA,NA
+Quintette Full,2014,reduce wolves,NA,NA
+Quintette Full,2015,reduce wolves,NA,NA
+Quintette Full,2016,reduce wolves,NA,NA
+Quintette Full,2017,reduce wolves,NA,NA
+Quintette Full,2018,reduce wolves,NA,NA
+Quintette Full,2019,reduce wolves,NA,NA
+Quintette Full,2020,reduce wolves,NA,NA
+Quintette Full,2021,reduce wolves,NA,NA
+Quintette Full,2022,reduce wolves,1,NA
+Quintette Full,2023,reduce wolves,1,NA
+Quintette Full,1973,sterilize wolves,NA,NA
+Quintette Full,1974,sterilize wolves,NA,NA
+Quintette Full,1975,sterilize wolves,NA,NA
+Quintette Full,1976,sterilize wolves,NA,NA
+Quintette Full,1977,sterilize wolves,NA,NA
+Quintette Full,1978,sterilize wolves,NA,NA
+Quintette Full,1979,sterilize wolves,NA,NA
+Quintette Full,1980,sterilize wolves,NA,NA
+Quintette Full,1981,sterilize wolves,NA,NA
+Quintette Full,1982,sterilize wolves,NA,NA
+Quintette Full,1983,sterilize wolves,NA,NA
+Quintette Full,1984,sterilize wolves,NA,NA
+Quintette Full,1985,sterilize wolves,NA,NA
+Quintette Full,1986,sterilize wolves,NA,NA
+Quintette Full,1987,sterilize wolves,NA,NA
+Quintette Full,1988,sterilize wolves,NA,NA
+Quintette Full,1989,sterilize wolves,NA,NA
+Quintette Full,1990,sterilize wolves,NA,NA
+Quintette Full,1991,sterilize wolves,NA,NA
+Quintette Full,1992,sterilize wolves,NA,NA
+Quintette Full,1993,sterilize wolves,NA,NA
+Quintette Full,1994,sterilize wolves,NA,NA
+Quintette Full,1995,sterilize wolves,NA,NA
+Quintette Full,1996,sterilize wolves,NA,NA
+Quintette Full,1997,sterilize wolves,NA,NA
+Quintette Full,1998,sterilize wolves,NA,NA
+Quintette Full,1999,sterilize wolves,NA,NA
+Quintette Full,2000,sterilize wolves,NA,NA
+Quintette Full,2001,sterilize wolves,NA,NA
+Quintette Full,2002,sterilize wolves,NA,NA
+Quintette Full,2003,sterilize wolves,NA,NA
+Quintette Full,2004,sterilize wolves,NA,NA
+Quintette Full,2005,sterilize wolves,NA,NA
+Quintette Full,2006,sterilize wolves,NA,NA
+Quintette Full,2007,sterilize wolves,NA,NA
+Quintette Full,2008,sterilize wolves,NA,NA
+Quintette Full,2009,sterilize wolves,NA,NA
+Quintette Full,2010,sterilize wolves,NA,NA
+Quintette Full,2011,sterilize wolves,NA,NA
+Quintette Full,2012,sterilize wolves,NA,NA
+Quintette Full,2013,sterilize wolves,NA,NA
+Quintette Full,2014,sterilize wolves,NA,NA
+Quintette Full,2015,sterilize wolves,NA,NA
+Quintette Full,2016,sterilize wolves,NA,NA
+Quintette Full,2017,sterilize wolves,NA,NA
+Quintette Full,2018,sterilize wolves,NA,NA
+Quintette Full,2019,sterilize wolves,NA,NA
+Quintette Full,2020,sterilize wolves,NA,NA
+Quintette Full,2021,sterilize wolves,NA,NA
+Quintette Full,2022,sterilize wolves,0,NA
+Quintette Full,2023,sterilize wolves,0,NA
+Quintette Full,1973,transplant,NA,NA
+Quintette Full,1974,transplant,NA,NA
+Quintette Full,1975,transplant,NA,NA
+Quintette Full,1976,transplant,NA,NA
+Quintette Full,1977,transplant,NA,NA
+Quintette Full,1978,transplant,NA,NA
+Quintette Full,1979,transplant,NA,NA
+Quintette Full,1980,transplant,NA,NA
+Quintette Full,1981,transplant,NA,NA
+Quintette Full,1982,transplant,NA,NA
+Quintette Full,1983,transplant,NA,NA
+Quintette Full,1984,transplant,NA,NA
+Quintette Full,1985,transplant,NA,NA
+Quintette Full,1986,transplant,NA,NA
+Quintette Full,1987,transplant,NA,NA
+Quintette Full,1988,transplant,NA,NA
+Quintette Full,1989,transplant,NA,NA
+Quintette Full,1990,transplant,NA,NA
+Quintette Full,1991,transplant,NA,NA
+Quintette Full,1992,transplant,NA,NA
+Quintette Full,1993,transplant,NA,NA
+Quintette Full,1994,transplant,NA,NA
+Quintette Full,1995,transplant,NA,NA
+Quintette Full,1996,transplant,NA,NA
+Quintette Full,1997,transplant,NA,NA
+Quintette Full,1998,transplant,NA,NA
+Quintette Full,1999,transplant,NA,NA
+Quintette Full,2000,transplant,NA,NA
+Quintette Full,2001,transplant,NA,NA
+Quintette Full,2002,transplant,NA,NA
+Quintette Full,2003,transplant,NA,NA
+Quintette Full,2004,transplant,NA,NA
+Quintette Full,2005,transplant,NA,NA
+Quintette Full,2006,transplant,NA,NA
+Quintette Full,2007,transplant,NA,NA
+Quintette Full,2008,transplant,NA,NA
+Quintette Full,2009,transplant,NA,NA
+Quintette Full,2010,transplant,NA,NA
+Quintette Full,2011,transplant,NA,NA
+Quintette Full,2012,transplant,NA,NA
+Quintette Full,2013,transplant,NA,NA
+Quintette Full,2014,transplant,NA,NA
+Quintette Full,2015,transplant,NA,NA
+Quintette Full,2016,transplant,NA,NA
+Quintette Full,2017,transplant,NA,NA
+Quintette Full,2018,transplant,NA,NA
+Quintette Full,2019,transplant,NA,NA
+Quintette Full,2020,transplant,NA,NA
+Quintette Full,2021,transplant,NA,NA
+Quintette Full,2022,transplant,0,NA
+Quintette Full,2023,transplant,0,NA
+Quintette Full,1973,pen,NA,NA
+Quintette Full,1974,pen,NA,NA
+Quintette Full,1975,pen,NA,NA
+Quintette Full,1976,pen,NA,NA
+Quintette Full,1977,pen,NA,NA
+Quintette Full,1978,pen,NA,NA
+Quintette Full,1979,pen,NA,NA
+Quintette Full,1980,pen,NA,NA
+Quintette Full,1981,pen,NA,NA
+Quintette Full,1982,pen,NA,NA
+Quintette Full,1983,pen,NA,NA
+Quintette Full,1984,pen,NA,NA
+Quintette Full,1985,pen,NA,NA
+Quintette Full,1986,pen,NA,NA
+Quintette Full,1987,pen,NA,NA
+Quintette Full,1988,pen,NA,NA
+Quintette Full,1989,pen,NA,NA
+Quintette Full,1990,pen,NA,NA
+Quintette Full,1991,pen,NA,NA
+Quintette Full,1992,pen,NA,NA
+Quintette Full,1993,pen,NA,NA
+Quintette Full,1994,pen,NA,NA
+Quintette Full,1995,pen,NA,NA
+Quintette Full,1996,pen,NA,NA
+Quintette Full,1997,pen,NA,NA
+Quintette Full,1998,pen,NA,NA
+Quintette Full,1999,pen,NA,NA
+Quintette Full,2000,pen,NA,NA
+Quintette Full,2001,pen,NA,NA
+Quintette Full,2002,pen,NA,NA
+Quintette Full,2003,pen,NA,NA
+Quintette Full,2004,pen,NA,NA
+Quintette Full,2005,pen,NA,NA
+Quintette Full,2006,pen,NA,NA
+Quintette Full,2007,pen,NA,NA
+Quintette Full,2008,pen,NA,NA
+Quintette Full,2009,pen,NA,NA
+Quintette Full,2010,pen,NA,NA
+Quintette Full,2011,pen,NA,NA
+Quintette Full,2012,pen,NA,NA
+Quintette Full,2013,pen,NA,NA
+Quintette Full,2014,pen,NA,NA
+Quintette Full,2015,pen,NA,NA
+Quintette Full,2016,pen,NA,NA
+Quintette Full,2017,pen,NA,NA
+Quintette Full,2018,pen,NA,NA
+Quintette Full,2019,pen,NA,NA
+Quintette Full,2020,pen,NA,NA
+Quintette Full,2021,pen,NA,NA
+Quintette Full,2022,pen,0,NA
+Quintette Full,2023,pen,0,NA
+Quintette Full,1973,reduce moose,NA,NA
+Quintette Full,1974,reduce moose,NA,NA
+Quintette Full,1975,reduce moose,NA,NA
+Quintette Full,1976,reduce moose,NA,NA
+Quintette Full,1977,reduce moose,NA,NA
+Quintette Full,1978,reduce moose,NA,NA
+Quintette Full,1979,reduce moose,NA,NA
+Quintette Full,1980,reduce moose,NA,NA
+Quintette Full,1981,reduce moose,NA,NA
+Quintette Full,1982,reduce moose,NA,NA
+Quintette Full,1983,reduce moose,NA,NA
+Quintette Full,1984,reduce moose,NA,NA
+Quintette Full,1985,reduce moose,NA,NA
+Quintette Full,1986,reduce moose,NA,NA
+Quintette Full,1987,reduce moose,NA,NA
+Quintette Full,1988,reduce moose,NA,NA
+Quintette Full,1989,reduce moose,NA,NA
+Quintette Full,1990,reduce moose,NA,NA
+Quintette Full,1991,reduce moose,NA,NA
+Quintette Full,1992,reduce moose,NA,NA
+Quintette Full,1993,reduce moose,NA,NA
+Quintette Full,1994,reduce moose,NA,NA
+Quintette Full,1995,reduce moose,NA,NA
+Quintette Full,1996,reduce moose,NA,NA
+Quintette Full,1997,reduce moose,NA,NA
+Quintette Full,1998,reduce moose,NA,NA
+Quintette Full,1999,reduce moose,NA,NA
+Quintette Full,2000,reduce moose,NA,NA
+Quintette Full,2001,reduce moose,NA,NA
+Quintette Full,2002,reduce moose,NA,NA
+Quintette Full,2003,reduce moose,NA,NA
+Quintette Full,2004,reduce moose,NA,NA
+Quintette Full,2005,reduce moose,NA,NA
+Quintette Full,2006,reduce moose,NA,NA
+Quintette Full,2007,reduce moose,NA,NA
+Quintette Full,2008,reduce moose,NA,NA
+Quintette Full,2009,reduce moose,NA,NA
+Quintette Full,2010,reduce moose,NA,NA
+Quintette Full,2011,reduce moose,NA,NA
+Quintette Full,2012,reduce moose,NA,NA
+Quintette Full,2013,reduce moose,NA,NA
+Quintette Full,2014,reduce moose,NA,NA
+Quintette Full,2015,reduce moose,NA,NA
+Quintette Full,2016,reduce moose,NA,NA
+Quintette Full,2017,reduce moose,NA,NA
+Quintette Full,2018,reduce moose,NA,NA
+Quintette Full,2019,reduce moose,NA,NA
+Quintette Full,2020,reduce moose,NA,NA
+Quintette Full,2021,reduce moose,NA,NA
+Quintette Full,2022,reduce moose,0,NA
+Quintette Full,2023,reduce moose,0,NA
+Quintette Full,1973,feed,NA,NA
+Quintette Full,1974,feed,NA,NA
+Quintette Full,1975,feed,NA,NA
+Quintette Full,1976,feed,NA,NA
+Quintette Full,1977,feed,NA,NA
+Quintette Full,1978,feed,NA,NA
+Quintette Full,1979,feed,NA,NA
+Quintette Full,1980,feed,NA,NA
+Quintette Full,1981,feed,NA,NA
+Quintette Full,1982,feed,NA,NA
+Quintette Full,1983,feed,NA,NA
+Quintette Full,1984,feed,NA,NA
+Quintette Full,1985,feed,NA,NA
+Quintette Full,1986,feed,NA,NA
+Quintette Full,1987,feed,NA,NA
+Quintette Full,1988,feed,NA,NA
+Quintette Full,1989,feed,NA,NA
+Quintette Full,1990,feed,NA,NA
+Quintette Full,1991,feed,NA,NA
+Quintette Full,1992,feed,NA,NA
+Quintette Full,1993,feed,NA,NA
+Quintette Full,1994,feed,NA,NA
+Quintette Full,1995,feed,NA,NA
+Quintette Full,1996,feed,NA,NA
+Quintette Full,1997,feed,NA,NA
+Quintette Full,1998,feed,NA,NA
+Quintette Full,1999,feed,NA,NA
+Quintette Full,2000,feed,NA,NA
+Quintette Full,2001,feed,NA,NA
+Quintette Full,2002,feed,NA,NA
+Quintette Full,2003,feed,NA,NA
+Quintette Full,2004,feed,NA,NA
+Quintette Full,2005,feed,NA,NA
+Quintette Full,2006,feed,NA,NA
+Quintette Full,2007,feed,NA,NA
+Quintette Full,2008,feed,NA,NA
+Quintette Full,2009,feed,NA,NA
+Quintette Full,2010,feed,NA,NA
+Quintette Full,2011,feed,NA,NA
+Quintette Full,2012,feed,NA,NA
+Quintette Full,2013,feed,NA,NA
+Quintette Full,2014,feed,NA,NA
+Quintette Full,2015,feed,NA,NA
+Quintette Full,2016,feed,NA,NA
+Quintette Full,2017,feed,NA,NA
+Quintette Full,2018,feed,NA,NA
+Quintette Full,2019,feed,NA,NA
+Quintette Full,2020,feed,NA,NA
+Quintette Full,2021,feed,NA,NA
+Quintette Full,2022,feed,0,NA
+Quintette Full,2023,feed,0,NA
