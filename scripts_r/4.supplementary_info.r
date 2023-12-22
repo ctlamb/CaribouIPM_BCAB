@@ -34,7 +34,7 @@ demog.draws <- read_csv(here::here("tables/draws/demog.draws.csv"))%>%
   filter(herd%in%herds.keep)
 demog <- read_csv(here::here("tables/demog.csv"))%>%
   filter(herd%in%herds.keep)
-eff.draws <- read_csv(here::here("tables/draws/eff.draws.csv"))%>%
+eff.draws <- read_csv(here::here("tables/draws/eff.draws.app.model.csv"))%>%
   filter(herd%in%herds.keep)
 eff.draws.app <- read_csv(here::here("tables/draws/eff.draws.app.csv"))%>%
   filter(herd%in%herds.keep)
@@ -286,14 +286,18 @@ trt.plot <- trt %>%
   filter(applied == 1) %>%
   left_join(demog %>% group_by(herd) %>% summarize(max = max(totNMF.upper))) %>%
   mutate(y = case_when(
-    treatment %in% "reduce wolves" & herd %in% "South Selkirks" ~ 140,
-    treatment %in% "transplant" & herd %in% "South Selkirks" ~ 165,
-    treatment %in% "transplant" & herd %in% "Purcells South" ~ 180,
-    treatment %in% "reduce moose" & herd %in% "Frisby-Boulder" ~ 200,
-    treatment %in% "reduce wolves" & herd %in% "Barkerville" ~ max - (max * 0.1),
-    treatment %in% "sterilize wolves" & herd %in% "Barkerville" ~ max - (max * 0.25),
-    treatment %in% "reduce wolves" & herd %in% "Kennedy Siding" ~ max - (max * 0.1),
-    treatment %in% "feed" & herd %in% "Kennedy Siding" ~ max - (max * 0.25),
+    treatment %in% "transplant" & herd %in% "South Selkirks" ~ 400,
+    treatment %in% "reduce wolves" & herd %in% "Charlotte Alplands" ~ 200,
+    treatment %in% "transplant" & herd %in% "Charlotte Alplands" ~ 300,
+    treatment %in% "transplant" & herd %in% "Telkwa" ~ 200,
+    treatment %in% "sterilize wolves" & herd %in% c("Wells Gray North") ~ 500,
+    treatment %in% "reduce wolves" & herd %in% c("Wells Gray North") ~ 650,
+    treatment %in% "reduce wolves" & herd %in% "Kennedy Siding" ~ 300,
+    treatment %in% "feed" & herd %in% "Kennedy Siding" ~ max - (max * 0.20),
+    treatment %in% "pen" & herd %in% "Columbia North" ~ 325,
+    treatment %in% "reduce moose" & herd %in% "Columbia North" ~ 400,
+    treatment %in% "reduce moose" & herd %in% "Groundhog" ~ 120,
+    treatment %in% "reduce moose" & herd %in% "Hart North" ~ 475,
     treatment %in% "reduce wolves" ~ max - (max * 0.1),
     treatment %in% "transplant" ~ max - (max * 0.15),
     treatment %in% "reduce moose" ~ max - (max * 0.2),
@@ -415,7 +419,7 @@ for(i in 1:length(herds)){
 
 ## ----summarize by ECCC, echo=TRUE, message=FALSE, warning=FALSE--------------------------------------------------------------------------------------------------------
 trt.yrs.app <- demog.draws %>%
-  group_by(herd, yrs, trt) %>%
+  group_by(herd, yrs, trt,intensity) %>%
   mutate(totNMF.median = median(totNMF)) %>% # get average pop size so popsize threshold doesnt split low/standard in some years due to draws being above/below threshold
   ungroup() %>%
   mutate(
@@ -447,7 +451,7 @@ eff.draws.app%>%
 
 ## ----summarize by HV, echo=TRUE, message=FALSE, warning=FALSE----------------------------------------------------------------------------------------------------------
 trt.yrs.app.hv <- demog.draws %>%
-  group_by(herd, yrs, trt) %>%
+  group_by(herd, yrs, trt, intensity) %>%
   mutate(totNMF.median = median(totNMF)) %>% # get average pop size so popsize threshold doesnt split low/standard in some years due to draws being above/below threshold
   ungroup() %>%
   mutate(
@@ -910,7 +914,7 @@ ggsave(here::here("plots", "appendix", "r_treatments_ecotype.png"), width = 8, h
 
 eff.draws.ecotype <- eff.draws %>%
   dplyr::select(.draw:delta.r) %>%
-  filter(name == "Rate of increase (r)") %>%
+  filter(name == "r") %>%
   left_join(ecotype) %>%
   pivot_longer(ECCC:Heard_Vagt1998, names_to = "ecotype")
 
@@ -949,7 +953,7 @@ ggsave(here::here("plots", "appendix", "baci_treatments_ecotype.png"), width = 8
 
 ## ----individual by ECCC ecotype, echo=TRUE, message=FALSE, warning=FALSE-----------------------------------------------------------------------------------------------
 ind.eff.ecotype <- eff.draws %>%
-  filter(name == "Rate of increase (r)" & !trt %in% "transplant") %>%
+  filter(name == "r" & !trt %in% "transplant") %>%
   left_join(ecotype) %>%
   group_by(.draw) %>%
   do(tidy(lm(delta.r ~ reducewolves + sterilizewolves + reducemoose + pen + feed + ECCC, data = .))) %>%
@@ -1008,7 +1012,7 @@ ind.eff.ecotype %>%
 
 
 ind.eff.ecotype.raw <- eff.draws %>%
-  filter(name == "Rate of increase (r)" & !trt %in% "transplant") %>%
+  filter(name == "r" & !trt %in% "transplant") %>%
   left_join(ecotype) %>%
   dplyr::select(herd, trt, ECCC, COSEWIC, Heard_Vagt1998, reducewolves:feed, delta.r) %>%
   dplyr::group_by(across(herd:feed)) %>%
@@ -1019,7 +1023,7 @@ ind.eff.ecotype.raw <- eff.draws %>%
 
 ## ----individual by HV ecotype, echo=TRUE, fig.height=9, fig.width=13, message=FALSE, warning=FALSE---------------------------------------------------------------------
 ind.eff.ecotype.hv <- eff.draws %>%
-  filter(name == "Rate of increase (r)" & !trt %in% "transplant") %>%
+  filter(name == "r" & !trt %in% "transplant") %>%
   left_join(ecotype) %>%
   group_by(.draw) %>%
   do(tidy(lm(delta.r ~ reducewolves + sterilizewolves + reducemoose + pen + feed + Heard_Vagt1998, data = .))) %>%
@@ -1108,7 +1112,7 @@ ggsave(here::here("plots", "appendix", "trt_eff_boxplot_ecotype.png"), width = 8
 
 
 ind.eff.ecotype.raw2 <- eff.draws %>%
-  filter(name == "Rate of increase (r)" & !trt %in% "transplant") %>%
+  filter(name == "r" & !trt %in% "transplant") %>%
   left_join(ecotype) %>%
   dplyr::select(herd, trt, ECCC, COSEWIC, Heard_Vagt1998, reducewolves:feed, delta.r) %>%
   dplyr::group_by(across(herd:feed)) %>%
@@ -1177,7 +1181,7 @@ ggsave(here::here("plots", "appendix", "trt_eff_boxplot_ecotype_hv1998.png"), wi
 
 
 ind.eff.ecotype.raw2 <- eff.draws %>%
-  filter(name == "Rate of increase (r)" & !trt %in% "transplant") %>%
+  filter(name == "r" & !trt %in% "transplant") %>%
   left_join(ecotype) %>%
   dplyr::select(herd, trt, Heard_Vagt1998, reducewolves:feed, delta.r) %>%
   dplyr::group_by(across(herd:feed)) %>%

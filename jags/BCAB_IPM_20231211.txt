@@ -113,8 +113,8 @@ model{
 	# First year population size
 	for(h in 1:nherd){	
 
-		N[h,first[h],1] ~ dnorm(n1[h,1],0.0001)T(0,)
-		N[h,first[h],2] ~ dnorm(n1[h,2],0.0001)T(0,)
+		N[h,first[h],1] ~ dnorm(n1[h,1],0.001)T(0,)
+		N[h,first[h],2] ~ dnorm(n1[h,2],0.001)T(0,)
 		
 		totCalves[h,first[h]] <- N[h,first[h],1] 
 		totAdults[h,first[h]] <- N[h,first[h],2] 

@@ -602,7 +602,7 @@ padding-top: 0px;
 <body>
 
 <h1 id="bc-ab-caribou-ipm-run">BC AB Caribou IPM run</h1>
-<p>Clayton T. Lamb 07 December, 2023</p>
+<p>Clayton T. Lamb 22 December, 2023</p>
 <h2 id="load-data">Load Data</h2>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(renv)</span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="do">##to pull packages</span></span>
@@ -658,7 +658,7 @@ padding-top: 0px;
 <span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>                      <span class="at">COSEWIC=</span><span class="st">&quot;DU8&quot;</span>,</span>
 <span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>                      <span class="at">Heard_Vagt1998=</span><span class="st">&quot;Northern&quot;</span>), <span class="at">by=</span><span class="st">&quot;herd&quot;</span>)</span>
 <span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>hd<span class="sc">$</span>demog_grp <span class="ot">&lt;-</span> hd<span class="sc">$</span>ECCC<span class="sc">%&gt;%</span>factor<span class="sc">%&gt;%</span><span class="fu">as.numeric</span>() </span>
-<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>hd[hd<span class="sc">$</span>herd<span class="sc">%in%</span><span class="fu">c</span>(<span class="st">&quot;Charlotte Alplands&quot;</span>,<span class="st">&quot;Itcha-Ilgachuz&quot;</span>,<span class="st">&quot;Rainbows&quot;</span>),<span class="st">&quot;demog_grp&quot;</span>]<span class="ot">&lt;-</span><span class="dv">4</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>hd[hd<span class="sc">$</span>herd<span class="sc">%in%</span><span class="fu">c</span>(<span class="st">&quot;Itcha-Ilgachuz&quot;</span>),<span class="st">&quot;demog_grp&quot;</span>]<span class="ot">&lt;-</span><span class="dv">4</span></span>
 <span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>nsight_grp <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">unique</span>(hd<span class="sc">$</span>sight_grp))</span>
 <span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>ndemog_grp <span class="ot">&lt;-</span> <span class="fu">length</span>(<span class="fu">unique</span>(hd<span class="sc">$</span>demog_grp))</span>
 <span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a></span>
@@ -1081,50 +1081,48 @@ padding-top: 0px;
 <span id="cb3-52"><a href="#cb3-52" tabindex="-1"></a>ipm_inits <span class="ot">&lt;-</span> <span class="cf">function</span>(){ </span>
 <span id="cb3-53"><a href="#cb3-53" tabindex="-1"></a>  <span class="fu">list</span>(</span>
 <span id="cb3-54"><a href="#cb3-54" tabindex="-1"></a>    <span class="at">N =</span> Nst</span>
-<span id="cb3-55"><a href="#cb3-55" tabindex="-1"></a>        <span class="co"># meanS = runif(1, 0.5, 0.9),</span></span>
-<span id="cb3-56"><a href="#cb3-56" tabindex="-1"></a>        <span class="co"># meanR = runif(1, 0.1, 0.6)</span></span>
-<span id="cb3-57"><a href="#cb3-57" tabindex="-1"></a>    )</span>
-<span id="cb3-58"><a href="#cb3-58" tabindex="-1"></a>}</span>
-<span id="cb3-59"><a href="#cb3-59" tabindex="-1"></a></span>
-<span id="cb3-60"><a href="#cb3-60" tabindex="-1"></a></span>
-<span id="cb3-61"><a href="#cb3-61" tabindex="-1"></a><span class="co">#  Model parameters to monitor</span></span>
-<span id="cb3-62"><a href="#cb3-62" tabindex="-1"></a>model_parms <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb3-63"><a href="#cb3-63" tabindex="-1"></a></span>
-<span id="cb3-64"><a href="#cb3-64" tabindex="-1"></a>    <span class="st">&quot;adj_totNMF&quot;</span>, <span class="st">&quot;totN&quot;</span>, <span class="st">&quot;N&quot;</span>, </span>
-<span id="cb3-65"><a href="#cb3-65" tabindex="-1"></a>    <span class="st">&quot;totCalves&quot;</span>, <span class="st">&quot;totAdults&quot;</span>, <span class="st">&quot;totAdultsMF&quot;</span>, <span class="st">&quot;totCalvesMF&quot;</span>, <span class="st">&quot;totNMF&quot;</span>, </span>
-<span id="cb3-66"><a href="#cb3-66" tabindex="-1"></a></span>
-<span id="cb3-67"><a href="#cb3-67" tabindex="-1"></a>    <span class="st">&quot;lambda&quot;</span>, <span class="st">&quot;logla&quot;</span>,</span>
-<span id="cb3-68"><a href="#cb3-68" tabindex="-1"></a>    </span>
-<span id="cb3-69"><a href="#cb3-69" tabindex="-1"></a>    <span class="st">&quot;S&quot;</span>, <span class="st">&quot;R&quot;</span>,  <span class="st">&quot;R_adj&quot;</span>,</span>
-<span id="cb3-70"><a href="#cb3-70" tabindex="-1"></a>    <span class="st">&quot;p_mu&quot;</span>, <span class="st">&quot;sight_est&quot;</span>, <span class="st">&quot;p&quot;</span>,</span>
+<span id="cb3-55"><a href="#cb3-55" tabindex="-1"></a>    )</span>
+<span id="cb3-56"><a href="#cb3-56" tabindex="-1"></a>}</span>
+<span id="cb3-57"><a href="#cb3-57" tabindex="-1"></a></span>
+<span id="cb3-58"><a href="#cb3-58" tabindex="-1"></a></span>
+<span id="cb3-59"><a href="#cb3-59" tabindex="-1"></a><span class="co">#  Model parameters to monitor</span></span>
+<span id="cb3-60"><a href="#cb3-60" tabindex="-1"></a>model_parms <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb3-61"><a href="#cb3-61" tabindex="-1"></a></span>
+<span id="cb3-62"><a href="#cb3-62" tabindex="-1"></a>    <span class="st">&quot;adj_totNMF&quot;</span>, <span class="st">&quot;totN&quot;</span>, <span class="st">&quot;N&quot;</span>, </span>
+<span id="cb3-63"><a href="#cb3-63" tabindex="-1"></a>    <span class="st">&quot;totCalves&quot;</span>, <span class="st">&quot;totAdults&quot;</span>, <span class="st">&quot;totAdultsMF&quot;</span>, <span class="st">&quot;totCalvesMF&quot;</span>, <span class="st">&quot;totNMF&quot;</span>, </span>
+<span id="cb3-64"><a href="#cb3-64" tabindex="-1"></a></span>
+<span id="cb3-65"><a href="#cb3-65" tabindex="-1"></a>    <span class="st">&quot;lambda&quot;</span>, <span class="st">&quot;logla&quot;</span>,</span>
+<span id="cb3-66"><a href="#cb3-66" tabindex="-1"></a>    </span>
+<span id="cb3-67"><a href="#cb3-67" tabindex="-1"></a>    <span class="st">&quot;S&quot;</span>, <span class="st">&quot;R&quot;</span>,  <span class="st">&quot;R_adj&quot;</span>,</span>
+<span id="cb3-68"><a href="#cb3-68" tabindex="-1"></a>    <span class="st">&quot;p_mu&quot;</span>, <span class="st">&quot;sight_est&quot;</span>, <span class="st">&quot;p&quot;</span>,</span>
+<span id="cb3-69"><a href="#cb3-69" tabindex="-1"></a>    </span>
+<span id="cb3-70"><a href="#cb3-70" tabindex="-1"></a>    <span class="st">&quot;muS&quot;</span>, <span class="st">&quot;muR&quot;</span>,</span>
 <span id="cb3-71"><a href="#cb3-71" tabindex="-1"></a>    </span>
-<span id="cb3-72"><a href="#cb3-72" tabindex="-1"></a>    <span class="st">&quot;muS&quot;</span>, <span class="st">&quot;muR&quot;</span>,</span>
-<span id="cb3-73"><a href="#cb3-73" tabindex="-1"></a>    </span>
-<span id="cb3-74"><a href="#cb3-74" tabindex="-1"></a>    <span class="st">&quot;surv_yr_dg&quot;</span>, <span class="st">&quot;recruit_yr_dg&quot;</span>,</span>
-<span id="cb3-75"><a href="#cb3-75" tabindex="-1"></a>    <span class="st">&quot;surv_tau_yr_dg&quot;</span>, <span class="st">&quot;recruit_tau_yr_dg&quot;</span>,</span>
-<span id="cb3-76"><a href="#cb3-76" tabindex="-1"></a>    <span class="st">&quot;surv_hd&quot;</span>, <span class="st">&quot;recruit_hd&quot;</span>,</span>
+<span id="cb3-72"><a href="#cb3-72" tabindex="-1"></a>    <span class="st">&quot;surv_yr_dg&quot;</span>, <span class="st">&quot;recruit_yr_dg&quot;</span>,</span>
+<span id="cb3-73"><a href="#cb3-73" tabindex="-1"></a>    <span class="st">&quot;surv_tau_yr_dg&quot;</span>, <span class="st">&quot;recruit_tau_yr_dg&quot;</span>,</span>
+<span id="cb3-74"><a href="#cb3-74" tabindex="-1"></a>    <span class="st">&quot;surv_hd&quot;</span>, <span class="st">&quot;recruit_hd&quot;</span>,</span>
+<span id="cb3-75"><a href="#cb3-75" tabindex="-1"></a>    </span>
+<span id="cb3-76"><a href="#cb3-76" tabindex="-1"></a>    <span class="st">&quot;surv_sd_yr_dg&quot;</span>,<span class="st">&quot;sight_tau_yr_sg&quot;</span>,</span>
 <span id="cb3-77"><a href="#cb3-77" tabindex="-1"></a>    </span>
-<span id="cb3-78"><a href="#cb3-78" tabindex="-1"></a>    <span class="st">&quot;surv_sd_yr_dg&quot;</span>,<span class="st">&quot;sight_tau_yr_sg&quot;</span>,</span>
+<span id="cb3-78"><a href="#cb3-78" tabindex="-1"></a>    <span class="st">&quot;offset&quot;</span>,</span>
 <span id="cb3-79"><a href="#cb3-79" tabindex="-1"></a>    </span>
-<span id="cb3-80"><a href="#cb3-80" tabindex="-1"></a>    <span class="st">&quot;offset&quot;</span>,</span>
-<span id="cb3-81"><a href="#cb3-81" tabindex="-1"></a>    </span>
-<span id="cb3-82"><a href="#cb3-82" tabindex="-1"></a>    <span class="st">&quot;pred_totNMF&quot;</span>,</span>
-<span id="cb3-83"><a href="#cb3-83" tabindex="-1"></a>    <span class="st">&quot;pred_totCalvesMF&quot;</span>,</span>
-<span id="cb3-84"><a href="#cb3-84" tabindex="-1"></a>    <span class="st">&quot;pred_totAdultsMF&quot;</span>,</span>
-<span id="cb3-85"><a href="#cb3-85" tabindex="-1"></a>    <span class="st">&quot;mean_R&quot;</span>,</span>
-<span id="cb3-86"><a href="#cb3-86" tabindex="-1"></a>    <span class="st">&quot;mean_S&quot;</span>,</span>
-<span id="cb3-87"><a href="#cb3-87" tabindex="-1"></a>    <span class="st">&quot;sexratio&quot;</span>,</span>
-<span id="cb3-88"><a href="#cb3-88" tabindex="-1"></a>    </span>
-<span id="cb3-89"><a href="#cb3-89" tabindex="-1"></a>    <span class="st">&quot;mtrt_eff_s&quot;</span>, <span class="st">&quot;mtrt_eff_r&quot;</span>,</span>
-<span id="cb3-90"><a href="#cb3-90" tabindex="-1"></a>    <span class="st">&quot;wtrt_eff_s&quot;</span>, <span class="st">&quot;wtrt_eff_r&quot;</span>,</span>
-<span id="cb3-91"><a href="#cb3-91" tabindex="-1"></a>    <span class="st">&quot;ptrt_eff_s&quot;</span>, <span class="st">&quot;ptrt_eff_r&quot;</span>,</span>
-<span id="cb3-92"><a href="#cb3-92" tabindex="-1"></a>    <span class="st">&quot;ftrt_eff_s&quot;</span>, <span class="st">&quot;ftrt_eff_r&quot;</span>,</span>
-<span id="cb3-93"><a href="#cb3-93" tabindex="-1"></a>    <span class="st">&quot;strt_eff_s&quot;</span>, <span class="st">&quot;strt_eff_r&quot;</span>,</span>
-<span id="cb3-94"><a href="#cb3-94" tabindex="-1"></a>    <span class="st">&quot;ttrt_eff_s&quot;</span>, <span class="st">&quot;ttrt_eff_r&quot;</span>,</span>
-<span id="cb3-95"><a href="#cb3-95" tabindex="-1"></a>    </span>
-<span id="cb3-96"><a href="#cb3-96" tabindex="-1"></a>    <span class="st">&quot;moosewolf&quot;</span>,</span>
-<span id="cb3-97"><a href="#cb3-97" tabindex="-1"></a>    <span class="st">&quot;penwolf&quot;</span></span>
-<span id="cb3-98"><a href="#cb3-98" tabindex="-1"></a>    )</span></code></pre></div>
+<span id="cb3-80"><a href="#cb3-80" tabindex="-1"></a>    <span class="st">&quot;pred_totNMF&quot;</span>,</span>
+<span id="cb3-81"><a href="#cb3-81" tabindex="-1"></a>    <span class="st">&quot;pred_totCalvesMF&quot;</span>,</span>
+<span id="cb3-82"><a href="#cb3-82" tabindex="-1"></a>    <span class="st">&quot;pred_totAdultsMF&quot;</span>,</span>
+<span id="cb3-83"><a href="#cb3-83" tabindex="-1"></a>    <span class="st">&quot;mean_R&quot;</span>,</span>
+<span id="cb3-84"><a href="#cb3-84" tabindex="-1"></a>    <span class="st">&quot;mean_S&quot;</span>,</span>
+<span id="cb3-85"><a href="#cb3-85" tabindex="-1"></a>    <span class="st">&quot;sexratio&quot;</span>,</span>
+<span id="cb3-86"><a href="#cb3-86" tabindex="-1"></a>    </span>
+<span id="cb3-87"><a href="#cb3-87" tabindex="-1"></a>    <span class="st">&quot;mtrt_eff_s&quot;</span>, <span class="st">&quot;mtrt_eff_r&quot;</span>,</span>
+<span id="cb3-88"><a href="#cb3-88" tabindex="-1"></a>    <span class="st">&quot;wtrt_eff_s&quot;</span>, <span class="st">&quot;wtrt_eff_r&quot;</span>,</span>
+<span id="cb3-89"><a href="#cb3-89" tabindex="-1"></a>    <span class="st">&quot;ptrt_eff_s&quot;</span>, <span class="st">&quot;ptrt_eff_r&quot;</span>,</span>
+<span id="cb3-90"><a href="#cb3-90" tabindex="-1"></a>    <span class="st">&quot;ftrt_eff_s&quot;</span>, <span class="st">&quot;ftrt_eff_r&quot;</span>,</span>
+<span id="cb3-91"><a href="#cb3-91" tabindex="-1"></a>    <span class="st">&quot;strt_eff_s&quot;</span>, <span class="st">&quot;strt_eff_r&quot;</span>,</span>
+<span id="cb3-92"><a href="#cb3-92" tabindex="-1"></a>    <span class="st">&quot;ttrt_eff_s&quot;</span>, <span class="st">&quot;ttrt_eff_r&quot;</span>,</span>
+<span id="cb3-93"><a href="#cb3-93" tabindex="-1"></a>    </span>
+<span id="cb3-94"><a href="#cb3-94" tabindex="-1"></a>    <span class="st">&quot;moosewolf&quot;</span>,</span>
+<span id="cb3-95"><a href="#cb3-95" tabindex="-1"></a>    <span class="st">&quot;penwolf&quot;</span></span>
+<span id="cb3-96"><a href="#cb3-96" tabindex="-1"></a>    )</span></code></pre></div>
 <h2 id="run-ipm">Run IPM</h2>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># nth &lt;- 90</span></span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co"># nbu &lt;- 30000</span></span>
@@ -1145,16 +1143,17 @@ padding-top: 0px;
 <span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a>nit <span class="ot">&lt;-</span> <span class="dv">400000</span></span>
 <span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a></span>
 <span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a></span>
-<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a>out <span class="ot">&lt;-</span> jagsUI<span class="sc">::</span><span class="fu">jags</span>(<span class="at">data=</span>ipm_dat, </span>
-<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a>    <span class="at">inits =</span> ipm_inits,</span>
-<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a>    <span class="at">parameters.to.save=</span>model_parms,</span>
-<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a>    <span class="at">model.file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;jags/BCAB_IPM_20230611.txt&quot;</span>),</span>
-<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a>    <span class="at">n.chains =</span> nch,</span>
-<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a>    <span class="at">n.cores =</span> nch,</span>
-<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a>    <span class="at">n.iter =</span> nit,</span>
-<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a>    <span class="at">n.burnin =</span> nbu,</span>
-<span id="cb4-28"><a href="#cb4-28" tabindex="-1"></a>    <span class="at">n.thin =</span> nth,</span>
-<span id="cb4-29"><a href="#cb4-29" tabindex="-1"></a>    <span class="at">n.adapt =</span> nad)</span></code></pre></div>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a></span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a>out <span class="ot">&lt;-</span> jagsUI<span class="sc">::</span><span class="fu">jags</span>(<span class="at">data=</span>ipm_dat, </span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a>    <span class="at">inits =</span> ipm_inits,</span>
+<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a>    <span class="at">parameters.to.save=</span>model_parms,</span>
+<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a>    <span class="at">model.file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;jags/BCAB_IPM_20231211.txt&quot;</span>),</span>
+<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a>    <span class="at">n.chains =</span> nch,</span>
+<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a>    <span class="at">n.cores =</span> nch,</span>
+<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a>    <span class="at">n.iter =</span> nit,</span>
+<span id="cb4-28"><a href="#cb4-28" tabindex="-1"></a>    <span class="at">n.burnin =</span> nbu,</span>
+<span id="cb4-29"><a href="#cb4-29" tabindex="-1"></a>    <span class="at">n.thin =</span> nth,</span>
+<span id="cb4-30"><a href="#cb4-30" tabindex="-1"></a>    <span class="at">n.adapt =</span> nad)</span></code></pre></div>
 <h2 id="save-outputs">Save outputs</h2>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co">#mcmcplots::mcmcplot(out$samples, par = c(&quot;S&quot;, &quot;R&quot;, &quot;totNMF&quot;)) </span></span>
 <span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="fu">saveRDS</span>(out, <span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;jags/output/BCAB_CaribouIPM_23update.rds&quot;</span>))</span></code></pre></div>

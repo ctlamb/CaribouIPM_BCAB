@@ -1,7 +1,7 @@
 BC AB Caribou IPM run
 ================
 Clayton T. Lamb
-07 December, 2023
+22 December, 2023
 
 ## Load Data
 
@@ -64,7 +64,7 @@ hd <- hd%>%
                       COSEWIC="DU8",
                       Heard_Vagt1998="Northern"), by="herd")
 hd$demog_grp <- hd$ECCC%>%factor%>%as.numeric() 
-hd[hd$herd%in%c("Charlotte Alplands","Itcha-Ilgachuz","Rainbows"),"demog_grp"]<-4
+hd[hd$herd%in%c("Itcha-Ilgachuz"),"demog_grp"]<-4
 nsight_grp <- length(unique(hd$sight_grp))
 ndemog_grp <- length(unique(hd$demog_grp))
 
@@ -491,8 +491,6 @@ for(h in 1:nherd) {
 ipm_inits <- function(){ 
   list(
     N = Nst
-        # meanS = runif(1, 0.5, 0.9),
-        # meanR = runif(1, 0.1, 0.6)
     )
 }
 
@@ -559,10 +557,11 @@ nad <- 60000
 nit <- 400000
 
 
+
 out <- jagsUI::jags(data=ipm_dat, 
     inits = ipm_inits,
     parameters.to.save=model_parms,
-    model.file = here::here("jags/BCAB_IPM_20230611.txt"),
+    model.file = here::here("jags/BCAB_IPM_20231211.txt"),
     n.chains = nch,
     n.cores = nch,
     n.iter = nit,

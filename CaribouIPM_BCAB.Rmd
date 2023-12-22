@@ -1368,7 +1368,8 @@ ind.eff.plot <- ggplot(ind.eff.app%>%left_join(label.lookup%>%rename(term=trt), 
   ) +
   geom_vline(xintercept = 0, linetype = "dashed") +
   labs(x = "Change in rate of increase", y = "Recovery action(s)", title = "a) Individual Treatment Effects", subtitle = "Partitioned using regression analysis, assuming effects are additive") +
-  scale_fill_manual(values = cols[c(1:6)])
+  scale_fill_manual(values = cols[c(1:6)])+
+  xlim(-0.2,0.25)
 ind.eff.plot
 # ggsave(here::here("plots","ind_effects.png"), width=5, height=6, bg="white")
 
@@ -1550,9 +1551,25 @@ recov.sims.plot <- ggplot() +
   ) +
   labs(x = "Years since intervention", y = "Abundance", title = "b) Simulated Options to Avert Caribou Extirpation", subtitle = "Labels = treatment (% samples increased, % samples extirpated, 90% end abundance interval)") +
   # geom_hline(yintercept = 10, linetype="dashed")+
+    geom_text_repel(
+    data = sim.df.plot %>%
+      filter(yr == last(yr),
+             name == "feed"),
+    aes(color = trt, label = trt, x = yr, y = median),
+    size = 4,
+    direction = "y",
+    xlim = c(year.end + 2, 35),
+    vjust = 1.5,
+    segment.size = .7,
+    segment.alpha = .5,
+    segment.linetype = "dotted",
+    box.padding = .8,
+    seed = 999
+    ) +
   geom_text_repel(
     data = sim.df.plot %>%
-      filter(yr == last(yr)),
+      filter(yr == last(yr),
+             name != "feed"),
     aes(color = trt, label = trt, x = yr, y = median),
     size = 4,
     direction = "y",
@@ -1561,24 +1578,9 @@ recov.sims.plot <- ggplot() +
     segment.size = .7,
     segment.alpha = .5,
     segment.linetype = "dotted",
-    box.padding = .4,
+    box.padding = .8,
     seed = 999
   ) +
-    # geom_text_repel(
-    # data = sim.df.plot %>%
-    #   filter(yr == last(yr),
-    #          name == "feed"),
-    # aes(color = trt, label = trt, x = yr, y = median),
-    # size = 4,
-    # direction = "y",
-    # xlim = c(year.end + 2, 35),
-    # vjust = 3,
-    # segment.size = .7,
-    # segment.alpha = .5,
-    # segment.linetype = "dotted",
-    # box.padding = .4,
-    # seed = 999
-    # ) +
   coord_cartesian(
     clip = "off"
   ) +

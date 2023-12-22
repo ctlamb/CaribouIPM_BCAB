@@ -1,7 +1,7 @@
 BC AB Caribou IPM Results
 ================
 Clayton T. Lamb
-07 December, 2023
+22 December, 2023
 
 ## Load Data
 
@@ -35,7 +35,7 @@ library(tidyverse)
 # Load data ---------------------------------------------------------------
 
 ## IPM Output
-out <- readRDS(file = here::here("jags/output/BCAB_CaribouIPM_23update.rds"))
+out <- readRDS(file = here::here("jags/output/BCAB_CaribouIPM_23update_withoutItcha.rds"))
 
 ## IPM input to compare results
 hd <- read.csv("data/clean/blueprint.csv")
@@ -180,7 +180,7 @@ demog.mod <- demog %>% filter(totAdults > 10 & totNMF > 20) ## modelling data th
 
 ggplot(demog, aes(y = log(lambda), x = totNMF)) +
   geom_point(alpha = 0.3) +
-  geom_vline(xintercept = 20, color = "red") +
+  geom_vline(xintercept = 30, color = "red") +
   geom_hline(yintercept = 0, color = "grey", linetype = "dashed") +
   theme_ipsum() +
   theme(
@@ -260,23 +260,18 @@ trt.plot <- trt %>%
   filter(applied == 1) %>%
   left_join(demog %>% group_by(herd) %>% summarize(max = max(totNMF.upper))) %>%
   mutate(y = case_when(
-    treatment %in% "reduce wolves" & herd %in% "South Selkirks" ~ 140,
-    treatment %in% "reduce wolves" & herd %in% "Charlotte Alplands" ~ 60,
-    treatment %in% "transplant" & herd %in% "Charlotte Alplands" ~ 75,
-    treatment %in% "transplant" & herd %in% "South Selkirks" ~ 165,
-    treatment %in% "transplant" & herd %in% "Telkwa" ~ 100,
-    treatment %in% "transplant" & herd %in% "Purcells South" ~ 180,
-    treatment %in% "reduce moose" & herd %in% "Frisby-Boulder" ~ 200,
+    treatment %in% "transplant" & herd %in% "South Selkirks" ~ 400,
+    treatment %in% "reduce wolves" & herd %in% "Charlotte Alplands" ~ 200,
+    treatment %in% "transplant" & herd %in% "Charlotte Alplands" ~ 300,
+    treatment %in% "transplant" & herd %in% "Telkwa" ~ 200,
     treatment %in% "sterilize wolves" & herd %in% c("Wells Gray North") ~ (max+20) - (max * 0.25),
     treatment %in% "reduce wolves" & herd %in% c("Wells Gray North") ~ (max+20) - (max * 0.10),
-    treatment %in% "sterilize wolves" & herd %in% c("Barkerville") ~ 5,
-    treatment %in% "reduce wolves" & herd %in% c("Barkerville") ~ 25,
     treatment %in% "reduce wolves" & herd %in% "Kennedy Siding" ~ max - (max * 0.05),
     treatment %in% "feed" & herd %in% "Kennedy Siding" ~ max - (max * 0.20),
-    treatment %in% "pen" & herd %in% "Columbia North" ~ 50,
-    treatment %in% "reduce wolves" & herd %in% "Columbia North" ~ 100,
-    treatment %in% "reduce moose" & herd %in% "Columbia North" ~ 0,
-    treatment %in% "reduce moose" & herd %in% "Hart North" ~ 400,
+    treatment %in% "pen" & herd %in% "Columbia North" ~ 325,
+    treatment %in% "reduce moose" & herd %in% "Columbia North" ~ 400,
+    treatment %in% "reduce moose" & herd %in% "Groundhog" ~ 120,
+    treatment %in% "reduce moose" & herd %in% "Hart North" ~ 475,
     treatment %in% "reduce wolves" ~ max - (max * 0.1),
     treatment %in% "transplant" ~ max - (max * 0.15),
     treatment %in% "reduce moose" ~ max - (max * 0.2),
@@ -390,7 +385,7 @@ ggplot() +
   labs(x = "", y = "", title = "Abundance") +
   expand_limits(y = 0) +
   scale_x_continuous(
-    limits = c(1974, 2026),
+    limits = c(1973, 2026),
     breaks = seq(1980, 2020, by = 20)
   ) +
   theme(
@@ -456,17 +451,11 @@ ggplot() +
 
     ## Warning in geom_text(data = trt.plot %>% filter(herd %in% herds.keep) %>% : Ignoring unknown parameters: `direction`
 
-    ## Warning: Removed 1 row containing missing values (`geom_line()`).
-
 ![](README_files/figure-gfm/Plot%20herd%20abundance-1.png)<!-- -->
 
 ``` r
 ggsave(here::here("plots", "abundance.png"), width = 15, height = 11, bg = "white")
-```
 
-    ## Warning: Removed 1 row containing missing values (`geom_line()`).
-
-``` r
 # #for Fuse
 # library(Cairo)
 # ggsave(here::here("plots", "abundance_forFUSE.svg"), width = 15, height = 11, bg = "transparent")
@@ -485,6 +474,8 @@ sims.summary <- sims.plot %>%
   filter(yrs == 1991 | yrs == 2023) %>%
   arrange(yrs) %>%
   ungroup()
+
+write_csv(sims.summary%>%mutate(.variable=case_when(.variable=="pred_totNMF"~"No action counterfactual", TRUE~"Actual")), here::here("tables/pop.size.csv"))
 
 ## what was the decline?
 p.decline <- sims.summary %>%
@@ -505,7 +496,8 @@ sims.draws <- out %>%
   filter(herd%in%herds.keep)
 
 n.recovery.all <- sims.draws %>%
-  filter(j == 51, .variable %in% c("totNMF", "pred_totNMF")) %>%
+  ungroup%>%
+  filter(j == max(j), .variable %in% c("totNMF", "pred_totNMF")) %>%
   group_by(.draw, .variable) %>%
   summarise(across(.value, ~ sum(.x))) %>%
   pivot_wider(names_from = .variable, values_from = .value) %>%
@@ -516,17 +508,19 @@ n.recovery.all <- sims.draws %>%
 median(n.recovery.all)
 ```
 
-    ## [1] 1569.216
+    ## [1] 1687.98
 
 ``` r
 quantile(n.recovery.all, c(0.05, 0.5, 0.95)) %>% round(0)
 ```
 
     ##   5%  50%  95% 
-    ## 1176 1569 2017
+    ## 1315 1688 2093
 
 ``` r
 n.recovery <- median(n.recovery.all) %>% round(0)
+
+write.csv(quantile(n.recovery.all, c(0.05, 0.5, 0.95)) %>% round(0)%>%as.data.frame(), here::here("tables/adults.recovered.csv"), row.names = TRUE)
 
 ## do again but just for calves
 ## unlike above, also keep all year so we can compare how many more calves were born over the entire period
@@ -544,7 +538,7 @@ quantile(calves.recovered.all, c(0.05, 0.5, 0.95)) %>% round(0)
 ```
 
     ##   5%  50%  95% 
-    ## 1200 1607 2020
+    ## 1240 1690 2080
 
 ``` r
 calves.recovered <- median(calves.recovered.all) %>% round(0)
@@ -552,9 +546,12 @@ calves.recovered <- median(calves.recovered.all) %>% round(0)
 sum(out$mean$totCalvesMF - out$mean$pred_totCalvesMF)
 ```
 
-    ## [1] 1639.581
+    ## [1] 1710.295
 
 ``` r
+write.csv(quantile(calves.recovered.all, c(0.05, 0.5, 0.95)) %>% round(0) %>%as.data.frame(), here::here("tables/calves.recovered.csv"), row.names = TRUE)
+
+
 #### Total Abundance####
 abundance.all.plot <- ggplot(data = sims.plot %>%
   mutate(.variable = case_when(
@@ -652,6 +649,7 @@ demog.draws <- out %>%
   dplyr::mutate(
     r = replace(r, yrs == 1973, NA_real_)
   )%>%
+  drop_na(r)%>%
   filter(herd%in%herds.keep)
 
 
@@ -676,6 +674,11 @@ for (i in 1:length(herds)) {
 
 demog.draws <- demog.draws.trim
 rm(demog.draws.trim)
+
+##keep treatment years when applied to pops before functional extirpation
+demog.draws <- demog.draws%>%
+  filter(paste(i,j, sep="_")%in%paste(demog.mod$i,demog.mod$j, sep="_"))
+
 
 
 ### Remove years where transplant was being done (impossibly high lambda due to adding translocated individuals, not population response)
@@ -705,8 +708,8 @@ demog.draws %>% write_csv(here::here("tables", "draws", "demog.draws.csv"))
 
 demog.draws.combotreat <- demog.draws %>%
   # filter(!(intensity%in%"low"|totNMF<20))%>%
-  group_by(.draw, trt, herd) %>%
-  summarise(r = mean(r, na.rm = TRUE)) %>% ## mean per herd-treatment-draw
+  group_by(.draw, trt) %>%
+  summarise(r = mean(r, na.rm = TRUE)) %>% ## mean per treatment-draw
   group_by(.draw, trt) %>%
   summarise(r = mean(r)) %>% ## mean lambda per treatment-draw
   mutate(trt = case_when(is.na(trt) ~ "Reference", TRUE ~ trt)) %>%
@@ -715,7 +718,7 @@ demog.draws.combotreat <- demog.draws %>%
 demog.draws.combotreat.rug <- demog.draws %>%
   # filter(!(intensity%in%"low"|totNMF<20))%>%
   group_by(trt, herd) %>%
-  summarise(r = mean(r, na.rm = TRUE)) %>% ## mean per herd-treatment-draw
+  summarise(r = mean(r, na.rm = TRUE)) %>% ## mean per treatment-draw
   mutate(trt = case_when(is.na(trt) ~ "Reference", TRUE ~ trt)) %>%
   mutate(group = case_when(trt %in% "Reference" ~ "Reference", TRUE ~ "Treatment"))
 
@@ -785,17 +788,17 @@ kable(lambda.table)
 
 | trt                          | r.med | lower | upper | r                  |
 |:-----------------------------|------:|------:|------:|:-------------------|
-| feed                         |  0.13 | -0.26 |  0.48 | 0.13 (-0.26-0.48)  |
+| feed                         |  0.12 | -0.29 |  0.45 | 0.12 (-0.29-0.45)  |
 | feed-reducewolves            |  0.12 |  0.10 |  0.15 | 0.12 (0.1-0.15)    |
-| reducemoose-reducewolves     |  0.11 |  0.06 |  0.17 | 0.11 (0.06-0.17)   |
-| pen-reducemoose              |  0.06 | -0.08 |  0.20 | 0.06 (-0.08-0.2)   |
-| reducewolves                 |  0.04 | -0.03 |  0.13 | 0.04 (-0.03-0.13)  |
+| pen-reducewolves             |  0.10 |  0.05 |  0.14 | 0.1 (0.05-0.14)    |
+| reducemoose-reducewolves     |  0.09 |  0.04 |  0.16 | 0.09 (0.04-0.16)   |
+| pen-reducemoose              |  0.06 | -0.08 |  0.18 | 0.06 (-0.08-0.18)  |
+| reducewolves                 |  0.05 |  0.02 |  0.09 | 0.05 (0.02-0.09)   |
 | reducewolves-sterilizewolves |  0.04 |  0.02 |  0.06 | 0.04 (0.02-0.06)   |
-| pen-reducewolves             |  0.02 | -0.18 |  0.21 | 0.02 (-0.18-0.21)  |
-| pen-reducemoose-reducewolves | -0.01 | -0.18 |  0.20 | -0.01 (-0.18-0.2)  |
-| Reference                    | -0.02 | -0.02 | -0.01 | -0.02 (-0.02–0.01) |
+| pen-reducemoose-reducewolves | -0.02 | -0.21 |  0.18 | -0.02 (-0.21-0.18) |
 | transplant                   | -0.03 | -0.04 | -0.02 | -0.03 (-0.04–0.02) |
-| reducemoose                  | -0.07 | -0.09 | -0.04 | -0.07 (-0.09–0.04) |
+| Reference                    | -0.05 | -0.05 | -0.04 | -0.05 (-0.05–0.04) |
+| reducemoose                  | -0.05 | -0.07 | -0.03 | -0.05 (-0.07–0.03) |
 
 ## Population growth Before-After
 
@@ -806,11 +809,9 @@ kable(lambda.table)
 eff.draws <- demog.draws %>%
   ungroup() %>%
   filter(!trt %in% "Reference") %>%
-  group_by(.draw, herd, trt) %>%
-  summarise(across(r:R, ~ mean(.x, na.rm = TRUE))) %>% ### mean posterior per herd-treatment
-  pivot_longer(r:R) %>%
   ungroup() %>%
-  dplyr::select(.draw, trt, herd, name, eff = value) %>%
+  pivot_longer(r:R) %>%
+  dplyr::select(.draw, trt, herd, yrs,name, eff = value) %>%
   ### add in reference
   left_join(
     demog.draws %>%
@@ -924,15 +925,15 @@ kable(trt_eff_ba_table)
 
 | Recovery action                  | Change in instantaneous growth rate (r) |
 |:---------------------------------|:----------------------------------------|
-| feeding                          | 0.15 \[-0.24-0.51\]                     |
-| feeding + wolf reduction         | 0.14 \[0.12-0.17\]                      |
-| moose & wolf reduction           | 0.11 \[0.02-0.2\]                       |
-| penning + moose reduction        | 0.07 \[-0.07-0.21\]                     |
-| penning + wolf reduction         | 0.07 \[-0.14-0.25\]                     |
-| wolf reduction                   | 0.07 \[0.02-0.12\]                      |
-| wolf reduction + sterilization   | 0.05 \[0.03-0.08\]                      |
-| penning + moose & wolf reduction | 0.01 \[-0.17-0.21\]                     |
-| moose reduction                  | -0.05 \[-0.07–0.03\]                    |
+| penning + wolf reduction         | 0.18 \[0.13-0.22\]                      |
+| feeding                          | 0.16 \[-0.25-0.5\]                      |
+| feeding + wolf reduction         | 0.16 \[0.1-0.22\]                       |
+| moose & wolf reduction           | 0.11 \[0.04-0.19\]                      |
+| penning + moose reduction        | 0.08 \[-0.17-0.29\]                     |
+| wolf reduction                   | 0.08 \[0.03-0.14\]                      |
+| wolf reduction + sterilization   | 0.08 \[0.03-0.14\]                      |
+| penning + moose & wolf reduction | 0 \[-0.2-0.2\]                          |
+| moose reduction                  | -0.03 \[-0.08-0.03\]                    |
 
 ``` r
 eff.draws %>%
@@ -947,8 +948,8 @@ eff.draws %>%
 
 | delta \> 0 |   n |
 |:-----------|----:|
-| FALSE      |   5 |
-| TRUE       |  27 |
+| FALSE      |   3 |
+| TRUE       |  28 |
 
 ## Summarize results by recovery action, including application intensity
 
@@ -960,10 +961,10 @@ eff.draws.app <- demog.draws %>%
   mutate(
     application = case_when(intensity == "low" | totNMF.median < 30 ~ "low", TRUE ~ "standard")
   ) %>%
-  ungroup() %>%
   filter(!trt %in% "Reference") %>%
-  group_by(.draw, herd, trt, application) %>%
+  group_by(.draw, herd,trt,application) %>%
   summarise(across(r:R, ~ mean(.x, na.rm = TRUE))) %>% ### mean posterior per herd-treatment
+  ungroup() %>%
   pivot_longer(r:R) %>%
   ungroup() %>%
   dplyr::select(.draw, application, trt, herd, name, eff = value) %>%
@@ -982,15 +983,15 @@ eff.draws.app <- demog.draws %>%
     delta.r = eff - ref
   )
 
-eff.draws.app %>%
-  filter(
-    trt != "transplant",
-    name == "r"
-  ) %>%
-  filter(trt %in% "reducewolves") %>%
-  group_by(herd, trt, application) %>%
-  summarize(mean = mean(eff)) %>%
-  arrange(mean)
+# eff.draws.app %>%
+#   filter(
+#     trt != "transplant",
+#     name == "r"
+#   ) %>%
+#   filter(trt %in% "reducewolves") %>%
+#   group_by(herd, trt, application) %>%
+#   summarize(mean = mean(eff)) %>%
+#   arrange(mean)
 
 eff.draws.app %>%
   filter(
@@ -1030,24 +1031,21 @@ eff.draws.app.model <- eff.draws.app %>%
     feed = case_when(str_detect(trt, "feed") ~ 1, TRUE ~ 0),
     transplant = case_when(str_detect(trt, "transplant") ~ 1, TRUE ~ 0)
   )%>%
-  filter(name=="r")
+  filter(name=="r",
+         application=="standard") ##how is application for each one dealt with?
 
 ind.eff.app <- eff.draws.app.model %>%
   filter(name == "r") %>%
   group_by(.draw) %>%
-  do(tidy(lm(delta.r ~ reducewolves + sterilizewolves + reducemoose + pen + feed + application, data = .)))
+  do(tidy(lm(delta.r ~ reducewolves + sterilizewolves + reducemoose + pen + feed, data = .)))
 
 ind.eff.app <- ind.eff.app%>%
-  filter(!term%in%c("(Intercept)", "applicationstandard"))%>%
+  filter(!term%in%c("(Intercept)"))%>%
   left_join(ind.eff.app %>%
   filter(term=="(Intercept)")%>%
     select(.draw, intercept=estimate),
   by=".draw")%>%
-    left_join(ind.eff.app %>%
-  filter(term=="applicationstandard")%>%
-    select(.draw, standardapp=estimate),
-  by=".draw")%>%
-  mutate(eff=intercept+standardapp+estimate)
+  mutate(eff=intercept+estimate)
 
 ind.eff.app%>%
   group_by(.draw)%>%
@@ -1064,12 +1062,10 @@ ind.eff.app %>%
   arrange(-delta.l) %>%
   mutate(delta.lambda = paste0(delta.l, " (", lower, "-", upper, ")")) %>%
   dplyr::select(Treatment = term, delta.lambda)
-```
 
-## Individual Treatment Effects
+eff.draws.app.model %>% write_csv(here::here("tables", "draws", "eff.draws.app.model.csv"))
 
-``` r
-## prep data with individual treatments 1/0
+## do again but with all data included
 eff.draws <- eff.draws %>%
   mutate(
     reducewolves = case_when(str_detect(trt, "reducewolves") ~ 1, TRUE ~ 0),
@@ -1083,20 +1079,28 @@ eff.draws <- eff.draws %>%
 ind.eff <- eff.draws %>%
   filter(name == "Rate of increase (r)") %>%
   group_by(.draw) %>%
-  do(tidy(lm(delta.r ~ reducewolves + sterilizewolves + reducemoose + pen + feed, data = .))) %>%
-  filter(!term %in% "(Intercept)")
+  do(tidy(lm(delta.r ~ reducewolves + sterilizewolves + reducemoose + pen + feed, data = .)))
 
+
+ind.eff <- ind.eff%>%
+  filter(!term%in%c("(Intercept)"))%>%
+  left_join(ind.eff %>%
+  filter(term=="(Intercept)")%>%
+    select(.draw, intercept=estimate),
+  by=".draw")%>%
+  mutate(eff=intercept+estimate)
 
 ind.eff %>%
   group_by(term) %>%
   summarise(eff = median(estimate))
 
+eff.draws%>% write_csv(here::here("tables", "draws", "eff.draws.csv"))
+```
 
-order <- ind.eff %>%
-  group_by(term) %>%
-  summarize(med = median(estimate))
+## Individual Treatment Effects
 
-ind.eff.plot <- ggplot(ind.eff %>% left_join(order) %>%left_join(label.lookup%>%rename(term=trt), by="term"), aes(x = estimate, y = fct_relevel(new, "wolf sterlization", "moose reduction", "penning", "feeding","wolf reduction"), fill = new)) +
+``` r
+ind.eff.plot <- ggplot(ind.eff.app%>%left_join(label.lookup%>%rename(term=trt), by="term"), aes(x = eff, y = fct_relevel(new, "wolf sterlization", "moose reduction","feeding", "penning", "wolf reduction"), fill = new)) +
   geom_density_ridges(
     scale = .9,
     rel_min_height = .01,
@@ -1115,8 +1119,8 @@ ind.eff.plot <- ggplot(ind.eff %>% left_join(order) %>%left_join(label.lookup%>%
   ) +
   geom_vline(xintercept = 0, linetype = "dashed") +
   labs(x = "Change in rate of increase", y = "Recovery action(s)", title = "a) Individual Treatment Effects", subtitle = "Partitioned using regression analysis, assuming effects are additive") +
-  xlim(-0.19, 0.22) +
-  scale_fill_manual(values = cols[c(1:6)])
+  scale_fill_manual(values = cols[c(1:6)])+
+  xlim(-0.2,0.25)
 ind.eff.plot
 ```
 
@@ -1126,12 +1130,12 @@ ind.eff.plot
 # ggsave(here::here("plots","ind_effects.png"), width=5, height=6, bg="white")
 
 
-ind.eff.table <- ind.eff %>%
+ind.eff.table <- ind.eff.app %>%
   group_by(term) %>%
   summarise(
-    delta.l = median(estimate, na.rm = TRUE) %>% round(2),
-    lower = quantile(estimate, 0.05, na.rm = TRUE) %>% round(2),
-    upper = quantile(estimate, 0.95, na.rm = TRUE) %>% round(2)
+    delta.l = median(eff, na.rm = TRUE) %>% round(2),
+    lower = quantile(eff, 0.05, na.rm = TRUE) %>% round(2),
+    upper = quantile(eff, 0.95, na.rm = TRUE) %>% round(2)
   ) %>%
   arrange(-delta.l) %>%
   mutate(delta.lambda = paste0(delta.l, " (", lower, "-", upper, ")")) %>%
@@ -1144,17 +1148,13 @@ ind.eff.table %>%
 kable(ind.eff.table)
 ```
 
-| Treatment       | delta.lambda       |
-|:----------------|:-------------------|
-| feed            | 0.12 (-0.07-0.31)  |
-| reducewolves    | 0.08 (0.01-0.14)   |
-| reducemoose     | 0.01 (-0.05-0.07)  |
-| pen             | 0 (-0.12-0.13)     |
-| sterilizewolves | -0.01 (-0.09-0.06) |
-
-``` r
-eff.draws %>% write_csv(here::here("tables", "draws", "eff.draws.csv"))
-```
+| Treatment       | delta.lambda     |
+|:----------------|:-----------------|
+| feed            | 0.13 (-0.1-0.34) |
+| pen             | 0.13 (0.04-0.21) |
+| reducewolves    | 0.1 (0.03-0.17)  |
+| reducemoose     | 0.06 (0-0.12)    |
+| sterilizewolves | 0.03 (-0.06-0.1) |
 
 ## Simulate Conservation Intervention
 
@@ -1163,9 +1163,7 @@ n.sims <- 1000
 start.pop <- 100
 
 sim.ref <- demog.draws %>%
-  filter(trt == "Reference" & totNMF < 100 & yrs > 1985) %>%
-  group_by(.draw, trt, herd) %>%
-  summarise(r = mean(r, na.rm = TRUE)) %>% ## mean per herd-draw
+  filter(trt == "Reference" & totNMF<150) %>%
   group_by(.draw, trt) %>%
   summarise(r = median(r)) %>% ## median lambda across herds
   ungroup() %>%
@@ -1175,24 +1173,23 @@ sim.ref <- demog.draws %>%
 median(sim.ref)
 ```
 
-    ## [1] -0.07361697
+    ## [1] -0.09621527
 
 ``` r
-sim.trt <- ind.eff %>%
+sim.trt <- ind.eff.app %>%
   group_by(term) %>%
   ungroup() %>%
-  dplyr::select(.draw, term, estimate) %>%
-  pivot_wider(names_from = "term", values_from = "estimate") %>%
+  dplyr::select(.draw, term, eff) %>%
+  pivot_wider(names_from = "term", values_from = "eff") %>%
   drop_na() %>%
   sample_n(n.sims)
 
 median(sim.ref)
 ```
 
-    ## [1] -0.07361697
+    ## [1] -0.09621527
 
 ``` r
-test <- c()
 year.end <- 9
 sim.df <- list()
 for (i in 1:n.sims) {
@@ -1216,7 +1213,6 @@ for (i in 1:n.sims) {
   steril.sim.i <- ifelse(steril.sim.i > max.l, max.l, steril.sim.i)
   wolffeed.sim.i <- ifelse(wolffeed.sim.i > max.l, max.l, wolffeed.sim.i)
   wolfpen.sim.i <- ifelse(wolfpen.sim.i > max.l, max.l, wolfpen.sim.i)
-test[i] <- wolffeed.sim.i
   ## project population change
   cons.sim.i <- tibble(yr = 1:(11 + year.end)) %>%
     dplyr::mutate(
@@ -1327,6 +1323,21 @@ recov.sims.plot <- ggplot() +
   ) +
   labs(x = "Years since intervention", y = "Abundance", title = "b) Simulated Options to Avert Caribou Extirpation", subtitle = "Labels = treatment (% samples increased, % samples extirpated, 90% end abundance interval)") +
   # geom_hline(yintercept = 10, linetype="dashed")+
+    geom_text_repel(
+    data = sim.df.plot %>%
+      filter(yr == last(yr),
+             name == "feed"),
+    aes(color = trt, label = trt, x = yr, y = median),
+    size = 4,
+    direction = "y",
+    xlim = c(year.end + 2, 35),
+    vjust = 1.5,
+    segment.size = .7,
+    segment.alpha = .5,
+    segment.linetype = "dotted",
+    box.padding = .8,
+    seed = 999
+    ) +
   geom_text_repel(
     data = sim.df.plot %>%
       filter(yr == last(yr),
@@ -1339,24 +1350,9 @@ recov.sims.plot <- ggplot() +
     segment.size = .7,
     segment.alpha = .5,
     segment.linetype = "dotted",
-    box.padding = .4,
+    box.padding = .8,
     seed = 999
   ) +
-    geom_text_repel(
-    data = sim.df.plot %>%
-      filter(yr == last(yr),
-             name == "feed"),
-    aes(color = trt, label = trt, x = yr, y = median),
-    size = 4,
-    direction = "y",
-    xlim = c(year.end + 2, 35),
-    vjust = 2.8,
-    segment.size = .7,
-    segment.alpha = .5,
-    segment.linetype = "dotted",
-    box.padding = .4,
-    seed = 999
-    ) +
   coord_cartesian(
     clip = "off"
   ) +

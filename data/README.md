@@ -1,14 +1,15 @@
 BC AB IPM data prep
 ================
 Clayton T. Lamb
-07 December, 2023
+22 December, 2023
 
 ## Load Data
 
 ``` r
 library(renv)
-##to pull packages
-#restore(repos="https://cloud.r-project.org")
+## to pull packages
+# restore(repos="https://cloud.r-project.org")
+library(styler)
 library(here)
 library(tidyverse)
 library(lubridate)
@@ -52,10 +53,12 @@ tonq.abund <- read_csv(here::here("data", "raw", "TonquinAbundanceAnnualEstimate
 herds <- treat.raw %>%
   filter(!Exclude %in% "Y") %>% ## remove herds that don't have enough data/years
   filter(!Herd %in% "Central Selkirks") %>% ## now split into Nakusp/Duncan
+  filter(!Herd %in% "Quintette Full") %>% ## pull from here and add in below to QT Full is end of list for easy filtering w/o messing up indexing numbers
   distinct(Herd) %>%
+  arrange(Herd) %>%
   pull(Herd)
 
-herds <- c(herds, "Quintette Full") ##add in new QT
+herds <- c(herds, "Quintette Full") ## add to end of list
 
 treat.raw <- treat.raw %>%
   filter(Herd %in% herds)
@@ -74,7 +77,7 @@ surv.raw <- surv.raw %>%
 ## Add in 2022+ data
 
 ``` r
-##update the data
+## update the data
 source("/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/prepupdates.R")
 
 unique(surv.raw$Outcome)
@@ -87,7 +90,7 @@ surv <- surv.raw %>%
     DateEntry = ymd(`Date entry`), # get dates dialed
     DateExit = ymd(`Date exit`)
   ) %>%
-  select(herd, `Animal ID`=`Animal ID (RS, CL)`, WLHID, Sex = `Sex (F, M)`, Ageclass = Age.when.collard, DateEntry, DateExit, Outcome) %>% ## slim down to only needed columns
+  select(herd, `Animal ID` = `Animal ID (RS, CL)`, WLHID, Sex = `Sex (F, M)`, Ageclass = Age.when.collard, DateEntry, DateExit, Outcome) %>% ## slim down to only needed columns
   # filter(!(herd%in%"Columbia North" & Comment%in%c("wild","release")))%>% ##to remove penned animals in CN
   rbind(read_csv(here::here("data/raw/surv.2022onwards.csv")) %>%
     mutate(
@@ -115,41 +118,42 @@ surv <- surv.raw %>%
 
 
 ## COUNTS
-count.raw <- count.raw%>%
-  select(herd,
-        Year,
-        `Official Survey Timing`,
-        NFG,
-        `NFG-Reason`,
-        `N collar available`,
-        `N collars detected`,
-        `Survey Count (KMB = SO, Total count) OTC`,
-        `KMB = Observed sample count, OSC; Min count (survey for recruitment - cannot be used for trend analyses in the IPM or otherwise)`,
-        `MinCount (KMB = Minimum # known alive)`,
-        `N. Calves (OTC)`,
-        `Yrling - Unclas Sex (OTC)`,
-        `N. Adult F (OTC)`,
-        `N. Adult M (OTC)`,
-        `N. Adult (Sex Unclassified) (OTC)`,
-        `Unclassified Life Stage and Sex (OTC)`,
-        `N. Calves (OSC)`,
-        `Yrling - Unclas Sex (OSC)`,
-        `N. Adult F (OSC)`,
-        `N. Adult M (OSC)`,
-        `N. Adult (Sex Unclassified) (OSC)`,
-        `Unclassified Life Stage and Sex (OSC)`,
-        `N. Calves (Min # Known Alive)`,
-        `Yrling - Unclas Sex (Min # Known Alive)`,
-        `N. Adult F (Min # Known Alive)`,
-        `N. Adult M (Min # Known Alive)`,
-        `N. Adult (Sex Unclassified) (Min # Known Alive)`,
-        `Unclassified Life Stage and Sex (Min # Known Alive)`,
-        `Estimate (MC, eg JHE)`
-      )%>%
+count.raw <- count.raw %>%
+  select(
+    herd,
+    Year,
+    `Official Survey Timing`,
+    NFG,
+    `NFG-Reason`,
+    `N collar available`,
+    `N collars detected`,
+    `Survey Count (KMB = SO, Total count) OTC`,
+    `KMB = Observed sample count, OSC; Min count (survey for recruitment - cannot be used for trend analyses in the IPM or otherwise)`,
+    `MinCount (KMB = Minimum # known alive)`,
+    `N. Calves (OTC)`,
+    `Yrling - Unclas Sex (OTC)`,
+    `N. Adult F (OTC)`,
+    `N. Adult M (OTC)`,
+    `N. Adult (Sex Unclassified) (OTC)`,
+    `Unclassified Life Stage and Sex (OTC)`,
+    `N. Calves (OSC)`,
+    `Yrling - Unclas Sex (OSC)`,
+    `N. Adult F (OSC)`,
+    `N. Adult M (OSC)`,
+    `N. Adult (Sex Unclassified) (OSC)`,
+    `Unclassified Life Stage and Sex (OSC)`,
+    `N. Calves (Min # Known Alive)`,
+    `Yrling - Unclas Sex (Min # Known Alive)`,
+    `N. Adult F (Min # Known Alive)`,
+    `N. Adult M (Min # Known Alive)`,
+    `N. Adult (Sex Unclassified) (Min # Known Alive)`,
+    `Unclassified Life Stage and Sex (Min # Known Alive)`,
+    `Estimate (MC, eg JHE)`
+  ) %>%
   rbind(read_csv(here::here("data/raw/count.2022onwards.csv")))
 
 
-##TREATMENTS
+## TREATMENTS
 # clean up names of treatments
 treat.raw <- treat.raw %>%
   mutate(treatment = case_when(
@@ -161,7 +165,7 @@ treat.raw <- treat.raw %>%
     treatment %in% "moose reduction" ~ "reduce moose",
     TRUE ~ treatment
   )) %>%
-  select(herd = Herd, treatment, start.year, end.year, intensity, Exclude)%>%
+  select(herd = Herd, treatment, start.year, end.year, intensity, Exclude) %>%
   rbind(read_csv(here::here("data/raw/trt.2022onwards.csv")))
 ```
 
@@ -379,13 +383,13 @@ ggsave(here::here("data", "plots", "input_survival1.png"), width = 11, height = 
 mean(surv.yr.est$est)
 ```
 
-    ## [1] 0.8789993
+    ## [1] 0.8791823
 
 ``` r
 mean(surv.yr.est$se, na.rm = TRUE)
 ```
 
-    ## [1] 0.06355233
+    ## [1] 0.06345501
 
 ## Deal with low sample size herds and times when surv==0
 
@@ -675,9 +679,9 @@ recruitment <- count.raw %>%
   ) %>%
   ungroup() %>%
   mutate(season = case_when(
-    `Official Survey Timing` %in% c("Winter", "March", "April", "February","January") ~ "winter",
+    `Official Survey Timing` %in% c("Winter", "March", "April", "February", "January") ~ "winter",
     `Official Survey Timing` %in% c("August", "September", "October", "November") ~ "fall",
-    `Official Survey Timing` %in% c("June", "July","May") ~ "spring",
+    `Official Survey Timing` %in% c("June", "July", "May") ~ "spring",
     is.na(`Official Survey Timing`) ~ NA_character_,
     TRUE ~ "needs class"
   )) %>%
@@ -688,12 +692,12 @@ recruitment <- count.raw %>%
   ) %>%
   drop_na(season)
 
-if(any(recruitment$season=="needs class")){
-      stop("Missing seasons")
-    }
+if (any(recruitment$season == "needs class")) {
+  stop("Missing seasons")
+}
 
 ## remove one record, Itcha's 1978, May survey
-recruitment <- recruitment %>% filter(!(herd=="Itcha-Ilgachuz" & year==1978 & `N. Adults (OSC)`==1 & is.na(r.OTC)))
+recruitment <- recruitment %>% filter(!(herd == "Itcha-Ilgachuz" & year == 1978 & `N. Adults (OSC)` == 1 & is.na(r.OTC)))
 
 ## have a look at OTC vs MNA when they are both present
 recruitment %>%
@@ -821,7 +825,7 @@ recruitment %>%
 
 | count.used | mean |   sd |  max |   n |
 |:-----------|-----:|-----:|-----:|----:|
-| MNKA       | 0.23 | 0.10 | 0.50 |  76 |
+| MNKA       | 0.23 | 0.10 | 0.50 |  77 |
 | OSC        | 0.20 | 0.11 | 0.86 | 211 |
 | OTC        | 0.20 | 0.12 | 0.83 | 356 |
 
@@ -865,7 +869,7 @@ recruitment <- rbind(
     lower = NA,
     upper = NA,
     sd = sqrt((tweed$R * (1 - tweed$R)) / tweed$N4),
-    calves = tweed$N4 * tweed$R,
+    calves = round(tweed$N4 * tweed$R, 0),
     adults = tweed$N4,
     count.used = "OSC"
   ) %>%
@@ -881,15 +885,20 @@ recruitment <- recruitment %>%
     TRUE ~ year
   ))
 
-## Prioritize surveys in a given year based on winter>fall>spring
+## Prioritize surveys in a given year based on winter>spring>fall
 recruitment <- recruitment %>%
+  mutate(season_order = case_when(
+    season %in% "winter" ~ 1,
+    season %in% "fall" ~ 3,
+    season %in% "spring" ~ 2
+  )) %>%
+  group_by(herd, year) %>%
+  filter(season_order <= min(season_order)) %>%
   mutate(season_int = case_when(
     season %in% "winter" ~ 1,
     season %in% "fall" ~ 2,
     season %in% "spring" ~ 3
-  )) %>%
-  group_by(herd, year) %>%
-  filter(season_int <= min(season_int))
+  ))
 
 
 ## offset OSC and MNKA b/c sex ratios are higher. Use observed sex ratios when possible.
@@ -904,7 +913,7 @@ mnka.sr <- sr.summary %>%
   pull(mean)
 
 recruitment <- recruitment %>%
-  left_join(sr %>% filter(type %in% c("OSC", "MNKA")) %>% dplyr::select(herd, year, season, sratio,type), by = c("herd", "season", "year","count.used"="type")) %>%
+  left_join(sr %>% filter(type %in% c("OSC", "MNKA")) %>% dplyr::select(herd, year, season, sratio, type), by = c("herd", "season", "year", "count.used" = "type")) %>%
   mutate(
     sratio = case_when(
       count.used %in% "OSC" & is.na(sratio) ~ osc.sr,
@@ -920,7 +929,7 @@ recruitment <- recruitment %>%
 
 
 write_csv(recruitment %>% dplyr::select(herd, year, est = est.adj, sd, season_int), here::here("data", "clean", "recruitment.csv"))
-
+write_csv(recruitment %>% dplyr::select(herd, year, season, type = count.used, calves, adults, recruitment = est), here::here("data", "clean", "recruitment_counts.csv"))
 
 
 ggplot(recruitment, aes(x = year, y = est, color = season)) +
@@ -977,8 +986,8 @@ ggplot(recruitment, aes(x = est, y = est.adj, color = count.used)) +
 counts <- count.raw %>%
   filter(!NFG %in% c("Y")) %>%
   mutate(
-    `N collars detected` = case_when(is.na(`Survey Count (KMB = SO, Total count) OTC`) ~ NA_real_, TRUE ~ `N collars detected`),
-    `N collar available` = case_when(is.na(`Survey Count (KMB = SO, Total count) OTC`) ~ NA_real_, TRUE ~ `N collar available`)
+    `N collars detected` = case_when(is.na(`Survey Count (KMB = SO, Total count) OTC`) ~ NA_real_, `N collar available` == 0 ~ NA_real_, TRUE ~ `N collars detected`),
+    `N collar available` = case_when(is.na(`Survey Count (KMB = SO, Total count) OTC`) ~ NA_real_, `N collar available` == 0 ~ NA_real_, TRUE ~ `N collar available`)
   ) %>%
   mutate(`Survey Count (KMB = SO, Total count) OTC` = case_when(
     herd %in% c("Chase", "Wolverine") & !is.na(`Estimate (MC, eg JHE)`) ~ (`Estimate (MC, eg JHE)` * (`N collars detected` / `N collar available`)),
@@ -1003,7 +1012,7 @@ herd.sight <- counts %>%
   group_by(herd) %>%
   summarise(
     est = sum(CollarsSeen, na.rm = TRUE) / sum(CollarsAvailable, na.rm = TRUE),
-    se = sqrt(est * (1 - est) / sum(CollarsAvailable, na.rm = TRUE)),
+    se = sqrt(est * (1 - est) / mean(CollarsAvailable, na.rm = TRUE)),
     sd = se,
     n = sum(!is.na(CollarsSeen))
   )
@@ -1058,7 +1067,7 @@ counts <- counts %>%
     )
   ) %>%
   mutate(sd = case_when(
-    Sightability == 0.99 ~ mean(sd, na.rm = TRUE),
+    Sightability == 0.99 ~ 0.15, # add error around min counts. had mean(sd, na.rm = TRUE) which was ~0.08, but more error so counts are less precise is good.
     TRUE ~ sd
   ))
 
@@ -1113,14 +1122,14 @@ counts <- counts %>%
       !is.na(Sightability) ~ count / Sightability
     ),
     Est_CL.min = case_when(
-      is.na(Sightability) | Sightability %in% 0 ~ count / (Sightability.pooled + (1.64485*mean(se, na.rm = TRUE))),
-      !is.na(Sightability) & (Sightability + (1.64485*sd))<1 & Sightability!=0 ~ count / (Sightability + (1.64485*sd)),
-      !is.na(Sightability) & (Sightability + (1.64485*sd))>=1 & Sightability!=0 ~ count / 1
+      is.na(Sightability) | Sightability %in% 0 ~ count / (Sightability.pooled + (1.64485 * mean(se, na.rm = TRUE))),
+      !is.na(Sightability) & (Sightability + (1.64485 * sd)) < 1 & Sightability != 0 ~ count / (Sightability + (1.64485 * sd)),
+      !is.na(Sightability) & (Sightability + (1.64485 * sd)) >= 1 & Sightability != 0 ~ count / 1
     ),
     Est_CL.max = case_when(
-      is.na(Sightability) | Sightability %in% 0 ~ count / (Sightability.pooled - (1.64485*mean(se, na.rm = TRUE))),
-      !is.na(Sightability) & (Sightability - (1.64485*sd))>0 & Sightability!=0 ~ count / (Sightability - (1.64485*sd)),
-      !is.na(Sightability) & (Sightability - (1.64485*sd))<=0 & Sightability!=0 ~ count / (Sightability*0.75)
+      is.na(Sightability) | Sightability %in% 0 ~ count / (Sightability.pooled - (1.64485 * mean(se, na.rm = TRUE))),
+      !is.na(Sightability) & (Sightability - (1.64485 * sd)) > 0 & Sightability != 0 ~ count / (Sightability - (1.64485 * sd)),
+      !is.na(Sightability) & (Sightability - (1.64485 * sd)) <= 0 & Sightability != 0 ~ count / (Sightability * 0.75)
     )
   ) %>%
   drop_na(count)
@@ -1163,7 +1172,7 @@ herd.sight <- herd.sight %>%
 
 
 
-# Add Tonquin abundance 
+# Add Tonquin abundance
 counts <- counts %>%
   rbind(tonq.abund %>%
     mutate(
@@ -1331,8 +1340,7 @@ trt_raw <- trt_raw %>%
 
 
 # Herds and herd number
-herds <- unique(trt_raw$herd)
-hn <- data.frame(
+hn <- tibble(
   herd = herds,
   herd_num = seq(1:length(herds))
 )
@@ -1373,9 +1381,9 @@ for (i in 1:nherd) {
     arrange(start.year) %>%
     slice(1)
   first_st <- first_st$start.year
-  
-    if(sum(none_st)==0){
-    none_st <- first_st ##for QT full, which had no "none"
+
+  if (sum(none_st) == 0) {
+    none_st <- first_st ## for QT full, which had no "none"
   }
 
   trt_ls <- list()
@@ -1434,9 +1442,9 @@ for (i in 1:nrow(trt_int)) {
 trt_long <- trt_long %>%
   left_join(trt_intensity.df, by = c("herd", "year", "treatment"))
 
-##remove years that exceed available demographic data (happens due to +1 above)
-trt_long<- trt_long %>%
-  filter(year<=year.cut)
+## remove years that exceed available demographic data (happens due to +1 above)
+trt_long <- trt_long %>%
+  filter(year <= year.cut)
 
 write_csv(trt_long, here::here("data", "clean", "treatments.csv"))
 
@@ -1511,12 +1519,6 @@ herds.present %>%
 ## Herd Blueprint
 
 ``` r
-bp <- tibble(
-  herd = unique(trt_long$herd),
-  herd_num = unique(trt_long$herd) %>% as.factor() %>% as.numeric()
-) %>%
-  arrange(herd)
-
 # sight_group <- tibble(herd=c("Columbia North", "Columbia South", "Central Rockies", "Frisby-Boulder", "Nakusp", "Duncan",
 #                               "Burnt Pine",  "Kennedy Siding", "Quintette", "Klinse-Za","Narraway BC",
 #                              "Purcells Central", "Purcells South", "South Selkirks","Central Selkirks","Monashee",
@@ -1542,7 +1544,7 @@ sight_group <- herd.sight %>%
   dplyr::select(herd, sight_grp) %>%
   distinct()
 
-bp <- bp %>%
+bp <- hn %>%
   left_join(sight_group)
 
 write_csv(bp, here::here("data", "clean", "blueprint.csv"))
@@ -1564,7 +1566,7 @@ nherd
 nrow(counts)
 ```
 
-    ## [1] 503
+    ## [1] 504
 
 ``` r
 length(unique(counts$herd)) ## n herds with counts
@@ -1573,11 +1575,37 @@ length(unique(counts$herd)) ## n herds with counts
     ## [1] 41
 
 ``` r
+sum(counts$MinUsed == 1)
+```
+
+    ## [1] 77
+
+``` r
+sum(counts$MinUsed != 1)
+```
+
+    ## [1] 427
+
+``` r
+## n sightability estimates
+sight.count <- counts %>% filter(!is.na(Sightability) & MinUsed != 1 & !is.na(CollarsSeen))
+nrow(sight.count)
+```
+
+    ## [1] 182
+
+``` r
+length(unique(sight.count$herd)) ## n herds with sightability
+```
+
+    ## [1] 34
+
+``` r
 ## n recruitment estimates
 nrow(recruitment)
 ```
 
-    ## [1] 591
+    ## [1] 592
 
 ``` r
 length(unique(recruitment$herd)) ## n herds with recruit
@@ -1590,7 +1618,7 @@ length(unique(recruitment$herd)) ## n herds with recruit
 nrow(surv.yr.est)
 ```
 
-    ## [1] 558
+    ## [1] 559
 
 ``` r
 length(unique(surv.yr.est$herd)) ## n herds with recruit
@@ -1602,7 +1630,7 @@ length(unique(surv.yr.est$herd)) ## n herds with recruit
 sum(surv.yr$time) / 365 # n animal-years for survival
 ```
 
-    ## [1] 4297.679
+    ## [1] 4301.668
 
 ``` r
 sum(surv.yr$event) # n dead
@@ -1625,16 +1653,6 @@ min(counts$year, recruitment$year, surv.yr$year)
 
 ``` r
 ## treatments
-trt_long %>%
-  filter(applied == 1) %>%
-  group_by(treatment) %>%
-  summarise(
-    n = n(),
-    n.herds = n_distinct(herd),
-    min = min(year),
-    max = max(year)
-  )
-
 trt_long %>%
   filter(applied == 1) %>%
   summarise(
@@ -1660,7 +1678,21 @@ trt_long %>%
   filter(n > 1)
 
 trt_long %>%
-  filter(intensity=="low")
+  filter(intensity == "low")
+
+trt_long %>%
+  filter(applied == 1) %>%
+  group_by(treatment) %>%
+  summarise(
+    n = n(),
+    n.herds = n_distinct(herd),
+    min = min(year),
+    max = max(year)
+  )
+
+
+
+
 
 
 trt_long %>%
