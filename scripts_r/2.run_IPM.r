@@ -555,7 +555,6 @@ model_parms <- c(
 ## nit <- 400000
 ## 
 ## 
-## 
 ## out <- jagsUI::jags(data=ipm_dat,
 ## 	inits = ipm_inits,
 ## 	parameters.to.save=model_parms,

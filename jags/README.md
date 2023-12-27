@@ -1,7 +1,7 @@
 BC AB Caribou IPM run
 ================
 Clayton T. Lamb
-22 December, 2023
+27 December, 2023
 
 ## Load Data
 
@@ -555,7 +555,6 @@ nbu <- 0
 nch <- 3
 nad <- 60000
 nit <- 400000
-
 
 
 out <- jagsUI::jags(data=ipm_dat, 

@@ -39,7 +39,7 @@ library(tidyverse)
 # Load data ---------------------------------------------------------------
 
 ## IPM Output
-out <- readRDS(file = here::here("jags/output/BCAB_CaribouIPM_23update_withoutItcha.rds"))
+out <- readRDS(file = here::here("jags/output/BCAB_CaribouIPM_23update.rds"))
 
 ## IPM input to compare results
 hd <- read.csv("data/clean/blueprint.csv")
@@ -77,15 +77,15 @@ rm(yr_idx)
 ## ----Check posteriors, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, results='hide'-------------------------------------------------------------------------
 ## 
 ## ## check posteriors for convergence
-## mcmcplots::mcmcplot(out$samples, par = "lambda")
-## mcmcplots::mcmcplot(out$samples, par = "surv_yr_dg")
-## mcmcplots::mcmcplot(out$samples, par = "sight_tau_yr_sg")
-## mcmcplots::mcmcplot(out$samples, par = "totNMF")
+## mcmcplots::mcmcplot(out$samples, par = "lambda",random=50)
+## mcmcplots::mcmcplot(out$samples, par = "surv_yr_dg",random=50)
+## mcmcplots::mcmcplot(out$samples, par = "sight_tau_yr_sg",random=50)
+## mcmcplots::mcmcplot(out$samples, par = "totNMF",random=50)
 ## mcmcplots::mcmcplot(out$samples, par = "surv_tau_yr_dg", "recruit_tau_yr_dg")
 ## mcmcplots::mcmcplot(out$samples, par = c(
 ##   "surv_yr_dg", "recruit_yr_dg",
 ##   "surv_hd", "recruit_hd"
-## )) ## all look pretty good
+## ,random=50)) ## all look good
 ## mcmcplots::mcmcplot(out$samples, par = c(
 ##   "mtrt_eff_s", "mtrt_eff_r",
 ##   "wtrt_eff_s", "wtrt_eff_r",
@@ -93,7 +93,7 @@ rm(yr_idx)
 ##   "ftrt_eff_s", "ftrt_eff_r",
 ##   "strt_eff_s", "strt_eff_r",
 ##   "ttrt_eff_s", "ttrt_eff_r"
-## )) ## look good
+## )) ## look pretty good
 ## 
 ## 
 ## ## check number of herd-years with treatments
@@ -104,7 +104,7 @@ rm(yr_idx)
 ##     herds = n_distinct(herd),
 ##     herd_years = sum(applied)
 ##   )
-## ## feed (9), pen (14), and sterilize (22) have lowest sample sizes, makes sense why convergence is poorer
+## ## feed (9), pen (15), and sterilize (22) have lowest sample sizes, makes sense why convergence is poorer
 
 
 ## ----Data housekeeping, message=FALSE, warning=FALSE-------------------------------------------------------------------------------------------------------------------
@@ -283,18 +283,22 @@ trt.plot <- trt %>%
   filter(applied == 1) %>%
   left_join(demog %>% group_by(herd) %>% summarize(max = max(totNMF.upper))) %>%
   mutate(y = case_when(
-    treatment %in% "transplant" & herd %in% "South Selkirks" ~ 400,
-    treatment %in% "reduce wolves" & herd %in% "Charlotte Alplands" ~ 200,
-    treatment %in% "transplant" & herd %in% "Charlotte Alplands" ~ 300,
-    treatment %in% "transplant" & herd %in% "Telkwa" ~ 200,
+    treatment %in% "transplant" & herd %in% "South Selkirks" ~ 250,
+    treatment %in% "reduce wolves" & herd %in% "Charlotte Alplands" ~ 150,
+    treatment %in% "transplant" & herd %in% "Telkwa" ~ 150,
     treatment %in% "sterilize wolves" & herd %in% c("Wells Gray North") ~ (max+20) - (max * 0.25),
     treatment %in% "reduce wolves" & herd %in% c("Wells Gray North") ~ (max+20) - (max * 0.10),
+     treatment %in% "sterilize wolves" & herd %in% "Barkerville" ~ 160,
+    treatment %in% "reduce wolves" & herd %in% "Barkerville" ~ 135,
     treatment %in% "reduce wolves" & herd %in% "Kennedy Siding" ~ max - (max * 0.05),
     treatment %in% "feed" & herd %in% "Kennedy Siding" ~ max - (max * 0.20),
-    treatment %in% "pen" & herd %in% "Columbia North" ~ 325,
-    treatment %in% "reduce moose" & herd %in% "Columbia North" ~ 400,
-    treatment %in% "reduce moose" & herd %in% "Groundhog" ~ 120,
-    treatment %in% "reduce moose" & herd %in% "Hart North" ~ 475,
+    treatment %in% "pen" & herd %in% "Columbia North" ~ 50,
+    treatment %in% "reduce moose" & herd %in% "Columbia North" ~ -5,
+    treatment %in% "reduce wolves" & herd %in% "Columbia North" ~ 90,
+    treatment %in% "reduce moose" & herd %in% "Groundhog" ~ 88,
+    treatment %in% "reduce wolves" & herd %in% "Groundhog" ~ 70,
+    treatment %in% "reduce moose" & herd %in% "Hart North" ~ 420,
+    treatment %in% "reduce wolves" & herd %in% "Hart North" ~ 340,
     treatment %in% "reduce wolves" ~ max - (max * 0.1),
     treatment %in% "transplant" ~ max - (max * 0.15),
     treatment %in% "reduce moose" ~ max - (max * 0.2),
@@ -441,7 +445,7 @@ ggplot() +
     data = counts %>%
       filter(herd%in%herds.keep)%>%
       ungroup() %>%
-      mutate(Est_CL.max = case_when(Est_CL.max > 5000 ~ 5000, TRUE ~ Est_CL.max)) %>%
+      mutate(Est_CL.max = case_when(Est_CL.max > 5000 ~ 5000, herd=="Rainbows" & Est_CL.max > 500 ~ 500, TRUE ~ Est_CL.max)) %>%
       left_join(labels, by = "herd") %>% mutate(herd = paste0(number_label, ".", herd, " (", human, "%)") %>%
         fct_reorder(number_label)),
     aes(x = year, ymin = Est_CL.min, ymax = Est_CL.max), alpha = 0.5
@@ -547,7 +551,7 @@ ggplot() +
     data = counts %>%
       filter(herd!="Quintette Full")%>%
       ungroup() %>%
-      mutate(Est_CL.max = case_when(Est_CL.max > 5000 ~ 5000, TRUE ~ Est_CL.max)) %>%
+      mutate(Est_CL.max = case_when(Est_CL.max > 5000 ~ 5000, herd=="Rainbows" & Est_CL.max > 500 ~ 500, herd=="South Selkirks" & Est_CL.max > 300 ~ 300, TRUE ~ Est_CL.max)) %>%
       left_join(labels, by = "herd") %>% mutate(herd = paste0(number_label, ".", herd, " (", human, "%)") %>%
         fct_reorder(number_label)) %>%
       filter(number_label <= 29),
@@ -650,7 +654,7 @@ ggplot() +
     data = counts %>%
       filter(herd!="Quintette Full")%>%
       ungroup() %>%
-      mutate(Est_CL.max = case_when(Est_CL.max > 5000 ~ 5000, TRUE ~ Est_CL.max)) %>%
+      mutate(Est_CL.max = case_when(Est_CL.max > 5000 ~ 5000, herd=="South Selkirks" & Est_CL.max > 300 ~ 300, TRUE ~ Est_CL.max)) %>%
       left_join(labels, by = "herd") %>% mutate(herd = paste0(number_label, ".", herd, " (", human, "%)") %>%
         fct_reorder(number_label)) %>%
       filter(number_label > 29),
@@ -1254,7 +1258,7 @@ eff.draws.app.model <- eff.draws.app %>%
     transplant = case_when(str_detect(trt, "transplant") ~ 1, TRUE ~ 0)
   )%>%
   filter(name=="r",
-         application=="standard") ##how is application for each one dealt with?
+         application=="standard") 
 
 ind.eff.app <- eff.draws.app.model %>%
   filter(name == "r") %>%
@@ -1528,7 +1532,7 @@ recov.sims.plot <- ggplot() +
     size = 4,
     direction = "y",
     xlim = c(year.end + 2, 35),
-    vjust = 1.5,
+    vjust = 2.2,
     segment.size = .7,
     segment.alpha = .5,
     segment.linetype = "dotted",

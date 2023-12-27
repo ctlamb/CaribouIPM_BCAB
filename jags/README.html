@@ -602,7 +602,7 @@ padding-top: 0px;
 <body>
 
 <h1 id="bc-ab-caribou-ipm-run">BC AB Caribou IPM run</h1>
-<p>Clayton T. Lamb 22 December, 2023</p>
+<p>Clayton T. Lamb 27 December, 2023</p>
 <h2 id="load-data">Load Data</h2>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(renv)</span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="do">##to pull packages</span></span>
@@ -1143,17 +1143,16 @@ padding-top: 0px;
 <span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a>nit <span class="ot">&lt;-</span> <span class="dv">400000</span></span>
 <span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a></span>
 <span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a></span>
-<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a></span>
-<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a>out <span class="ot">&lt;-</span> jagsUI<span class="sc">::</span><span class="fu">jags</span>(<span class="at">data=</span>ipm_dat, </span>
-<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a>    <span class="at">inits =</span> ipm_inits,</span>
-<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a>    <span class="at">parameters.to.save=</span>model_parms,</span>
-<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a>    <span class="at">model.file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;jags/BCAB_IPM_20231211.txt&quot;</span>),</span>
-<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a>    <span class="at">n.chains =</span> nch,</span>
-<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a>    <span class="at">n.cores =</span> nch,</span>
-<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a>    <span class="at">n.iter =</span> nit,</span>
-<span id="cb4-28"><a href="#cb4-28" tabindex="-1"></a>    <span class="at">n.burnin =</span> nbu,</span>
-<span id="cb4-29"><a href="#cb4-29" tabindex="-1"></a>    <span class="at">n.thin =</span> nth,</span>
-<span id="cb4-30"><a href="#cb4-30" tabindex="-1"></a>    <span class="at">n.adapt =</span> nad)</span></code></pre></div>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a>out <span class="ot">&lt;-</span> jagsUI<span class="sc">::</span><span class="fu">jags</span>(<span class="at">data=</span>ipm_dat, </span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a>    <span class="at">inits =</span> ipm_inits,</span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a>    <span class="at">parameters.to.save=</span>model_parms,</span>
+<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a>    <span class="at">model.file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;jags/BCAB_IPM_20231211.txt&quot;</span>),</span>
+<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a>    <span class="at">n.chains =</span> nch,</span>
+<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a>    <span class="at">n.cores =</span> nch,</span>
+<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a>    <span class="at">n.iter =</span> nit,</span>
+<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a>    <span class="at">n.burnin =</span> nbu,</span>
+<span id="cb4-28"><a href="#cb4-28" tabindex="-1"></a>    <span class="at">n.thin =</span> nth,</span>
+<span id="cb4-29"><a href="#cb4-29" tabindex="-1"></a>    <span class="at">n.adapt =</span> nad)</span></code></pre></div>
 <h2 id="save-outputs">Save outputs</h2>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co">#mcmcplots::mcmcplot(out$samples, par = c(&quot;S&quot;, &quot;R&quot;, &quot;totNMF&quot;)) </span></span>
 <span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="fu">saveRDS</span>(out, <span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&quot;jags/output/BCAB_CaribouIPM_23update.rds&quot;</span>))</span></code></pre></div>

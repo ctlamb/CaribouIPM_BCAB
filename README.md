@@ -1,7 +1,7 @@
 BC AB Caribou IPM Results
 ================
 Clayton T. Lamb
-22 December, 2023
+27 December, 2023
 
 ## Load Data
 
@@ -35,7 +35,7 @@ library(tidyverse)
 # Load data ---------------------------------------------------------------
 
 ## IPM Output
-out <- readRDS(file = here::here("jags/output/BCAB_CaribouIPM_23update_withoutItcha.rds"))
+out <- readRDS(file = here::here("jags/output/BCAB_CaribouIPM_23update.rds"))
 
 ## IPM input to compare results
 hd <- read.csv("data/clean/blueprint.csv")
@@ -260,18 +260,22 @@ trt.plot <- trt %>%
   filter(applied == 1) %>%
   left_join(demog %>% group_by(herd) %>% summarize(max = max(totNMF.upper))) %>%
   mutate(y = case_when(
-    treatment %in% "transplant" & herd %in% "South Selkirks" ~ 400,
-    treatment %in% "reduce wolves" & herd %in% "Charlotte Alplands" ~ 200,
-    treatment %in% "transplant" & herd %in% "Charlotte Alplands" ~ 300,
-    treatment %in% "transplant" & herd %in% "Telkwa" ~ 200,
+    treatment %in% "transplant" & herd %in% "South Selkirks" ~ 250,
+    treatment %in% "reduce wolves" & herd %in% "Charlotte Alplands" ~ 150,
+    treatment %in% "transplant" & herd %in% "Telkwa" ~ 150,
     treatment %in% "sterilize wolves" & herd %in% c("Wells Gray North") ~ (max+20) - (max * 0.25),
     treatment %in% "reduce wolves" & herd %in% c("Wells Gray North") ~ (max+20) - (max * 0.10),
+     treatment %in% "sterilize wolves" & herd %in% "Barkerville" ~ 160,
+    treatment %in% "reduce wolves" & herd %in% "Barkerville" ~ 135,
     treatment %in% "reduce wolves" & herd %in% "Kennedy Siding" ~ max - (max * 0.05),
     treatment %in% "feed" & herd %in% "Kennedy Siding" ~ max - (max * 0.20),
-    treatment %in% "pen" & herd %in% "Columbia North" ~ 325,
-    treatment %in% "reduce moose" & herd %in% "Columbia North" ~ 400,
-    treatment %in% "reduce moose" & herd %in% "Groundhog" ~ 120,
-    treatment %in% "reduce moose" & herd %in% "Hart North" ~ 475,
+    treatment %in% "pen" & herd %in% "Columbia North" ~ 50,
+    treatment %in% "reduce moose" & herd %in% "Columbia North" ~ -5,
+    treatment %in% "reduce wolves" & herd %in% "Columbia North" ~ 90,
+    treatment %in% "reduce moose" & herd %in% "Groundhog" ~ 88,
+    treatment %in% "reduce wolves" & herd %in% "Groundhog" ~ 70,
+    treatment %in% "reduce moose" & herd %in% "Hart North" ~ 420,
+    treatment %in% "reduce wolves" & herd %in% "Hart North" ~ 340,
     treatment %in% "reduce wolves" ~ max - (max * 0.1),
     treatment %in% "transplant" ~ max - (max * 0.15),
     treatment %in% "reduce moose" ~ max - (max * 0.2),
@@ -418,7 +422,7 @@ ggplot() +
     data = counts %>%
       filter(herd%in%herds.keep)%>%
       ungroup() %>%
-      mutate(Est_CL.max = case_when(Est_CL.max > 5000 ~ 5000, TRUE ~ Est_CL.max)) %>%
+      mutate(Est_CL.max = case_when(Est_CL.max > 5000 ~ 5000, herd=="Rainbows" & Est_CL.max > 500 ~ 500, TRUE ~ Est_CL.max)) %>%
       left_join(labels, by = "herd") %>% mutate(herd = paste0(number_label, ".", herd, " (", human, "%)") %>%
         fct_reorder(number_label)),
     aes(x = year, ymin = Est_CL.min, ymax = Est_CL.max), alpha = 0.5
@@ -508,14 +512,14 @@ n.recovery.all <- sims.draws %>%
 median(n.recovery.all)
 ```
 
-    ## [1] 1687.98
+    ## [1] 1567.548
 
 ``` r
 quantile(n.recovery.all, c(0.05, 0.5, 0.95)) %>% round(0)
 ```
 
     ##   5%  50%  95% 
-    ## 1315 1688 2093
+    ## 1172 1568 1972
 
 ``` r
 n.recovery <- median(n.recovery.all) %>% round(0)
@@ -538,7 +542,7 @@ quantile(calves.recovered.all, c(0.05, 0.5, 0.95)) %>% round(0)
 ```
 
     ##   5%  50%  95% 
-    ## 1240 1690 2080
+    ## 1138 1558 1944
 
 ``` r
 calves.recovered <- median(calves.recovered.all) %>% round(0)
@@ -546,7 +550,7 @@ calves.recovered <- median(calves.recovered.all) %>% round(0)
 sum(out$mean$totCalvesMF - out$mean$pred_totCalvesMF)
 ```
 
-    ## [1] 1710.295
+    ## [1] 1574.991
 
 ``` r
 write.csv(quantile(calves.recovered.all, c(0.05, 0.5, 0.95)) %>% round(0) %>%as.data.frame(), here::here("tables/calves.recovered.csv"), row.names = TRUE)
@@ -788,16 +792,16 @@ kable(lambda.table)
 
 | trt                          | r.med | lower | upper | r                  |
 |:-----------------------------|------:|------:|------:|:-------------------|
-| feed                         |  0.12 | -0.29 |  0.45 | 0.12 (-0.29-0.45)  |
 | feed-reducewolves            |  0.12 |  0.10 |  0.15 | 0.12 (0.1-0.15)    |
+| feed                         |  0.11 | -0.28 |  0.45 | 0.11 (-0.28-0.45)  |
+| reducemoose-reducewolves     |  0.11 |  0.06 |  0.16 | 0.11 (0.06-0.16)   |
 | pen-reducewolves             |  0.10 |  0.05 |  0.14 | 0.1 (0.05-0.14)    |
-| reducemoose-reducewolves     |  0.09 |  0.04 |  0.16 | 0.09 (0.04-0.16)   |
-| pen-reducemoose              |  0.06 | -0.08 |  0.18 | 0.06 (-0.08-0.18)  |
-| reducewolves                 |  0.05 |  0.02 |  0.09 | 0.05 (0.02-0.09)   |
+| pen-reducemoose              |  0.06 | -0.09 |  0.19 | 0.06 (-0.09-0.19)  |
+| reducewolves                 |  0.06 |  0.03 |  0.09 | 0.06 (0.03-0.09)   |
 | reducewolves-sterilizewolves |  0.04 |  0.02 |  0.06 | 0.04 (0.02-0.06)   |
-| pen-reducemoose-reducewolves | -0.02 | -0.21 |  0.18 | -0.02 (-0.21-0.18) |
+| pen-reducemoose-reducewolves | -0.01 | -0.21 |  0.19 | -0.01 (-0.21-0.19) |
+| Reference                    | -0.03 | -0.03 | -0.03 | -0.03 (-0.03–0.03) |
 | transplant                   | -0.03 | -0.04 | -0.02 | -0.03 (-0.04–0.02) |
-| Reference                    | -0.05 | -0.05 | -0.04 | -0.05 (-0.05–0.04) |
 | reducemoose                  | -0.05 | -0.07 | -0.03 | -0.05 (-0.07–0.03) |
 
 ## Population growth Before-After
@@ -925,15 +929,15 @@ kable(trt_eff_ba_table)
 
 | Recovery action                  | Change in instantaneous growth rate (r) |
 |:---------------------------------|:----------------------------------------|
-| penning + wolf reduction         | 0.18 \[0.13-0.22\]                      |
-| feeding                          | 0.16 \[-0.25-0.5\]                      |
-| feeding + wolf reduction         | 0.16 \[0.1-0.22\]                       |
-| moose & wolf reduction           | 0.11 \[0.04-0.19\]                      |
-| penning + moose reduction        | 0.08 \[-0.17-0.29\]                     |
-| wolf reduction                   | 0.08 \[0.03-0.14\]                      |
-| wolf reduction + sterilization   | 0.08 \[0.03-0.14\]                      |
-| penning + moose & wolf reduction | 0 \[-0.2-0.2\]                          |
-| moose reduction                  | -0.03 \[-0.08-0.03\]                    |
+| penning + wolf reduction         | 0.16 \[0.12-0.21\]                      |
+| feeding + wolf reduction         | 0.15 \[0.09-0.2\]                       |
+| feeding                          | 0.14 \[-0.26-0.49\]                     |
+| moose & wolf reduction           | 0.11 \[0.04-0.18\]                      |
+| wolf reduction                   | 0.08 \[0.02-0.13\]                      |
+| wolf reduction + sterilization   | 0.07 \[0.01-0.13\]                      |
+| penning + moose reduction        | 0.06 \[-0.16-0.29\]                     |
+| penning + moose & wolf reduction | -0.01 \[-0.21-0.2\]                     |
+| moose reduction                  | -0.04 \[-0.1-0.01\]                     |
 
 ``` r
 eff.draws %>%
@@ -948,8 +952,8 @@ eff.draws %>%
 
 | delta \> 0 |   n |
 |:-----------|----:|
-| FALSE      |   3 |
-| TRUE       |  28 |
+| FALSE      |   5 |
+| TRUE       |  26 |
 
 ## Summarize results by recovery action, including application intensity
 
@@ -1032,7 +1036,7 @@ eff.draws.app.model <- eff.draws.app %>%
     transplant = case_when(str_detect(trt, "transplant") ~ 1, TRUE ~ 0)
   )%>%
   filter(name=="r",
-         application=="standard") ##how is application for each one dealt with?
+         application=="standard") 
 
 ind.eff.app <- eff.draws.app.model %>%
   filter(name == "r") %>%
@@ -1148,13 +1152,13 @@ ind.eff.table %>%
 kable(ind.eff.table)
 ```
 
-| Treatment       | delta.lambda     |
-|:----------------|:-----------------|
-| feed            | 0.13 (-0.1-0.34) |
-| pen             | 0.13 (0.04-0.21) |
-| reducewolves    | 0.1 (0.03-0.17)  |
-| reducemoose     | 0.06 (0-0.12)    |
-| sterilizewolves | 0.03 (-0.06-0.1) |
+| Treatment       | delta.lambda      |
+|:----------------|:------------------|
+| feed            | 0.1 (-0.13-0.3)   |
+| reducewolves    | 0.1 (0.03-0.17)   |
+| pen             | 0.08 (0-0.16)     |
+| reducemoose     | 0.03 (-0.03-0.08) |
+| sterilizewolves | -0.01 (-0.1-0.07) |
 
 ## Simulate Conservation Intervention
 
@@ -1173,7 +1177,7 @@ sim.ref <- demog.draws %>%
 median(sim.ref)
 ```
 
-    ## [1] -0.09621527
+    ## [1] -0.07413422
 
 ``` r
 sim.trt <- ind.eff.app %>%
@@ -1187,7 +1191,7 @@ sim.trt <- ind.eff.app %>%
 median(sim.ref)
 ```
 
-    ## [1] -0.09621527
+    ## [1] -0.07413422
 
 ``` r
 year.end <- 9
@@ -1331,7 +1335,7 @@ recov.sims.plot <- ggplot() +
     size = 4,
     direction = "y",
     xlim = c(year.end + 2, 35),
-    vjust = 1.5,
+    vjust = 2.2,
     segment.size = .7,
     segment.alpha = .5,
     segment.linetype = "dotted",
