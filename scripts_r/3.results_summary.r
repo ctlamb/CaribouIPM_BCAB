@@ -137,7 +137,7 @@ treatment.combos <- trt %>%
 
 
 ## pull posterior draws, add in herd, year, and treatment to each herd-year
-ndraws <- 1000
+ndraws <- 10000
 demog.raw <- out %>%
   spread_draws(
     c(totNMF, totN, totAdults, S, R_adj, lambda, SR)[i, j],

@@ -107,7 +107,7 @@ treatment.combos <- trt %>%
 
 
 ## pull posterior draws, add in herd, year, and treatment to each herd-year
-ndraws <- 1000
+ndraws <- 10000
 demog.raw <- out %>%
   spread_draws(
     c(totNMF, totN, totAdults, S, R_adj, lambda, SR)[i, j],
@@ -512,14 +512,14 @@ n.recovery.all <- sims.draws %>%
 median(n.recovery.all)
 ```
 
-    ## [1] 1567.548
+    ## [1] 1556.459
 
 ``` r
 quantile(n.recovery.all, c(0.05, 0.5, 0.95)) %>% round(0)
 ```
 
     ##   5%  50%  95% 
-    ## 1172 1568 1972
+    ## 1175 1556 1958
 
 ``` r
 n.recovery <- median(n.recovery.all) %>% round(0)
@@ -542,7 +542,7 @@ quantile(calves.recovered.all, c(0.05, 0.5, 0.95)) %>% round(0)
 ```
 
     ##   5%  50%  95% 
-    ## 1138 1558 1944
+    ## 1142 1556 1940
 
 ``` r
 calves.recovered <- median(calves.recovered.all) %>% round(0)
@@ -792,14 +792,14 @@ kable(lambda.table)
 
 | trt                          | r.med | lower | upper | r                  |
 |:-----------------------------|------:|------:|------:|:-------------------|
+| feed                         |  0.12 | -0.28 |  0.47 | 0.12 (-0.28-0.47)  |
 | feed-reducewolves            |  0.12 |  0.10 |  0.15 | 0.12 (0.1-0.15)    |
-| feed                         |  0.11 | -0.28 |  0.45 | 0.11 (-0.28-0.45)  |
-| reducemoose-reducewolves     |  0.11 |  0.06 |  0.16 | 0.11 (0.06-0.16)   |
+| reducemoose-reducewolves     |  0.11 |  0.06 |  0.17 | 0.11 (0.06-0.17)   |
 | pen-reducewolves             |  0.10 |  0.05 |  0.14 | 0.1 (0.05-0.14)    |
-| pen-reducemoose              |  0.06 | -0.09 |  0.19 | 0.06 (-0.09-0.19)  |
+| pen-reducemoose              |  0.06 | -0.08 |  0.19 | 0.06 (-0.08-0.19)  |
 | reducewolves                 |  0.06 |  0.03 |  0.09 | 0.06 (0.03-0.09)   |
 | reducewolves-sterilizewolves |  0.04 |  0.02 |  0.06 | 0.04 (0.02-0.06)   |
-| pen-reducemoose-reducewolves | -0.01 | -0.21 |  0.19 | -0.01 (-0.21-0.19) |
+| pen-reducemoose-reducewolves | -0.02 | -0.20 |  0.19 | -0.02 (-0.2-0.19)  |
 | Reference                    | -0.03 | -0.03 | -0.03 | -0.03 (-0.03–0.03) |
 | transplant                   | -0.03 | -0.04 | -0.02 | -0.03 (-0.04–0.02) |
 | reducemoose                  | -0.05 | -0.07 | -0.03 | -0.05 (-0.07–0.03) |
@@ -929,14 +929,14 @@ kable(trt_eff_ba_table)
 
 | Recovery action                  | Change in instantaneous growth rate (r) |
 |:---------------------------------|:----------------------------------------|
-| penning + wolf reduction         | 0.16 \[0.12-0.21\]                      |
-| feeding + wolf reduction         | 0.15 \[0.09-0.2\]                       |
-| feeding                          | 0.14 \[-0.26-0.49\]                     |
+| penning + wolf reduction         | 0.16 \[0.12-0.2\]                       |
+| feeding                          | 0.14 \[-0.27-0.51\]                     |
+| feeding + wolf reduction         | 0.14 \[0.09-0.2\]                       |
 | moose & wolf reduction           | 0.11 \[0.04-0.18\]                      |
-| wolf reduction                   | 0.08 \[0.02-0.13\]                      |
-| wolf reduction + sterilization   | 0.07 \[0.01-0.13\]                      |
-| penning + moose reduction        | 0.06 \[-0.16-0.29\]                     |
-| penning + moose & wolf reduction | -0.01 \[-0.21-0.2\]                     |
+| penning + moose reduction        | 0.07 \[-0.16-0.29\]                     |
+| wolf reduction                   | 0.07 \[0.03-0.13\]                      |
+| wolf reduction + sterilization   | 0.07 \[0.01-0.12\]                      |
+| penning + moose & wolf reduction | -0.01 \[-0.2-0.2\]                      |
 | moose reduction                  | -0.04 \[-0.1-0.01\]                     |
 
 ``` r
@@ -1154,11 +1154,11 @@ kable(ind.eff.table)
 
 | Treatment       | delta.lambda      |
 |:----------------|:------------------|
-| feed            | 0.1 (-0.13-0.3)   |
+| feed            | 0.1 (-0.14-0.31)  |
 | reducewolves    | 0.1 (0.03-0.17)   |
-| pen             | 0.08 (0-0.16)     |
+| pen             | 0.08 (0-0.17)     |
 | reducemoose     | 0.03 (-0.03-0.08) |
-| sterilizewolves | -0.01 (-0.1-0.07) |
+| sterilizewolves | -0.01 (-0.1-0.06) |
 
 ## Simulate Conservation Intervention
 
@@ -1177,7 +1177,7 @@ sim.ref <- demog.draws %>%
 median(sim.ref)
 ```
 
-    ## [1] -0.07413422
+    ## [1] -0.07427092
 
 ``` r
 sim.trt <- ind.eff.app %>%
@@ -1191,7 +1191,7 @@ sim.trt <- ind.eff.app %>%
 median(sim.ref)
 ```
 
-    ## [1] -0.07413422
+    ## [1] -0.07427092
 
 ``` r
 year.end <- 9
