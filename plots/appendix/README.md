@@ -1,7 +1,7 @@
 BC AB Caribou IPM Appendix
 ================
 Clayton T. Lamb
-27 December, 2023
+28 December, 2023
 
 ## Load Data
 
@@ -18,63 +18,65 @@ library(ggrepel)
 library(gt)
 library(tidyverse)
 
-#display.brewer.pal(8, "Accent")
+# display.brewer.pal(8, "Accent")
 cols <- RColorBrewer::brewer.pal(8, "Accent")
 hd <- read.csv(here::here("data/clean/blueprint.csv"))
-herds.keep <- hd%>%
-  filter(herd!="Quintette Full")%>%
-  distinct(herd)%>%
+herds.keep <- hd %>%
+  filter(herd != "Quintette Full") %>%
+  distinct(herd) %>%
   pull()
 
-demog.draws <- read_csv(here::here("tables/draws/demog.draws.csv"))%>%
-  filter(herd%in%herds.keep)
-demog <- read_csv(here::here("tables/demog.csv"))%>%
-  filter(herd%in%herds.keep)
-eff.draws <- read_csv(here::here("tables/draws/eff.draws.csv"))%>%
-  filter(herd%in%herds.keep, name=="Rate of increase (r)")
-eff.draws.app <- read_csv(here::here("tables/draws/eff.draws.app.csv"))%>%
-  filter(herd%in%herds.keep)
+demog.draws <- read_csv(here::here("tables/draws/demog.draws.csv")) %>%
+  filter(herd %in% herds.keep)
+demog <- read_csv(here::here("tables/demog.csv")) %>%
+  filter(herd %in% herds.keep)
+eff.draws <- read_csv(here::here("tables/draws/eff.draws.csv")) %>%
+  filter(herd %in% herds.keep, name == "Rate of increase (r)")
+eff.draws.app <- read_csv(here::here("tables/draws/eff.draws.app.csv")) %>%
+  filter(herd %in% herds.keep)
 ecotype <- read.csv(here::here("data/raw/treatment.csv")) %>%
   dplyr::select(herd = Herd, ECCC = ECCC_Recov_Grp, COSEWIC = COSEWIC_Grp, Heard_Vagt1998 = Heard.and.Vagt.1998.grouping) %>%
-  distinct()%>%
-  mutate(herd=case_when(herd%in%"Narraway BC"~"Bearhole Redwillow",
-         TRUE~herd))%>%
-  filter(herd%in%herds.keep)
-trt_eff_ba_table<-read_csv(here::here("tables", "trt_eff_ba.csv"))
-sims <- read_csv(here::here("tables/draws/sims.draws.csv"))%>%
-  filter(herd%in%herds.keep)
-label.lookup <-  read.csv(here::here("data/clean/label_lookup.csv"))
+  distinct() %>%
+  mutate(herd = case_when(
+    herd %in% "Narraway BC" ~ "Bearhole Redwillow",
+    TRUE ~ herd
+  )) %>%
+  filter(herd %in% herds.keep)
+trt_eff_ba_table <- read_csv(here::here("tables", "trt_eff_ba.csv"))
+sims <- read_csv(here::here("tables/draws/sims.draws.csv")) %>%
+  filter(herd %in% herds.keep)
+label.lookup <- read.csv(here::here("data/clean/label_lookup.csv"))
 
-##for first plots
+## for first plots
 hn <- hd %>%
-  dplyr::select(herd, herd_num)%>%
-  filter(herd%in%herds.keep)
+  dplyr::select(herd, herd_num) %>%
+  filter(herd %in% herds.keep)
 hn <- hd %>%
-  dplyr::select(herd, herd_num)%>%
-  filter(herd%in%herds.keep)
+  dplyr::select(herd, herd_num) %>%
+  filter(herd %in% herds.keep)
 trt <- read.csv(here::here("data/clean/treatments.csv")) %>%
   arrange(herd) %>%
-  left_join(hn, by = "herd")%>%
-  filter(herd%in%herds.keep)
+  left_join(hn, by = "herd") %>%
+  filter(herd %in% herds.keep)
 
 afs <- read.csv(here::here("data/clean/survival.csv")) %>%
   arrange(herd) %>%
-  left_join(hn, by = "herd")%>%
-  filter(herd%in%herds.keep)
+  left_join(hn, by = "herd") %>%
+  filter(herd %in% herds.keep)
 afr <- read.csv(here::here("data/clean/recruitment.csv")) %>%
   arrange(herd) %>%
-  left_join(hn, by = "herd")%>%
-  filter(herd%in%herds.keep)
+  left_join(hn, by = "herd") %>%
+  filter(herd %in% herds.keep)
 counts <- read.csv(here::here("data/clean/counts.csv")) %>%
   arrange(herd) %>%
-  left_join(hn, by = "herd")%>%
-  filter(herd%in%herds.keep)
+  left_join(hn, by = "herd") %>%
+  filter(herd %in% herds.keep)
 ecotype <- read.csv(here::here("data/raw/treatment.csv")) %>%
   dplyr::select(herd = Herd, ECCC = ECCC_Recov_Grp, COSEWIC = COSEWIC_Grp, Heard_Vagt1998 = Heard.and.Vagt.1998.grouping) %>%
-  distinct()%>%
-  filter(herd%in%herds.keep)
+  distinct() %>%
+  filter(herd %in% herds.keep)
 
-##bearhole naming
+## bearhole naming
 counts <- counts %>% mutate(herd = case_when(herd %in% "Narraway BC" ~ "Bearhole Redwillow", TRUE ~ herd))
 trt <- trt %>% mutate(herd = case_when(herd %in% "Narraway BC" ~ "Bearhole Redwillow", TRUE ~ herd))
 afr <- afr %>% mutate(herd = case_when(herd %in% "Narraway BC" ~ "Bearhole Redwillow", TRUE ~ herd))
@@ -89,22 +91,22 @@ raw.demog <- rbind(
   afr %>% dplyr::select(herd, year, est) %>% mutate(type = "Recruit"),
   afs %>% dplyr::select(herd, year, est) %>% mutate(type = "Surv"),
   counts %>% dplyr::select(herd, year, est = Est_CL) %>% mutate(type = "Count")
-)%>%
-  left_join(ecotype, by="herd")
+) %>%
+  left_join(ecotype, by = "herd")
 
 ### Identify first year of demographic data for each herd
 first.yr <- raw.demog %>%
-  dplyr::select(herd, ECCC,first.year = year) %>%
+  dplyr::select(herd, ECCC, first.year = year) %>%
   distinct() %>%
-  group_by(herd,ECCC) %>%
-  filter(first.year == min(first.year))%>%
-  mutate(count=1)%>%
+  group_by(herd, ECCC) %>%
+  filter(first.year == min(first.year)) %>%
+  mutate(count = 1) %>%
   group_by(ECCC) %>%
-  arrange(first.year)%>%
+  arrange(first.year) %>%
   mutate(cumsum = cumsum(count))
 
-ggplot(first.yr, aes(x = first.year, y=cumsum)) +
-  geom_step()+
+ggplot(first.yr, aes(x = first.year, y = cumsum)) +
+  geom_step() +
   theme_ipsum() +
   labs(
     x = "Year", y = "Cumulative count",
@@ -122,22 +124,22 @@ ggplot(first.yr, aes(x = first.year, y=cumsum)) +
     legend.text = element_text(size = 12),
     legend.title = element_text(size = 14),
     legend.position = "bottom"
-  )+
-  facet_wrap(vars(ECCC),scales="free_y")
+  ) +
+  facet_wrap(vars(ECCC), scales = "free_y")
 ```
 
 ![](README_files/figure-gfm/Firstyr-1.png)<!-- -->
 
 ``` r
-first.yr%>%
-  summarize(medianyr=median(first.year))
+first.yr %>%
+  summarize(medianyr = median(first.year))
 
-first.yr.summary <-first.yr%>%
-  mutate(prop=cumsum/max(cumsum))%>%
-  filter(prop>=0.5)%>%
-  filter(first.year==min(first.year))%>%
-  ungroup
-  
+first.yr.summary <- first.yr %>%
+  mutate(prop = cumsum / max(cumsum)) %>%
+  filter(prop >= 0.5) %>%
+  filter(first.year == min(first.year)) %>%
+  ungroup()
+
 kable(first.yr.summary)
 ```
 
@@ -150,57 +152,61 @@ kable(first.yr.summary)
 ## Treatment plot for R2
 
 ``` r
-trt.plot <- trt%>%
-  filter(applied==1)%>%
-  mutate(intensity=replace_na(intensity, "standard"))%>%
-  group_by(herd,treatment,intensity)%>%
-  count()%>%
-  pivot_wider(names_from="intensity", values_from="n")%>%
-  mutate(low=replace_na(low,0),
-        total=sum(low,standard, na.rm=TRUE),
-         label=paste0(total, " (",low,")"))
+trt.plot <- trt %>%
+  filter(applied == 1) %>%
+  mutate(intensity = replace_na(intensity, "standard")) %>%
+  group_by(herd, treatment, intensity) %>%
+  count() %>%
+  pivot_wider(names_from = "intensity", values_from = "n") %>%
+  mutate(
+    low = replace_na(low, 0),
+    total = sum(low, standard, na.rm = TRUE),
+    label = paste0(total, " (", low, ")")
+  )
 
-ggplot(trt.plot, aes(y=herd, x=treatment)) + 
-    geom_tile(aes(fill=total)) + 
-    geom_text(aes(label=label), color="white")+
-  scale_fill_viridis_c()+
-  theme_ipsum()+
-      theme(axis.title.x = element_text(size=18),
-          axis.title.y = element_text(size=18),
-          axis.text.x = element_text(size=15, angle=20,hjust=1),
-          axis.text.y = element_text(size=15),
-          legend.text = element_text(size=13),
-          legend.title=element_text(size=15))+
-  labs(x="Recovery action", y="Subpopulation", fill="Years applied")
+ggplot(trt.plot, aes(y = herd, x = treatment)) +
+  geom_tile(aes(fill = total)) +
+  geom_text(aes(label = label), color = "white") +
+  scale_fill_viridis_c() +
+  theme_ipsum() +
+  theme(
+    axis.title.x = element_text(size = 18),
+    axis.title.y = element_text(size = 18),
+    axis.text.x = element_text(size = 15, angle = 20, hjust = 1),
+    axis.text.y = element_text(size = 15),
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 15)
+  ) +
+  labs(x = "Recovery action", y = "Subpopulation", fill = "Years applied")
 ```
 
 ![](README_files/figure-gfm/r2%20plot-1.png)<!-- -->
 
 ``` r
-ggsave(here::here("plots", "appendix","treatment_matrix.png"), width = 10, height = 10, bg = "white")
+ggsave(here::here("plots", "appendix", "treatment_matrix.png"), width = 10, height = 10, bg = "white")
 ```
 
 ## Plot trajectory by ECCC ecotype
 
 ``` r
 sims.plot <- sims %>%
-  filter(.variable%in%c("totNMF", "pred_totNMF"))%>%
-  left_join(ecotype, by="herd")%>%
-  dplyr::group_by(yrs,ECCC, .variable, .draw) %>%
+  filter(.variable %in% c("totNMF", "pred_totNMF")) %>%
+  left_join(ecotype, by = "herd") %>%
+  dplyr::group_by(yrs, ECCC, .variable, .draw) %>%
   dplyr::summarize(
     mean = sum(.value),
     .groups = "drop"
   ) %>%
-  dplyr::group_by(ECCC,yrs, .variable) %>%
+  dplyr::group_by(ECCC, yrs, .variable) %>%
   dplyr::summarize(
     LCL = quantile(mean, 0.05) %>% round(0),
     UCL = quantile(mean, 0.95) %>% round(0),
     mean = mean(mean) %>% round(0),
     .groups = "drop"
-  )%>%
-  left_join(first.yr.summary%>%dplyr::select(ECCC,first.year), by="ECCC")%>%
-  filter(yrs>=first.year)%>%
-  mutate(ECCC=fct_relevel(ECCC, "Northern Group", "Central Group", "Southern Group"))
+  ) %>%
+  left_join(first.yr.summary %>% dplyr::select(ECCC, first.year), by = "ECCC") %>%
+  filter(yrs >= first.year) %>%
+  mutate(ECCC = fct_relevel(ECCC, "Northern Group", "Central Group", "Southern Group"))
 
 abundance.all.plot <- ggplot(data = sims.plot %>%
   mutate(.variable = case_when(
@@ -214,7 +220,7 @@ abundance.all.plot <- ggplot(data = sims.plot %>%
       .variable == "totNMF" ~ "Observed",
       TRUE ~ "Status quo"
     )), aes(label = fct_relevel(.variable, "Status quo", "Observed"), colour = .variable, x = Inf, y = mean), hjust = 0) +
-  #geom_jitter(data = ext.yr, size = 1, aes(x = yrs, y = mean), alpha = 0.5) +
+  # geom_jitter(data = ext.yr, size = 1, aes(x = yrs, y = mean), alpha = 0.5) +
   theme_ipsum() +
   theme(legend.position = "none") +
   ylab("") +
@@ -234,7 +240,7 @@ abundance.all.plot <- ggplot(data = sims.plot %>%
     legend.title = element_text(size = 15),
     plot.margin = unit(c(1, 5, 1, 1), "lines")
   ) +
-  geom_rug(data = trt %>% filter(applied %in% 1)%>%left_join(ecotype,by="herd"), aes(x = year), sides = "b", length = unit(0.05, "npc"), alpha = 0.05) +
+  geom_rug(data = trt %>% filter(applied %in% 1) %>% left_join(ecotype, by = "herd"), aes(x = year), sides = "b", length = unit(0.05, "npc"), alpha = 0.05) +
   scale_color_manual(values = cols[c(3, 1)]) +
   # annotate(geom = "text", x = 1974, y = 2600, label = "Recovery\nactions", hjust = "left") +
   # annotate(
@@ -253,18 +259,18 @@ abundance.all.plot <- ggplot(data = sims.plot %>%
   # ) +
   coord_cartesian(
     clip = "off"
-  )+
+  ) +
   geom_rug(
     data = rbind(
-      afr %>% dplyr::select(year, herd,est) %>% mutate(type = "Recruit"),
+      afr %>% dplyr::select(year, herd, est) %>% mutate(type = "Recruit"),
       afs %>% dplyr::select(year, herd, est) %>% mutate(type = "Surv"),
       counts %>% dplyr::select(year, herd, est = Est_CL) %>% mutate(type = "Count")
     ) %>%
-      left_join(ecotype,by="herd")%>%
+      left_join(ecotype, by = "herd") %>%
       ungroup(),
     aes(x = year), sides = "t", length = unit(0.05, "npc"), alpha = 0.02
-  )+
-  facet_wrap(vars(fct_relevel(ECCC, "Northern Group", "Central Group", "Southern Group")),scales="free_y")+
+  ) +
+  facet_wrap(vars(fct_relevel(ECCC, "Northern Group", "Central Group", "Southern Group")), scales = "free_y") +
   theme(panel.spacing = unit(4, "lines"))
 abundance.all.plot
 ```
@@ -272,30 +278,34 @@ abundance.all.plot
 ![](README_files/figure-gfm/trajectory%20by%20ECCC%20ecotype-1.png)<!-- -->
 
 ``` r
-ggsave(plot = abundance.all.plot, here::here("plots", "appendix","abundance_byecotype.png"), width = 18, height = 6, bg = "white")
+ggsave(plot = abundance.all.plot, here::here("plots", "appendix", "abundance_byecotype.png"), width = 18, height = 6, bg = "white")
 
 
-current.yr <-2023
-cosewic.abund <- sims.plot%>%
-  group_by(ECCC)%>%
-  dplyr::select(-first.year)%>%
-  filter(.variable=="totNMF")%>%
-  dplyr::select(-.variable)%>%
-  filter(yrs>=current.yr-(9*3)-1)%>% ##start at 3 generations back
-  filter(yrs%in%c(current.yr, current.yr-9,min(yrs))) ##use 3 generations back, or first value if not back that far
+current.yr <- 2023
+cosewic.abund <- sims.plot %>%
+  group_by(ECCC) %>%
+  dplyr::select(-first.year) %>%
+  filter(.variable == "totNMF") %>%
+  dplyr::select(-.variable) %>%
+  filter(yrs >= current.yr - (9 * 3) - 1) %>% ## start at 3 generations back
+  filter(yrs %in% c(current.yr, current.yr - 9, min(yrs))) ## use 3 generations back, or first value if not back that far
 
-  cosewic.abund%>%
-  gt()%>%
+cosewic.abund %>%
+  gt() %>%
   gtsave(here::here("tables", "appendix", "ecotype_abundance.rtf"))
 
-cosewic.abund%>%
-  dplyr::select(ECCC,yrs,mean)%>%
-  pivot_wider(values_from=mean, names_from=yrs)%>%
-  dplyr::select(ECCC, `1995`,`1996`, `2014`, `2023`)%>%
-  mutate(decline.10yr=(((`2023`-`2014`)/`2014`)*100)%>%round(0),
-         decline.3generation=case_when(ECCC!="Central Group"~(((`2023`-`1995`)/`1995`)*100)%>%round(0),
-                                       ECCC=="Central Group"~(((`2023`-`1996`)/`1996`)*100)%>%round(0)))%>%
-    gt()%>%
+cosewic.abund %>%
+  dplyr::select(ECCC, yrs, mean) %>%
+  pivot_wider(values_from = mean, names_from = yrs) %>%
+  dplyr::select(ECCC, `1995`, `1996`, `2014`, `2023`) %>%
+  mutate(
+    decline.10yr = (((`2023` - `2014`) / `2014`) * 100) %>% round(0),
+    decline.3generation = case_when(
+      ECCC != "Central Group" ~ (((`2023` - `1995`) / `1995`) * 100) %>% round(0),
+      ECCC == "Central Group" ~ (((`2023` - `1996`) / `1996`) * 100) %>% round(0)
+    )
+  ) %>%
+  gt() %>%
   gtsave(here::here("tables", "appendix", "ecotype_change.rtf"))
 ```
 
@@ -308,9 +318,9 @@ trt.plot <- trt %>%
     treatment %in% "transplant" & herd %in% "South Selkirks" ~ 250,
     treatment %in% "reduce wolves" & herd %in% "Charlotte Alplands" ~ 150,
     treatment %in% "transplant" & herd %in% "Telkwa" ~ 150,
-    treatment %in% "sterilize wolves" & herd %in% c("Wells Gray North") ~ (max+20) - (max * 0.25),
-    treatment %in% "reduce wolves" & herd %in% c("Wells Gray North") ~ (max+20) - (max * 0.10),
-     treatment %in% "sterilize wolves" & herd %in% "Barkerville" ~ 160,
+    treatment %in% "sterilize wolves" & herd %in% c("Wells Gray North") ~ (max + 20) - (max * 0.25),
+    treatment %in% "reduce wolves" & herd %in% c("Wells Gray North") ~ (max + 20) - (max * 0.10),
+    treatment %in% "sterilize wolves" & herd %in% "Barkerville" ~ 160,
     treatment %in% "reduce wolves" & herd %in% "Barkerville" ~ 135,
     treatment %in% "reduce wolves" & herd %in% "Kennedy Siding" ~ max - (max * 0.05),
     treatment %in% "feed" & herd %in% "Kennedy Siding" ~ max - (max * 0.20),
@@ -332,111 +342,133 @@ trt.plot <- trt %>%
 
 
 
-##loop through all herds and plot
-herds<- unique(demog$herd)
-for(i in 1:length(herds)){
-  
-  trt.dat.i <- trt.plot%>%filter(herd==!!herds[i])%>%distinct(herd,treatment,y)%>%mutate(t=str_sub(treatment,1,1))
-  if(nrow(trt.dat.i)==0){
-    trt.dat.i <- add_row(trt.dat.i,herd=herds[i],treatment=NA)
+## loop through all herds and plot
+herds <- unique(demog$herd)
+for (i in 1:length(herds)) {
+  trt.dat.i <- trt.plot %>%
+    filter(herd == !!herds[i]) %>%
+    distinct(herd, treatment, y) %>%
+    mutate(t = str_sub(treatment, 1, 1))
+  if (nrow(trt.dat.i) == 0) {
+    trt.dat.i <- add_row(trt.dat.i, herd = herds[i], treatment = NA)
   }
-  
+
   ggplot() +
-    geom_ribbon(data=demog%>%filter(herd==!!herds[i]),aes(x=yrs, y=totNMF, ymin=totNMF.lower, ymax=totNMF.upper),alpha=0.4, color=NA, fill=cols[3])+
-    geom_line(data=demog%>%filter(herd==!!herds[i]),aes(x=yrs, y=totNMF, ymin=totNMF.lower, ymax=totNMF.upper),size=1, color=cols[3]) +
-    geom_rug(data=rbind(afr%>%dplyr::select(herd,year,est)%>%mutate(type="Recruit")%>%filter(herd==!!herds[i]),afs%>%dplyr::select(herd,year,est)%>%mutate(type="Surv")%>%filter(herd==!!herds[i]),counts%>%dplyr::select(herd,year,est=Est_CL)%>%mutate(type="Count")%>%filter(herd==!!herds[i])),
-             aes(x=year), sides = "t",length = unit(0.05, "npc"),alpha=0.5)+
-    theme_ipsum()+
-    theme(legend.position = "none")+
-    ylab("")+
-    xlab("Year")+
-    labs(x="Year",y="Abundance", title=herds[i])+
-    expand_limits(y=0)+
-    scale_x_continuous(    limits = c(1974, 2026),
-                           breaks = seq(1980, 2020, by = 20))+
-    theme(axis.title.x = element_text(size=15),
-          axis.title.y = element_text(size=15),
-          legend.text = element_text(size=13),
-          legend.title=element_text(size=15))+
-    geom_point(data=counts%>%filter(herd==!!herds[i]),aes(x=year, y=Est_CL),size=0.5, alpha=0.7)+
-    geom_linerange(data=counts%>%filter(herd==!!herds[i])%>%mutate(Est_CL.max=case_when(Est_CL.max>5000~5000,herd=="Rainbows" & Est_CL.max > 500 ~ 500, herd=="South Selkirks" & Est_CL.max > 300 ~ 300,TRUE~Est_CL.max)),aes(x=year, ymin=Est_CL.min,  ymax=Est_CL.max),alpha=0.5)+
-    geom_point(data=trt.plot%>%filter(herd==!!herds[i]),aes(x=year, y=y, group=treatment, color=treatment),size=0.5)+
-    scale_color_manual(values=cols[-4])+
-    geom_text_repel(data =  trt.dat.i, aes(label = treatment, colour = treatment, x = 2023, y = y*0.97), 
-                    direction = "y",
-                    seed=999,
-                    force=0.5,
-                    nudge_x = 20,
-                    segment.size = .7,
-                    segment.alpha = .3,
-                    segment.linetype = "dotted",
-                    segment.curvature = -0.1,
-                    segment.ncp = 3,
-                    segment.angle = 20)+
+    geom_ribbon(data = demog %>% filter(herd == !!herds[i]), aes(x = yrs, y = totNMF, ymin = totNMF.lower, ymax = totNMF.upper), alpha = 0.4, color = NA, fill = cols[3]) +
+    geom_line(data = demog %>% filter(herd == !!herds[i]), aes(x = yrs, y = totNMF, ymin = totNMF.lower, ymax = totNMF.upper), size = 1, color = cols[3]) +
+    geom_rug(
+      data = rbind(afr %>% dplyr::select(herd, year, est) %>% mutate(type = "Recruit") %>% filter(herd == !!herds[i]), afs %>% dplyr::select(herd, year, est) %>% mutate(type = "Surv") %>% filter(herd == !!herds[i]), counts %>% dplyr::select(herd, year, est = Est_CL) %>% mutate(type = "Count") %>% filter(herd == !!herds[i])),
+      aes(x = year), sides = "t", length = unit(0.05, "npc"), alpha = 0.5
+    ) +
+    theme_ipsum() +
+    theme(legend.position = "none") +
+    ylab("") +
+    xlab("Year") +
+    labs(x = "Year", y = "Abundance", title = herds[i]) +
+    expand_limits(y = 0) +
+    scale_x_continuous(
+      limits = c(1974, 2026),
+      breaks = seq(1980, 2020, by = 20)
+    ) +
+    theme(
+      axis.title.x = element_text(size = 15),
+      axis.title.y = element_text(size = 15),
+      legend.text = element_text(size = 13),
+      legend.title = element_text(size = 15)
+    ) +
+    geom_point(data = counts %>% filter(herd == !!herds[i]), aes(x = year, y = Est_CL), size = 0.5, alpha = 0.7) +
+    geom_linerange(data = counts %>% filter(herd == !!herds[i]) %>% mutate(Est_CL.max = case_when(Est_CL.max > 5000 ~ 5000, herd == "Rainbows" & Est_CL.max > 500 ~ 500, herd == "South Selkirks" & Est_CL.max > 300 ~ 300, TRUE ~ Est_CL.max)), aes(x = year, ymin = Est_CL.min, ymax = Est_CL.max), alpha = 0.5) +
+    geom_point(data = trt.plot %>% filter(herd == !!herds[i]), aes(x = year, y = y, group = treatment, color = treatment), size = 0.5) +
+    scale_color_manual(values = cols[-4]) +
+    geom_text_repel(
+      data = trt.dat.i, aes(label = treatment, colour = treatment, x = 2023, y = y * 0.97),
+      direction = "y",
+      seed = 999,
+      force = 0.5,
+      nudge_x = 20,
+      segment.size = .7,
+      segment.alpha = .3,
+      segment.linetype = "dotted",
+      segment.curvature = -0.1,
+      segment.ncp = 3,
+      segment.angle = 20
+    ) +
     coord_cartesian(
-      clip = "off")+
-  geom_text(
-    data = trt.plot%>%filter(herd==!!herds[i])%>%
-      group_by(herd, treatment, y) %>%
-      summarize(year=mean(year))%>%
-      mutate(t = str_remove(treatment, "reduce ") %>% str_sub(1, 1)),
-    aes(label = treatment, x = year, y = y),
-    direction = "y",
-    size=3,
-    vjust=-1
-  ) 
-  
-  ggsave(here::here("plots","by_herd","with_treatments", paste0(herds[i]%>%str_replace_all("[:punct:]", " "),".png")), width=4,height=4, bg="white")
-  
-  
+      clip = "off"
+    ) +
+    geom_text(
+      data = trt.plot %>% filter(herd == !!herds[i]) %>%
+        group_by(herd, treatment, y) %>%
+        summarize(year = mean(year)) %>%
+        mutate(t = str_remove(treatment, "reduce ") %>% str_sub(1, 1)),
+      aes(label = treatment, x = year, y = y),
+      direction = "y",
+      size = 3,
+      vjust = -1
+    )
+
+  ggsave(here::here("plots", "by_herd", "with_treatments", paste0(herds[i] %>% str_replace_all("[:punct:]", " "), ".png")), width = 4, height = 4, bg = "white")
+
+
   ggplot() +
-    geom_ribbon(data=demog%>%filter(herd==!!herds[i]),aes(x=yrs, y=totNMF, ymin=totNMF.lower, ymax=totNMF.upper),alpha=0.4, color=NA, fill=cols[3])+
-    geom_line(data=demog%>%filter(herd==!!herds[i]),aes(x=yrs, y=totNMF, ymin=totNMF.lower, ymax=totNMF.upper),size=1, color=cols[3]) +
-    geom_rug(data=rbind(afr%>%dplyr::select(herd,year,est)%>%mutate(type="Recruit")%>%filter(herd==!!herds[i]),afs%>%dplyr::select(herd,year,est)%>%mutate(type="Surv")%>%filter(herd==!!herds[i]),counts%>%dplyr::select(herd,year,est=Est_CL)%>%mutate(type="Count")%>%filter(herd==!!herds[i])),
-             aes(x=year), sides = "t",length = unit(0.05, "npc"),alpha=0.5)+
-    theme_ipsum()+
-    theme(legend.position = "none")+
-    ylab("")+
-    xlab("Year")+
-    labs(x="Year",y="Abundance", title=herds[i])+
-    expand_limits(y=0)+
-    scale_x_continuous(    limits = c(1974, 2026),
-                           breaks = seq(1980, 2020, by = 20))+
-    theme(axis.title.x = element_text(size=15),
-          axis.title.y = element_text(size=15),
-          legend.text = element_text(size=13),
-          legend.title=element_text(size=15))+
-    geom_point(data=counts%>%filter(herd==!!herds[i]),aes(x=year, y=Est_CL),size=0.5, alpha=0.7)+
-    geom_linerange(data=counts%>%filter(herd==!!herds[i])%>%mutate(Est_CL.max=case_when(Est_CL.max>5000~5000,herd=="Rainbows" & Est_CL.max > 500 ~ 500, herd=="South Selkirks" & Est_CL.max > 300 ~ 300,TRUE~Est_CL.max)),aes(x=year, ymin=Est_CL.min,  ymax=Est_CL.max),alpha=0.5)+
+    geom_ribbon(data = demog %>% filter(herd == !!herds[i]), aes(x = yrs, y = totNMF, ymin = totNMF.lower, ymax = totNMF.upper), alpha = 0.4, color = NA, fill = cols[3]) +
+    geom_line(data = demog %>% filter(herd == !!herds[i]), aes(x = yrs, y = totNMF, ymin = totNMF.lower, ymax = totNMF.upper), size = 1, color = cols[3]) +
+    geom_rug(
+      data = rbind(afr %>% dplyr::select(herd, year, est) %>% mutate(type = "Recruit") %>% filter(herd == !!herds[i]), afs %>% dplyr::select(herd, year, est) %>% mutate(type = "Surv") %>% filter(herd == !!herds[i]), counts %>% dplyr::select(herd, year, est = Est_CL) %>% mutate(type = "Count") %>% filter(herd == !!herds[i])),
+      aes(x = year), sides = "t", length = unit(0.05, "npc"), alpha = 0.5
+    ) +
+    theme_ipsum() +
+    theme(legend.position = "none") +
+    ylab("") +
+    xlab("Year") +
+    labs(x = "Year", y = "Abundance", title = herds[i]) +
+    expand_limits(y = 0) +
+    scale_x_continuous(
+      limits = c(1974, 2026),
+      breaks = seq(1980, 2020, by = 20)
+    ) +
+    theme(
+      axis.title.x = element_text(size = 15),
+      axis.title.y = element_text(size = 15),
+      legend.text = element_text(size = 13),
+      legend.title = element_text(size = 15)
+    ) +
+    geom_point(data = counts %>% filter(herd == !!herds[i]), aes(x = year, y = Est_CL), size = 0.5, alpha = 0.7) +
+    geom_linerange(data = counts %>% filter(herd == !!herds[i]) %>% mutate(Est_CL.max = case_when(Est_CL.max > 5000 ~ 5000, herd == "Rainbows" & Est_CL.max > 500 ~ 500, herd == "South Selkirks" & Est_CL.max > 300 ~ 300, TRUE ~ Est_CL.max)), aes(x = year, ymin = Est_CL.min, ymax = Est_CL.max), alpha = 0.5) +
     coord_cartesian(
-      clip = "off")
-  
-  ggsave(here::here("plots","by_herd","without_treatments", paste0(herds[i]%>%str_replace_all("[:punct:]", " "),".png")), width=4,height=4, bg="white")
-  
-  
-  
+      clip = "off"
+    )
+
+  ggsave(here::here("plots", "by_herd", "without_treatments", paste0(herds[i] %>% str_replace_all("[:punct:]", " "), ".png")), width = 4, height = 4, bg = "white")
+
+
+
   ggplot() +
-    geom_ribbon(data=demog%>%filter(herd==!!herds[i]),aes(x=yrs, y=totNMF, ymin=totNMF.lower, ymax=totNMF.upper),alpha=0.4, color=NA, fill=cols[3])+
-    geom_line(data=demog%>%filter(herd==!!herds[i]),aes(x=yrs, y=totNMF, ymin=totNMF.lower, ymax=totNMF.upper),size=1, color=cols[3]) +
-    theme_ipsum()+
-    theme(legend.position = "none")+
-    ylab("")+
-    xlab("Year")+
-    labs(x="Year",y="Abundance", title=herds[i])+
-    expand_limits(y=0)+
-    scale_x_continuous(    limits = c(1974, 2026),
-                           breaks = seq(1980, 2020, by = 20))+
-    theme(axis.title.x = element_text(size=15),
-          axis.title.y = element_text(size=15),
-          legend.text = element_text(size=13),
-          legend.title=element_text(size=15))+
-    geom_point(data=counts%>%filter(herd==!!herds[i]),aes(x=year, y=Est_CL),size=0.5, alpha=0.7)+
-    geom_linerange(data=counts%>%filter(herd==!!herds[i])%>%mutate(Est_CL.max=case_when(Est_CL.max>5000~5000,herd=="Rainbows" & Est_CL.max > 500 ~ 500, herd=="South Selkirks" & Est_CL.max > 300 ~ 300,TRUE~Est_CL.max)),aes(x=year, ymin=Est_CL.min,  ymax=Est_CL.max),alpha=0.5)+
+    geom_ribbon(data = demog %>% filter(herd == !!herds[i]), aes(x = yrs, y = totNMF, ymin = totNMF.lower, ymax = totNMF.upper), alpha = 0.4, color = NA, fill = cols[3]) +
+    geom_line(data = demog %>% filter(herd == !!herds[i]), aes(x = yrs, y = totNMF, ymin = totNMF.lower, ymax = totNMF.upper), size = 1, color = cols[3]) +
+    theme_ipsum() +
+    theme(legend.position = "none") +
+    ylab("") +
+    xlab("Year") +
+    labs(x = "Year", y = "Abundance", title = herds[i]) +
+    expand_limits(y = 0) +
+    scale_x_continuous(
+      limits = c(1974, 2026),
+      breaks = seq(1980, 2020, by = 20)
+    ) +
+    theme(
+      axis.title.x = element_text(size = 15),
+      axis.title.y = element_text(size = 15),
+      legend.text = element_text(size = 13),
+      legend.title = element_text(size = 15)
+    ) +
+    geom_point(data = counts %>% filter(herd == !!herds[i]), aes(x = year, y = Est_CL), size = 0.5, alpha = 0.7) +
+    geom_linerange(data = counts %>% filter(herd == !!herds[i]) %>% mutate(Est_CL.max = case_when(Est_CL.max > 5000 ~ 5000, herd == "Rainbows" & Est_CL.max > 500 ~ 500, herd == "South Selkirks" & Est_CL.max > 300 ~ 300, TRUE ~ Est_CL.max)), aes(x = year, ymin = Est_CL.min, ymax = Est_CL.max), alpha = 0.5) +
     coord_cartesian(
-      clip = "off")
-  
-  ggsave(here::here("plots","by_herd","without_rug or treatment", paste0(herds[i]%>%str_replace_all("[:punct:]", " "),".png")), width=4,height=4, bg="white")
-  
+      clip = "off"
+    )
+
+  ggsave(here::here("plots", "by_herd", "without_rug or treatment", paste0(herds[i] %>% str_replace_all("[:punct:]", " "), ".png")), width = 4, height = 4, bg = "white")
 }
 ```
 
@@ -444,33 +476,37 @@ for(i in 1:length(herds)){
 
 ``` r
 trt.yrs.app <- demog.draws %>%
-  group_by(herd, yrs, trt,intensity) %>%
+  group_by(herd, yrs, trt, intensity) %>%
   mutate(totNMF.median = median(totNMF)) %>% # get average pop size so popsize threshold doesnt split low/standard in some years due to draws being above/below threshold
   ungroup() %>%
   mutate(
     application = case_when(intensity == "low" | totNMF.median < 30 ~ "low", TRUE ~ "standard")
   ) %>%
   ungroup() %>%
-  filter(!trt %in% "Reference")%>%
-  left_join(ecotype, by="herd")%>%
-  group_by(trt,application,ECCC)%>%
-              summarize(n_herds=n_distinct(herd),
-                        n_herd_years=n_distinct(herd,yrs))
-  
+  filter(!trt %in% "Reference") %>%
+  left_join(ecotype, by = "herd") %>%
+  group_by(trt, application, ECCC) %>%
+  summarize(
+    n_herds = n_distinct(herd),
+    n_herd_years = n_distinct(herd, yrs)
+  )
 
-eff.draws.app%>%
-  filter(name=="r")%>%
-  left_join(ecotype, by="herd")%>%
-  group_by(trt,application,ECCC, .draw) %>%
-  summarise(eff=mean(eff))%>%
-  group_by(trt,application,ECCC)%>%
-  summarise(eff.median=median(eff)%>% round(2),
-            eff.lower=quantile(eff,0.05)%>% round(2),
-            eff.upper=quantile(eff,0.95)%>% round(2))%>%
-  left_join(trt.yrs.app, by=c("trt","application","ECCC"))%>%
-  arrange(trt,application,ECCC)%>%
-  ungroup%>%
-  gt()%>%
+
+eff.draws.app %>%
+  filter(name == "r") %>%
+  left_join(ecotype, by = "herd") %>%
+  group_by(trt, application, ECCC, .draw) %>%
+  summarise(eff = mean(eff)) %>%
+  group_by(trt, application, ECCC) %>%
+  summarise(
+    eff.median = median(eff) %>% round(2),
+    eff.lower = quantile(eff, 0.05) %>% round(2),
+    eff.upper = quantile(eff, 0.95) %>% round(2)
+  ) %>%
+  left_join(trt.yrs.app, by = c("trt", "application", "ECCC")) %>%
+  arrange(trt, application, ECCC) %>%
+  ungroup() %>%
+  gt() %>%
   gtsave(here::here("tables", "appendix", "ecotype_trt_eff_summary_ECCC.rtf"))
 ```
 
@@ -483,26 +519,30 @@ trt.yrs.app.hv <- demog.draws %>%
     application = case_when(intensity == "low" | totNMF.median < 30 ~ "low", TRUE ~ "standard")
   ) %>%
   ungroup() %>%
-  filter(!trt %in% "Reference")%>%
-  left_join(ecotype, by="herd")%>%
-  group_by(trt,application,Heard_Vagt1998)%>%
-              summarize(n_herds=n_distinct(herd),
-                        n_herd_years=n_distinct(herd,yrs))
-  
+  filter(!trt %in% "Reference") %>%
+  left_join(ecotype, by = "herd") %>%
+  group_by(trt, application, Heard_Vagt1998) %>%
+  summarize(
+    n_herds = n_distinct(herd),
+    n_herd_years = n_distinct(herd, yrs)
+  )
 
-eff.draws.app%>%
-  filter(name=="r")%>%
-  left_join(ecotype, by="herd")%>%
-  group_by(trt,application,Heard_Vagt1998, .draw) %>%
-  summarise(eff=mean(eff))%>%
-  group_by(trt,application,Heard_Vagt1998)%>%
-  summarise(eff.median=median(eff)%>% round(2),
-            eff.lower=quantile(eff,0.05)%>% round(2),
-            eff.upper=quantile(eff,0.95)%>% round(2))%>%
-  left_join(trt.yrs.app.hv, by=c("trt","application","Heard_Vagt1998"))%>%
-  arrange(trt,application,Heard_Vagt1998)%>%
-  ungroup%>%
-  gt()%>%
+
+eff.draws.app %>%
+  filter(name == "r") %>%
+  left_join(ecotype, by = "herd") %>%
+  group_by(trt, application, Heard_Vagt1998, .draw) %>%
+  summarise(eff = mean(eff)) %>%
+  group_by(trt, application, Heard_Vagt1998) %>%
+  summarise(
+    eff.median = median(eff) %>% round(2),
+    eff.lower = quantile(eff, 0.05) %>% round(2),
+    eff.upper = quantile(eff, 0.95) %>% round(2)
+  ) %>%
+  left_join(trt.yrs.app.hv, by = c("trt", "application", "Heard_Vagt1998")) %>%
+  arrange(trt, application, Heard_Vagt1998) %>%
+  ungroup() %>%
+  gt() %>%
   gtsave(here::here("tables", "appendix", "ecotype_trt_eff_summary_Heard_Vagt1998.rtf"))
 ```
 
@@ -511,11 +551,11 @@ eff.draws.app%>%
 ### ECCC
 
 ``` r
-##add ecotype from ECCC and from Heard Vagt 1998
+## add ecotype from ECCC and from Heard Vagt 1998
 demog.mod.baci <- demog.draws %>%
   ungroup() %>%
   left_join(ecotype) %>%
-  dplyr::select(.draw, herd, yrs, r, totNMF, trt, ECCC,Heard_Vagt1998)
+  dplyr::select(.draw, herd, yrs, r, totNMF, trt, ECCC, Heard_Vagt1998)
 
 #### prep BACI with ECCC grouping
 trt.herds.eccc <- demog.mod.baci %>%
@@ -579,7 +619,7 @@ baci.eccc <- baci.eccc %>%
     facet = paste(herd.grp, trt.grp, sep = "_")
   )
 
-##view data
+## view data
 ggplot() +
   geom_line(data = baci.eccc %>%
     group_by(herd, yrs, CI, facet, trt.grp, herd.grp) %>%
@@ -618,21 +658,23 @@ ggplot() +
 ggsave(here::here("plots", "appendix", "baci_setup_ECCC.png"), width = 13, height = 9, bg = "white")
 
 
-###plot baci delta r
+### plot baci delta r
 baci.eccc %>%
-    group_by(CI, BA,facet, trt.grp, herd.grp,ECCC,.draw) %>%
-    summarise(
-      r = mean(r)
-    )%>%
-  mutate(baci=paste(BA,CI, sep="_"))%>%
-  ungroup%>%
-  dplyr::select(facet:baci)%>%
-  pivot_wider(names_from=baci, values_from=r)%>%
-  mutate(basechange=`1_0`-`0_0`,
-         delta.r=`1_1`-`0_1`,
-         delta.r.baci=delta.r-basechange)%>%
-  group_by(trt.grp,ECCC,.draw) %>%
-  summarize(delta.r.baci=median(delta.r.baci))%>%
+  group_by(CI, BA, facet, trt.grp, herd.grp, ECCC, .draw) %>%
+  summarise(
+    r = mean(r)
+  ) %>%
+  mutate(baci = paste(BA, CI, sep = "_")) %>%
+  ungroup() %>%
+  dplyr::select(facet:baci) %>%
+  pivot_wider(names_from = baci, values_from = r) %>%
+  mutate(
+    basechange = `1_0` - `0_0`,
+    delta.r = `1_1` - `0_1`,
+    delta.r.baci = delta.r - basechange
+  ) %>%
+  group_by(trt.grp, ECCC, .draw) %>%
+  summarize(delta.r.baci = median(delta.r.baci)) %>%
   ggplot(aes(x = delta.r.baci, y = trt.grp, fill = ECCC)) +
   geom_density_ridges( # scale = 1.5,
     # scale = 1.3,
@@ -666,7 +708,7 @@ ggsave(here::here("plots", "appendix", "baci_effmanual_ECCC.png"), width = 10, h
 
 
 
-##RUN ECCC BACI
+## RUN ECCC BACI
 baci.eccc.draws <- baci.eccc %>%
   group_by(.draw, trt.grp) %>%
   do(tidy(lmer(r ~ BA + CI + BA * CI + (1 | grp), data = .))) %>%
@@ -762,9 +804,9 @@ for (i in 1:nrow(trt.herds.hv)) {
 }
 
 baci.hv <- baci.hv %>% mutate(
-    grp = paste(herd.grp, trt, sep = "_"),
-    facet = paste(herd.grp, trt.grp, sep = "_")
-  )
+  grp = paste(herd.grp, trt, sep = "_"),
+  facet = paste(herd.grp, trt.grp, sep = "_")
+)
 
 ggplot() +
   geom_line(data = baci.hv %>%
@@ -804,21 +846,23 @@ ggplot() +
 ggsave(here::here("plots", "appendix", "baci_setup_Heard_Vagt1998.png"), width = 13, height = 9, bg = "white")
 
 
-###plot baci delta r
+### plot baci delta r
 baci.hv %>%
-    group_by(CI, BA,facet, trt.grp, herd.grp,Heard_Vagt1998,.draw) %>%
-    summarise(
-      r = mean(r)
-    )%>%
-  mutate(baci=paste(BA,CI, sep="_"))%>%
-  ungroup%>%
-  dplyr::select(facet:baci)%>%
-  pivot_wider(names_from=baci, values_from=r)%>%
-  mutate(basechange=`1_0`-`0_0`,
-         delta.r=`1_1`-`0_1`,
-         delta.r.baci=delta.r-basechange)%>%
-  group_by(trt.grp,Heard_Vagt1998,.draw) %>%
-  summarize(delta.r.baci=median(delta.r.baci))%>%
+  group_by(CI, BA, facet, trt.grp, herd.grp, Heard_Vagt1998, .draw) %>%
+  summarise(
+    r = mean(r)
+  ) %>%
+  mutate(baci = paste(BA, CI, sep = "_")) %>%
+  ungroup() %>%
+  dplyr::select(facet:baci) %>%
+  pivot_wider(names_from = baci, values_from = r) %>%
+  mutate(
+    basechange = `1_0` - `0_0`,
+    delta.r = `1_1` - `0_1`,
+    delta.r.baci = delta.r - basechange
+  ) %>%
+  group_by(trt.grp, Heard_Vagt1998, .draw) %>%
+  summarize(delta.r.baci = median(delta.r.baci)) %>%
   ggplot(aes(x = delta.r.baci, y = trt.grp, fill = Heard_Vagt1998)) +
   geom_density_ridges( # scale = 1.5,
     # scale = 1.3,
@@ -898,8 +942,8 @@ hv.summary <- baci.hv.draws %>%
   ) %>%
   arrange(-delta.l) %>%
   mutate(delta.r = paste0(delta.l, " (", lower, "-", upper, ")")) %>%
-  rename(trt=trt.grp)%>%
-  left_join(label.lookup, by="trt")%>%
+  rename(trt = trt.grp) %>%
+  left_join(label.lookup, by = "trt") %>%
   dplyr::select(Treatment = new, `Delta r (BACI): Heard Vagt (1998)` = delta.r)
 
 
@@ -912,16 +956,16 @@ eccc.summary <- baci.eccc.draws %>%
   ) %>%
   arrange(-delta.l) %>%
   mutate(delta.r = paste0(delta.l, " (", lower, "-", upper, ")")) %>%
-    rename(trt=trt.grp)%>%
-  left_join(label.lookup, by="trt")%>%
+  rename(trt = trt.grp) %>%
+  left_join(label.lookup, by = "trt") %>%
   dplyr::select(Treatment = new, `Delta r (BACI): ECCC` = delta.r)
 
 
 trt_eff_ba_table %>%
-  dplyr::select(Treatment=`Recovery action`, `Delta r (BA)` = `Change in instantaneous growth rate (r)`) %>%
-  left_join(eccc.summary, by="Treatment")%>%
-    left_join(hv.summary, by="Treatment")%>%
-  rename(`Recovery action`=Treatment)%>%
+  dplyr::select(Treatment = `Recovery action`, `Delta r (BA)` = `Change in instantaneous growth rate (r)`) %>%
+  left_join(eccc.summary, by = "Treatment") %>%
+  left_join(hv.summary, by = "Treatment") %>%
+  rename(`Recovery action` = Treatment) %>%
   gt() %>%
   gtsave(here::here("tables", "appendix", "trt_eff_baci_compare.rtf"))
 ```
@@ -932,7 +976,7 @@ trt_eff_ba_table %>%
 demog.draws.combotreat.ecotype <- demog.draws %>%
   filter(yrs >= 2010) %>%
   group_by(.draw, trt, herd) %>%
-  summarise(r = mean(r, na.rm=TRUE)) %>% ## mean per herd-treatment-draw
+  summarise(r = mean(r, na.rm = TRUE)) %>% ## mean per herd-treatment-draw
   left_join(ecotype) %>%
   group_by(.draw, trt, ECCC) %>%
   summarise(r = mean(r)) %>% ## mean r per treatment-draw
@@ -993,9 +1037,9 @@ ggplot() +
       filter(!trt %in% "transplant") %>%
       filter(ecotype == "ECCC") %>%
       group_by(name, trt, .draw, value) %>%
-      summarise(delta = median(delta.r))%>%
+      summarise(delta = median(delta.r)) %>%
       left_join(order),
-    aes(x = delta, y = fct_reorder(trt,med), fill = value),
+    aes(x = delta, y = fct_reorder(trt, med), fill = value),
     scale = .9,
     rel_min_height = .01,
     size = 0.25,
@@ -1031,7 +1075,7 @@ ind.eff.ecotype <- eff.draws %>%
   do(tidy(lm(delta.r ~ reducewolves + sterilizewolves + reducemoose + pen + feed + ECCC, data = .))) %>%
   filter(!term %in% "(Intercept)")
 
-#glmm gives analagous result
+# glmm gives analagous result
 # ind.eff.ecotype <- eff.draws %>%
 #   filter(name == "Rate of increase (r)" & !trt %in% "transplant") %>%
 #   left_join(ecotype) %>%
