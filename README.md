@@ -451,6 +451,11 @@ ggplot() +
   coord_cartesian(clip = "off")
 ```
 
+    ## Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+    ## ℹ Please use `linewidth` instead.
+    ## This warning is displayed once every 8 hours.
+    ## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.
+
     ## Warning in geom_line(data = demog %>% ungroup() %>% left_join(labels, by = "herd") %>% : Ignoring unknown aesthetics: ymin and ymax
 
     ## Warning in geom_text(data = trt.plot %>% filter(herd %in% herds.keep) %>% : Ignoring unknown parameters: `direction`
@@ -512,14 +517,14 @@ n.recovery.all <- sims.draws %>%
 median(n.recovery.all)
 ```
 
-    ## [1] 1556.459
+    ## [1] 1557.574
 
 ``` r
 quantile(n.recovery.all, c(0.05, 0.5, 0.95)) %>% round(0)
 ```
 
     ##   5%  50%  95% 
-    ## 1175 1556 1958
+    ## 1175 1558 1956
 
 ``` r
 n.recovery <- median(n.recovery.all) %>% round(0)
@@ -542,7 +547,7 @@ quantile(calves.recovered.all, c(0.05, 0.5, 0.95)) %>% round(0)
 ```
 
     ##   5%  50%  95% 
-    ## 1142 1556 1940
+    ## 1144 1556 1942
 
 ``` r
 calves.recovered <- median(calves.recovered.all) %>% round(0)
@@ -792,8 +797,8 @@ kable(lambda.table)
 
 | trt                          | r.med | lower | upper | r                  |
 |:-----------------------------|------:|------:|------:|:-------------------|
-| feed                         |  0.12 | -0.28 |  0.47 | 0.12 (-0.28-0.47)  |
 | feed-reducewolves            |  0.12 |  0.10 |  0.15 | 0.12 (0.1-0.15)    |
+| feed                         |  0.11 | -0.28 |  0.47 | 0.11 (-0.28-0.47)  |
 | reducemoose-reducewolves     |  0.11 |  0.06 |  0.17 | 0.11 (0.06-0.17)   |
 | pen-reducewolves             |  0.10 |  0.05 |  0.14 | 0.1 (0.05-0.14)    |
 | pen-reducemoose              |  0.06 | -0.08 |  0.19 | 0.06 (-0.08-0.19)  |
@@ -930,11 +935,11 @@ kable(trt_eff_ba_table)
 | Recovery action                  | Change in instantaneous growth rate (r) |
 |:---------------------------------|:----------------------------------------|
 | penning + wolf reduction         | 0.16 \[0.12-0.2\]                       |
-| feeding                          | 0.14 \[-0.27-0.51\]                     |
+| feeding                          | 0.14 \[-0.27-0.5\]                      |
 | feeding + wolf reduction         | 0.14 \[0.09-0.2\]                       |
 | moose & wolf reduction           | 0.11 \[0.04-0.18\]                      |
-| penning + moose reduction        | 0.07 \[-0.16-0.29\]                     |
-| wolf reduction                   | 0.07 \[0.03-0.13\]                      |
+| penning + moose reduction        | 0.07 \[-0.16-0.3\]                      |
+| wolf reduction                   | 0.07 \[0.02-0.13\]                      |
 | wolf reduction + sterilization   | 0.07 \[0.01-0.12\]                      |
 | penning + moose & wolf reduction | -0.01 \[-0.2-0.2\]                      |
 | moose reduction                  | -0.04 \[-0.1-0.01\]                     |
@@ -1154,11 +1159,11 @@ kable(ind.eff.table)
 
 | Treatment       | delta.lambda      |
 |:----------------|:------------------|
-| feed            | 0.1 (-0.14-0.31)  |
+| feed            | 0.1 (-0.13-0.31)  |
 | reducewolves    | 0.1 (0.03-0.17)   |
 | pen             | 0.08 (0-0.17)     |
 | reducemoose     | 0.03 (-0.03-0.08) |
-| sterilizewolves | -0.01 (-0.1-0.06) |
+| sterilizewolves | -0.01 (-0.1-0.07) |
 
 ## Simulate Conservation Intervention
 
@@ -1177,7 +1182,7 @@ sim.ref <- demog.draws %>%
 median(sim.ref)
 ```
 
-    ## [1] -0.07427092
+    ## [1] -0.07475623
 
 ``` r
 sim.trt <- ind.eff.app %>%
@@ -1191,7 +1196,7 @@ sim.trt <- ind.eff.app %>%
 median(sim.ref)
 ```
 
-    ## [1] -0.07427092
+    ## [1] -0.07475623
 
 ``` r
 year.end <- 9
