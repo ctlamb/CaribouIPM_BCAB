@@ -1,4 +1,4 @@
-## ----render, eval=FALSE,include=FALSE----------------------------------------------------------------------------------------------------------------------------------
+## ----render, eval=FALSE,include=FALSE---------------------------------------------------------------------------------------
 ## rmarkdown::render(here::here("data", "dataprep.Rmd"),
 ##   output_file = "README.md"
 ## )
@@ -9,7 +9,7 @@
 ## )
 
 
-## ----Load packages and data, results='hide', message=FALSE, warning=FALSE----------------------------------------------------------------------------------------------
+## ----Load packages and data, results='hide', message=FALSE, warning=FALSE---------------------------------------------------
 library(renv)
 ## to pull packages
 # restore(repos="https://cloud.r-project.org")
@@ -51,7 +51,7 @@ tonq.surv <- read_csv(here::here("data", "raw", "TonquinSurvivalAnnualMedian(nod
 tonq.abund <- read_csv(here::here("data", "raw", "TonquinAbundanceAnnualEstimates.csv")) ## overall totalN from Layla Nov 16, 2023
 
 
-## ----filter, results='hide', message=FALSE, warning=FALSE--------------------------------------------------------------------------------------------------------------
+## ----filter, results='hide', message=FALSE, warning=FALSE-------------------------------------------------------------------
 herds <- treat.raw %>%
   filter(!Exclude %in% "Y") %>% ## remove herds that don't have enough data/years
   filter(!Herd %in% "Central Selkirks") %>% ## now split into Nakusp/Duncan
@@ -76,7 +76,7 @@ surv.raw <- surv.raw %>%
   filter(herd %in% herds)
 
 
-## ----add new data, results='hide', message=FALSE, warning=FALSE--------------------------------------------------------------------------------------------------------
+## ----add new data, results='hide', message=FALSE, warning=FALSE-------------------------------------------------------------
 ## update the data
 source("/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/prepupdates.R")
 
@@ -169,7 +169,7 @@ treat.raw <- treat.raw %>%
   rbind(read_csv(here::here("data/raw/trt.2022onwards.csv")))
 
 
-## ----survival prep, message=FALSE, warning=FALSE-----------------------------------------------------------------------------------------------------------------------
+## ----survival prep, message=FALSE, warning=FALSE----------------------------------------------------------------------------
 ## remove some duplicated columns
 surv <- surv %>%
   distinct() # none
@@ -234,7 +234,7 @@ write_csv(surv.day, here::here("data", "raw", "survival_day_noCNpen.csv"))
 write_csv(surv.yr, here::here("data", "raw", "survival_yrly.csv"))
 
 
-## ----check surv, message=FALSE, warning=FALSE--------------------------------------------------------------------------------------------------------------------------
+## ----check surv, message=FALSE, warning=FALSE-------------------------------------------------------------------------------
 fit <- survfit(Surv(time, event) ~ herd, data = surv.yr)
 ggsurvplot(fit,
   pval = TRUE,
@@ -250,7 +250,7 @@ ggsurvplot(fit,
 # summary(survfit(Surv(time, event) ~ herd, data = surv.yr), times = 360)
 
 
-## ----surv est, fig.height=10, fig.width=10, message=FALSE, warning=FALSE-----------------------------------------------------------------------------------------------
+## ----surv est, fig.height=10, fig.width=10, message=FALSE, warning=FALSE----------------------------------------------------
 surv.yr$herd <- as.character(surv.yr$herd)
 surv.herds <- unique(surv.yr$herd) %>% as.character()
 
@@ -369,7 +369,7 @@ mean(surv.yr.est$est)
 mean(surv.yr.est$se, na.rm = TRUE)
 
 
-## ----surv est low samp, fig.height=10, fig.width=10, message=FALSE, warning=FALSE--------------------------------------------------------------------------------------
+## ----surv est low samp, fig.height=10, fig.width=10, message=FALSE, warning=FALSE-------------------------------------------
 ## remove herd-years with <=2 animals (means survival est could only be 0,0.5,or 1)
 surv.yr.est <- surv.yr.est %>%
   mutate(
@@ -482,7 +482,7 @@ ggsave(here::here("data", "plots", "input_survival2_fixsmallSS.png"), width = 11
 write_csv(surv.yr.est %>% dplyr::select(herd, year, est, sd), here::here("data", "clean", "survival.csv"))
 
 
-## ----sex ratio, fig.height=10, fig.width=12, message=FALSE, warning=FALSE----------------------------------------------------------------------------------------------
+## ----sex ratio, fig.height=10, fig.width=12, message=FALSE, warning=FALSE---------------------------------------------------
 ## extract sex ratio data from counts
 sr <- count.raw %>%
   filter(!NFG %in% c("Y")) %>%
@@ -607,7 +607,7 @@ sr.sd <- sd(sr.otc %>% rbind(kz.sr) %>% pull(sratio))
 write_csv(tibble(sr = sr.median, sr.sd = sr.sd), here::here("data", "clean", "sexratio_summary.csv"))
 
 
-## ----recruitment, fig.height=10, fig.width=10, message=FALSE, warning=FALSE--------------------------------------------------------------------------------------------
+## ----recruitment, fig.height=10, fig.width=10, message=FALSE, warning=FALSE-------------------------------------------------
 ## extract all 3 types of counts and remove unknown age+sex from the totals (assumes these animals have same calf/cow ratio as pop. Likely if these are just whole groups in the trees)
 ##* sorry that some of these column names are terribly long, I shorten them here**
 recruitment <- count.raw %>%
@@ -920,7 +920,7 @@ ggplot(recruitment, aes(x = est, y = est.adj, color = count.used)) +
   )
 
 
-## ----counts, fig.height=10, fig.width=12, message=FALSE, warning=FALSE-------------------------------------------------------------------------------------------------
+## ----counts, fig.height=10, fig.width=12, message=FALSE, warning=FALSE------------------------------------------------------
 ## clean up counts
 counts <- count.raw %>%
   filter(!NFG %in% c("Y")) %>%
@@ -1231,7 +1231,7 @@ counts %>%
   write_csv(here::here("data", "clean", "herd_sightability_summary.csv"))
 
 
-## ----treatment, fig.height=8, fig.width=12, message=FALSE, warning=FALSE-----------------------------------------------------------------------------------------------
+## ----treatment, fig.height=8, fig.width=12, message=FALSE, warning=FALSE----------------------------------------------------
 trt_raw <- treat.raw %>%
   filter(
     herd %in% c(counts$herd, surv$herd, recruitment$herd),
@@ -1392,7 +1392,7 @@ trt_long %>%
   )
 
 
-## ----assess herds, results='hide', message=FALSE, warning=FALSE--------------------------------------------------------------------------------------------------------
+## ----assess herds, results='hide', message=FALSE, warning=FALSE-------------------------------------------------------------
 herds.present <- treat.raw %>%
   filter(!Exclude %in% "Y") %>%
   distinct(herd) %>%
@@ -1434,7 +1434,7 @@ herds.present %>%
   labs(color = "Present?")
 
 
-## ----bp, message=FALSE, warning=FALSE----------------------------------------------------------------------------------------------------------------------------------
+## ----bp, message=FALSE, warning=FALSE---------------------------------------------------------------------------------------
 # sight_group <- tibble(herd=c("Columbia North", "Columbia South", "Central Rockies", "Frisby-Boulder", "Nakusp", "Duncan",
 #                               "Burnt Pine",  "Kennedy Siding", "Quintette", "Klinse-Za","Narraway BC",
 #                              "Purcells Central", "Purcells South", "South Selkirks","Central Selkirks","Monashee",
@@ -1466,7 +1466,7 @@ bp <- hn %>%
 write_csv(bp, here::here("data", "clean", "blueprint.csv"))
 
 
-## ----data check, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE-----------------------------------------------------------------------------------------------
+## ----data check, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE----------------------------------------------------
 ## for (i in 1:length(herds)) {
 ##   if (herds[i] != "Redrock/Prairie Creek") {
 ##     ## make folder structure
@@ -1620,7 +1620,7 @@ write_csv(bp, here::here("data", "clean", "blueprint.csv"))
 ## }
 
 
-## ----ss, message=FALSE, warning=FALSE----------------------------------------------------------------------------------------------------------------------------------
+## ----ss, message=FALSE, warning=FALSE---------------------------------------------------------------------------------------
 ## herds
 nherd
 

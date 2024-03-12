@@ -1,4 +1,4 @@
-## ----render, eval=FALSE,include=FALSE----------------------------------------------------------------------------------------------------------------------------------
+## ----render, eval=FALSE,include=FALSE---------------------------------------------------------------------------------------
 ## rmarkdown::render(here::here("CaribouIPM_BCAB.Rmd"),
 ##   output_file = "README.md"
 ## )
@@ -9,7 +9,7 @@
 ## )
 
 
-## ----Load packages and data, results='hide', message=FALSE, warning=FALSE----------------------------------------------------------------------------------------------
+## ----Load packages and data, results='hide', message=FALSE, warning=FALSE---------------------------------------------------
 library(renv)
 ## to pull packages
 # restore(repos="https://cloud.r-project.org")
@@ -74,7 +74,7 @@ rm(nyr)
 rm(yr_idx)
 
 
-## ----Check posteriors, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, results='hide'-------------------------------------------------------------------------
+## ----Check posteriors, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE, results='hide'------------------------------
 ## ## check posteriors for convergence
 ## mcmcplots::mcmcplot(out$samples, par = "lambda", random = 50)
 ## mcmcplots::mcmcplot(out$samples, par = "surv_yr_dg", random = 50)
@@ -107,7 +107,7 @@ rm(yr_idx)
 ## ## feed (9), pen (15), and sterilize (22) have lowest sample sizes, makes sense why convergence is poorer
 
 
-## ----Data housekeeping, message=FALSE, warning=FALSE-------------------------------------------------------------------------------------------------------------------
+## ----Data housekeeping, message=FALSE, warning=FALSE------------------------------------------------------------------------
 ## set up colors for plotting
 display.brewer.pal(8, "Accent")
 cols <- RColorBrewer::brewer.pal(8, "Accent")
@@ -236,7 +236,7 @@ counts %>%
   count(sight)
 
 
-## ----Firstyr, message=FALSE, warning=FALSE-----------------------------------------------------------------------------------------------------------------------------
+## ----Firstyr, message=FALSE, warning=FALSE----------------------------------------------------------------------------------
 raw.demog <- rbind(
   afr %>% dplyr::select(herd, year, est) %>% mutate(type = "Recruit"),
   afs %>% dplyr::select(herd, year, est) %>% mutate(type = "Surv"),
@@ -272,7 +272,7 @@ ggplot(first.yr, aes(x = first.year)) +
   )
 
 
-## ----Plot herd abundance, fig.height=11, fig.width=15, message=FALSE---------------------------------------------------------------------------------------------------
+## ----Plot herd abundance, fig.height=11, fig.width=15, message=FALSE--------------------------------------------------------
 ## Prep data and layout for plot
 
 ## treatments for plot,and where they go
@@ -471,14 +471,14 @@ ggplot() +
   coord_cartesian(clip = "off")
 
 
-ggsave(here::here("plots", "abundance.png"), width = 15, height = 11, bg = "white")
+ggsave(here::here("plots", "abundance.png"), width = 15, height = 11, bg = "white", dpi=600)
 
 # #for Fuse
 # library(Cairo)
 # ggsave(here::here("plots", "abundance_forFUSE.svg"), width = 15, height = 11, bg = "transparent")
 
 
-## ----Plot herd abundance split, message=FALSE, include=FALSE-----------------------------------------------------------------------------------------------------------
+## ----Plot herd abundance split, message=FALSE, include=FALSE----------------------------------------------------------------
 ## split into two
 ## TOP
 ggplot() +
@@ -580,7 +580,7 @@ ggplot() +
   coord_cartesian(clip = "off")
 
 
-ggsave(here::here("plots", "abundance_top.png"), width = 15, height = 8, bg = "white")
+ggsave(here::here("plots", "abundance_top.png"), width = 15, height = 8, bg = "white", dpi=600)
 
 
 
@@ -683,7 +683,7 @@ ggplot() +
   coord_cartesian(clip = "off")
 
 
-ggsave(here::here("plots", "abundance_bottom.png"), width = 9, height = 6, bg = "white")
+ggsave(here::here("plots", "abundance_bottom.png"), width = 9, height = 6, bg = "white", dpi=600)
 
 
 
@@ -752,10 +752,10 @@ ggplot() +
   coord_cartesian(clip = "off")
 
 
-ggsave(here::here("plots", "abundance_legend.png"), width = 2.7, height = 3, bg = "transparent")
+ggsave(here::here("plots", "abundance_legend.png"), width = 2.7, height = 3, bg = "transparent", dpi=600)
 
 
-## ----Plot total abundance, fig.height=6, fig.width=6, message=FALSE, warning=FALSE-------------------------------------------------------------------------------------
+## ----Plot total abundance, fig.height=6, fig.width=6, message=FALSE, warning=FALSE------------------------------------------
 #### Summarize bou pop in '91 vs 2023####
 sims.summary <- sims.plot %>%
   group_by(.variable) %>%
@@ -882,10 +882,10 @@ abundance.all.plot <- ggplot(data = sims.plot %>%
   geom_text(data = raw.demog %>% group_by(year) %>% summarise(n = n_distinct(herd)) %>% filter(year %% 2 == 0), aes(x = year, y = 11800, label = n), size = 3.5)
 abundance.all.plot
 
-ggsave(plot = abundance.all.plot, here::here("plots", "abundance_all.png"), width = 6, height = 6, bg = "white")
+ggsave(plot = abundance.all.plot, here::here("plots", "abundance_all.png"), width = 6, height = 6, bg = "white", dpi=600)
 
 
-## ----trt eff- r, message=FALSE, warning=FALSE--------------------------------------------------------------------------------------------------------------------------
+## ----trt eff- r, message=FALSE, warning=FALSE-------------------------------------------------------------------------------
 ## Gather draws
 demog.draws <- out %>%
   gather_draws(logla[i, j], S[i, j], R_adj[i, j], totNMF[i, j], ndraws = ndraws) %>%
@@ -996,7 +996,7 @@ demog.draws.combotreat %>%
   geom_density_ridges( # scale = 1.5,
     # scale = 1.3,
     rel_min_height = .01,
-    size = 0.25,
+    size = 0.15,
     alpha = 0.9
   ) +
   theme_ipsum() +
@@ -1006,29 +1006,35 @@ demog.draws.combotreat %>%
       left_join(label.lookup, by = "trt") %>%
       filter(trt != "transplant"),
     aes(y = fct_reorder(new, med), x = r),
-    shape = "|"
+    shape = "|",
+    size=0.8
   ) +
   theme(
-    axis.title.x = element_text(size = 15),
-    axis.title.y = element_text(size = 15),
-    strip.text.x = element_text(size = 15),
-    strip.text.y = element_text(size = 15),
-    legend.text = element_text(size = 13),
-    legend.title = element_text(size = 15),
-    legend.position = "none"
+    axis.title.x = element_text(size = 7),
+    axis.title.y = element_text(size = 7),
+    axis.text.x = element_text(size = 6),
+    axis.text.y = element_text(size = 6),
+    strip.text.x = element_text(size = 6),
+    strip.text.y = element_text(size = 6),
+    legend.text = element_text(size = 7),
+    legend.title = element_text(size = 7),
+    legend.position = "none",
+    plot.title = element_text(size = 7),
+    panel.grid.minor=element_line(linewidth = 0.1),
+    panel.grid.major=element_line(linewidth = 0.1),
   ) +
-  geom_vline(xintercept = 0, linetype = "dashed") +
+  geom_vline(xintercept = 0, linetype = "dashed", size=0.3, alpha=0.8) +
   labs(
     x = "Instantaneous rate of increase (r)",
     y = "Recovery action(s)",
     fill = "",
-    title = "Instantaneous Rate of Increase by Recovery Action"
+    title = "Population Growth by Recovery Action"
   ) +
   scale_fill_manual(values = cols[c(3, 1)]) +
   xlim(-0.25, 0.3)
 
-ggsave(here::here("plots", "lambda_treatments.png"), width = 8, height = 7, bg = "white")
-
+#ggsave(here::here("plots", "lambda_treatments.png"), width = 8, height = 7, bg = "white", dpi=600)
+ggsave(here::here("plots", "final","Fig3.tiff"), width = 8.5, height = 8, bg = "white", units="cm", dpi=600)
 
 
 lambda.table <- demog.draws.combotreat %>%
@@ -1044,7 +1050,7 @@ lambda.table <- demog.draws.combotreat %>%
 kable(lambda.table)
 
 
-## ----trt eff- BA, fig.height=7, fig.width=10, message=FALSE, warning=FALSE---------------------------------------------------------------------------------------------
+## ----trt eff- BA, fig.height=7, fig.width=10, message=FALSE, warning=FALSE--------------------------------------------------
 # Before-After ---------------------------------------------
 
 ## pull draws and organize into treatment and untreated (reference) timeframes for each herd
@@ -1106,7 +1112,7 @@ ggplot() +
     aes(x = delta, y = trt.label, fill = name),
     scale = .9,
     rel_min_height = .01,
-    size = 0.25,
+    size = 0.15,
     alpha = 0.9
   ) +
   geom_point(
@@ -1120,19 +1126,23 @@ ggplot() +
   theme_ipsum() +
   facet_wrap(vars(name)) +
   theme(
-    axis.title.x = element_text(size = 15),
-    axis.title.y = element_text(size = 15),
-    strip.text.x = element_text(size = 15),
-    strip.text.y = element_text(size = 15),
-    legend.text = element_text(size = 13),
-    legend.title = element_text(size = 15),
+    axis.title.x = element_text(size = 10),
+    axis.title.y = element_text(size = 10),
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 9),
+    strip.text.x = element_text(size = 10),
+    strip.text.y = element_text(size = 10),
+    legend.text = element_text(size = 10),
+    legend.title = element_text(size = 10),
+     plot.title = element_text(size = 12),
     legend.position = "none"
   ) +
   geom_vline(xintercept = 0, linetype = "dashed") +
   labs(x = "Change in value", y = "Recovery action(s)", title = "Before-After Assessment of Effectivness") +
   scale_fill_manual(values = cols[c(1:3)])
 
-ggsave(here::here("plots", "ba_all.png"), width = 10, height = 7, bg = "white")
+#ggsave(here::here("plots", "ba_all.png"), width = 10, height = 7, bg = "white", dpi=600)
+ggsave(here::here("plots", "final","Fig4.tiff"), width = 18, height = 13, bg = "white", units="cm", dpi=600)
 
 
 trt_eff_ba_table <- eff.draws %>%
@@ -1171,7 +1181,7 @@ eff.draws %>%
   kable()
 
 
-## ----application, message=FALSE, warning=FALSE-------------------------------------------------------------------------------------------------------------------------
+## ----application, message=FALSE, warning=FALSE------------------------------------------------------------------------------
 eff.draws.app <- demog.draws %>%
   group_by(herd, yrs, trt) %>%
   mutate(totNMF.median = median(totNMF)) %>% # get average pop size so popsize threshold doesnt split low/standard in some years due to draws being above/below threshold
@@ -1321,7 +1331,7 @@ ind.eff %>%
 eff.draws %>% write_csv(here::here("tables", "draws", "eff.draws.csv"))
 
 
-## ----ind trt eff, message=FALSE, warning=FALSE-------------------------------------------------------------------------------------------------------------------------
+## ----ind trt eff, message=FALSE, warning=FALSE------------------------------------------------------------------------------
 ind.eff.plot <- ggplot(ind.eff.app %>% left_join(label.lookup %>% rename(term = trt), by = "term"), aes(x = eff, y = fct_relevel(new, "wolf sterlization", "moose reduction", "feeding", "penning", "wolf reduction"), fill = new)) +
   geom_density_ridges(
     scale = .9,
@@ -1365,7 +1375,7 @@ ind.eff.table %>%
 kable(ind.eff.table)
 
 
-## ----cons sims, message=FALSE, warning=FALSE---------------------------------------------------------------------------------------------------------------------------
+## ----cons sims, message=FALSE, warning=FALSE--------------------------------------------------------------------------------
 n.sims <- 1000
 start.pop <- 100
 
@@ -1532,7 +1542,7 @@ recov.sims.plot <- ggplot() +
     size = 4,
     direction = "y",
     xlim = c(year.end + 2, 35),
-    vjust = 2.2,
+    vjust = 2.5,
     segment.size = .7,
     segment.alpha = .5,
     segment.linetype = "dotted",
@@ -1577,10 +1587,10 @@ recov.sims.plot
 
 ## plot individual treatments together
 recov.together <- ind.eff.plot + recov.sims.plot + plot_layout(widths = c(1.3, 1.6))
-ggsave(plot = recov.together, here::here("plots/recov.together.png"), width = 13, height = 6, bg = "white")
+ggsave(plot = recov.together, here::here("plots/recov.together.png"), width = 13, height = 6, bg = "white", dpi=600)
 
 
-## ----map, fig.height=8, fig.width=12, message=FALSE, warning=FALSE-----------------------------------------------------------------------------------------------------
+## ----map, fig.height=8, fig.width=12, message=FALSE, warning=FALSE----------------------------------------------------------
 ## Prep Herd Bounds
 herd.bounds <- st_read(here::here("data/Spatial/herds/u_bc_herds_2021_CL.shp")) %>%
   st_transform(3005) %>%
@@ -1785,7 +1795,7 @@ map <- ggplot() +
     legend.box.margin = margin(0, 0, 0, 0),
     legend.position = "top"
   ) +
-  # ggsn::scalebar(x.min = 10E4, x.max = 105E4, y.min = -19E4, y.max = 85E4, dist = 150, height = 0.03, dist_unit = "km", transform = FALSE, location = "bottomleft", st.color = "white", st.bottom = FALSE) +
+  ggsn::scalebar(x.min = 10E4, x.max = 105E4, y.min = -19E4, y.max = 85E4, dist = 150, height = 0.03, dist_unit = "km", transform = FALSE, location = "bottomleft", st.color = "white", st.bottom = FALSE) +
   annotation_custom(ggplotGrob(inset), xmin = 65E4, xmax = 108E4, ymin = 52E4, ymax = 85E4) +
   scale_y_continuous(expand = c(0, 0), limits = c(-20E4, 85E4)) +
   scale_x_continuous(expand = c(0, 0), limits = c(5E4, 105E4)) +
@@ -1798,5 +1808,5 @@ map <- ggplot() +
 ## plot together
 map_combo <- map + abundance.all.plot + plot_layout(widths = c(1.7, 1.3))
 map_combo
-ggsave(plot = map_combo, here::here("plots/map.together.png"), width = 12, height = 8, bg = "white")
+ggsave(plot = map_combo, here::here("plots/map.together.png"), width = 12, height = 8, bg = "white", dpi=600)
 

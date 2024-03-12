@@ -1,7 +1,7 @@
 BC AB Caribou IPM Results
 ================
 Clayton T. Lamb
-28 December, 2023
+11 March, 2024
 
 ## Load Data
 
@@ -456,14 +456,15 @@ ggplot() +
     ## This warning is displayed once every 8 hours.
     ## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.
 
-    ## Warning in geom_line(data = demog %>% ungroup() %>% left_join(labels, by = "herd") %>% : Ignoring unknown aesthetics: ymin and ymax
+    ## Warning in geom_line(data = demog %>% ungroup() %>% left_join(labels, by = "herd") %>% : Ignoring unknown aesthetics: ymin
+    ## and ymax
 
     ## Warning in geom_text(data = trt.plot %>% filter(herd %in% herds.keep) %>% : Ignoring unknown parameters: `direction`
 
 ![](README_files/figure-gfm/Plot%20herd%20abundance-1.png)<!-- -->
 
 ``` r
-ggsave(here::here("plots", "abundance.png"), width = 15, height = 11, bg = "white")
+ggsave(here::here("plots", "abundance.png"), width = 15, height = 11, bg = "white", dpi=600)
 
 # #for Fuse
 # library(Cairo)
@@ -517,14 +518,14 @@ n.recovery.all <- sims.draws %>%
 median(n.recovery.all)
 ```
 
-    ## [1] 1560.716
+    ## [1] 1547.97
 
 ``` r
 quantile(n.recovery.all, c(0.05, 0.5, 0.95)) %>% round(0)
 ```
 
     ##   5%  50%  95% 
-    ## 1175 1561 1967
+    ## 1175 1548 1942
 
 ``` r
 n.recovery <- median(n.recovery.all) %>% round(0)
@@ -547,7 +548,7 @@ quantile(calves.recovered.all, c(0.05, 0.5, 0.95)) %>% round(0)
 ```
 
     ##   5%  50%  95% 
-    ## 1136 1556 1946
+    ## 1140 1552 1934
 
 ``` r
 calves.recovered <- median(calves.recovered.all) %>% round(0)
@@ -555,7 +556,7 @@ calves.recovered <- median(calves.recovered.all) %>% round(0)
 sum(out$mean$totCalvesMF - out$mean$pred_totCalvesMF)
 ```
 
-    ## [1] 1574.991
+    ## [1] 1572.917
 
 ``` r
 write.csv(quantile(calves.recovered.all, c(0.05, 0.5, 0.95)) %>% round(0) %>% as.data.frame(), here::here("tables/calves.recovered.csv"), row.names = TRUE)
@@ -625,7 +626,7 @@ abundance.all.plot
 ![](README_files/figure-gfm/Plot%20total%20abundance-1.png)<!-- -->
 
 ``` r
-ggsave(plot = abundance.all.plot, here::here("plots", "abundance_all.png"), width = 6, height = 6, bg = "white")
+ggsave(plot = abundance.all.plot, here::here("plots", "abundance_all.png"), width = 6, height = 6, bg = "white", dpi=600)
 ```
 
 # Summarize effects of treatments
@@ -743,7 +744,7 @@ demog.draws.combotreat %>%
   geom_density_ridges( # scale = 1.5,
     # scale = 1.3,
     rel_min_height = .01,
-    size = 0.25,
+    size = 0.15,
     alpha = 0.9
   ) +
   theme_ipsum() +
@@ -753,23 +754,29 @@ demog.draws.combotreat %>%
       left_join(label.lookup, by = "trt") %>%
       filter(trt != "transplant"),
     aes(y = fct_reorder(new, med), x = r),
-    shape = "|"
+    shape = "|",
+    size=0.8
   ) +
   theme(
-    axis.title.x = element_text(size = 15),
-    axis.title.y = element_text(size = 15),
-    strip.text.x = element_text(size = 15),
-    strip.text.y = element_text(size = 15),
-    legend.text = element_text(size = 13),
-    legend.title = element_text(size = 15),
-    legend.position = "none"
+    axis.title.x = element_text(size = 7),
+    axis.title.y = element_text(size = 7),
+    axis.text.x = element_text(size = 6),
+    axis.text.y = element_text(size = 6),
+    strip.text.x = element_text(size = 6),
+    strip.text.y = element_text(size = 6),
+    legend.text = element_text(size = 7),
+    legend.title = element_text(size = 7),
+    legend.position = "none",
+    plot.title = element_text(size = 7),
+    panel.grid.minor=element_line(linewidth = 0.1),
+    panel.grid.major=element_line(linewidth = 0.1),
   ) +
-  geom_vline(xintercept = 0, linetype = "dashed") +
+  geom_vline(xintercept = 0, linetype = "dashed", size=0.3, alpha=0.8) +
   labs(
     x = "Instantaneous rate of increase (r)",
     y = "Recovery action(s)",
     fill = "",
-    title = "Instantaneous Rate of Increase by Recovery Action"
+    title = "Population Growth by Recovery Action"
   ) +
   scale_fill_manual(values = cols[c(3, 1)]) +
   xlim(-0.25, 0.3)
@@ -778,8 +785,8 @@ demog.draws.combotreat %>%
 ![](README_files/figure-gfm/trt%20eff-%20r-1.png)<!-- -->
 
 ``` r
-ggsave(here::here("plots", "lambda_treatments.png"), width = 8, height = 7, bg = "white")
-
+#ggsave(here::here("plots", "lambda_treatments.png"), width = 8, height = 7, bg = "white", dpi=600)
+ggsave(here::here("plots", "final","Fig3.tiff"), width = 8.5, height = 8, bg = "white", units="cm", dpi=600)
 
 
 lambda.table <- demog.draws.combotreat %>%
@@ -797,14 +804,14 @@ kable(lambda.table)
 
 | trt                          | r.med | lower | upper | r                  |
 |:-----------------------------|------:|------:|------:|:-------------------|
-| feed                         |  0.12 | -0.29 |  0.47 | 0.12 (-0.29-0.47)  |
+| feed                         |  0.12 | -0.29 |  0.46 | 0.12 (-0.29-0.46)  |
 | feed-reducewolves            |  0.12 |  0.10 |  0.15 | 0.12 (0.1-0.15)    |
 | reducemoose-reducewolves     |  0.11 |  0.06 |  0.17 | 0.11 (0.06-0.17)   |
 | pen-reducewolves             |  0.10 |  0.05 |  0.14 | 0.1 (0.05-0.14)    |
 | pen-reducemoose              |  0.06 | -0.09 |  0.19 | 0.06 (-0.09-0.19)  |
 | reducewolves                 |  0.06 |  0.03 |  0.09 | 0.06 (0.03-0.09)   |
 | reducewolves-sterilizewolves |  0.04 |  0.02 |  0.06 | 0.04 (0.02-0.06)   |
-| pen-reducemoose-reducewolves | -0.02 | -0.20 |  0.19 | -0.02 (-0.2-0.19)  |
+| pen-reducemoose-reducewolves | -0.02 | -0.20 |  0.18 | -0.02 (-0.2-0.18)  |
 | Reference                    | -0.03 | -0.03 | -0.03 | -0.03 (-0.03–0.03) |
 | transplant                   | -0.03 | -0.04 | -0.02 | -0.03 (-0.04–0.02) |
 | reducemoose                  | -0.05 | -0.07 | -0.03 | -0.05 (-0.07–0.03) |
@@ -873,7 +880,7 @@ ggplot() +
     aes(x = delta, y = trt.label, fill = name),
     scale = .9,
     rel_min_height = .01,
-    size = 0.25,
+    size = 0.15,
     alpha = 0.9
   ) +
   geom_point(
@@ -887,12 +894,15 @@ ggplot() +
   theme_ipsum() +
   facet_wrap(vars(name)) +
   theme(
-    axis.title.x = element_text(size = 15),
-    axis.title.y = element_text(size = 15),
-    strip.text.x = element_text(size = 15),
-    strip.text.y = element_text(size = 15),
-    legend.text = element_text(size = 13),
-    legend.title = element_text(size = 15),
+    axis.title.x = element_text(size = 10),
+    axis.title.y = element_text(size = 10),
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 9),
+    strip.text.x = element_text(size = 10),
+    strip.text.y = element_text(size = 10),
+    legend.text = element_text(size = 10),
+    legend.title = element_text(size = 10),
+     plot.title = element_text(size = 12),
     legend.position = "none"
   ) +
   geom_vline(xintercept = 0, linetype = "dashed") +
@@ -903,7 +913,8 @@ ggplot() +
 ![](README_files/figure-gfm/trt%20eff-%20BA-1.png)<!-- -->
 
 ``` r
-ggsave(here::here("plots", "ba_all.png"), width = 10, height = 7, bg = "white")
+#ggsave(here::here("plots", "ba_all.png"), width = 10, height = 7, bg = "white", dpi=600)
+ggsave(here::here("plots", "final","Fig4.tiff"), width = 18, height = 13, bg = "white", units="cm", dpi=600)
 
 
 trt_eff_ba_table <- eff.draws %>%
@@ -935,13 +946,13 @@ kable(trt_eff_ba_table)
 | Recovery action                  | Change in instantaneous growth rate (r) |
 |:---------------------------------|:----------------------------------------|
 | penning + wolf reduction         | 0.16 \[0.12-0.2\]                       |
-| feeding                          | 0.14 \[-0.28-0.5\]                      |
+| feeding                          | 0.15 \[-0.27-0.49\]                     |
 | feeding + wolf reduction         | 0.14 \[0.09-0.2\]                       |
 | moose & wolf reduction           | 0.11 \[0.04-0.18\]                      |
-| wolf reduction                   | 0.08 \[0.03-0.13\]                      |
-| penning + moose reduction        | 0.07 \[-0.16-0.3\]                      |
+| wolf reduction                   | 0.08 \[0.02-0.13\]                      |
+| penning + moose reduction        | 0.07 \[-0.17-0.3\]                      |
 | wolf reduction + sterilization   | 0.07 \[0.01-0.13\]                      |
-| penning + moose & wolf reduction | -0.01 \[-0.2-0.2\]                      |
+| penning + moose & wolf reduction | -0.01 \[-0.2-0.19\]                     |
 | moose reduction                  | -0.04 \[-0.1-0.01\]                     |
 
 ``` r
@@ -1165,7 +1176,7 @@ kable(ind.eff.table)
 
 | Treatment       | delta.lambda      |
 |:----------------|:------------------|
-| feed            | 0.1 (-0.14-0.31)  |
+| feed            | 0.11 (-0.13-0.31) |
 | reducewolves    | 0.1 (0.03-0.17)   |
 | pen             | 0.08 (0-0.17)     |
 | reducemoose     | 0.03 (-0.03-0.08) |
@@ -1188,7 +1199,7 @@ sim.ref <- demog.draws %>%
 median(sim.ref)
 ```
 
-    ## [1] -0.07504995
+    ## [1] -0.07485089
 
 ``` r
 sim.trt <- ind.eff.app %>%
@@ -1202,7 +1213,7 @@ sim.trt <- ind.eff.app %>%
 median(sim.ref)
 ```
 
-    ## [1] -0.07504995
+    ## [1] -0.07485089
 
 ``` r
 year.end <- 9
@@ -1349,7 +1360,7 @@ recov.sims.plot <- ggplot() +
     size = 4,
     direction = "y",
     xlim = c(year.end + 2, 35),
-    vjust = 2.2,
+    vjust = 2.5,
     segment.size = .7,
     segment.alpha = .5,
     segment.linetype = "dotted",
@@ -1396,7 +1407,7 @@ recov.sims.plot
 ``` r
 ## plot individual treatments together
 recov.together <- ind.eff.plot + recov.sims.plot + plot_layout(widths = c(1.3, 1.6))
-ggsave(plot = recov.together, here::here("plots/recov.together.png"), width = 13, height = 6, bg = "white")
+ggsave(plot = recov.together, here::here("plots/recov.together.png"), width = 13, height = 6, bg = "white", dpi=600)
 ```
 
 ## Map
@@ -1436,19 +1447,25 @@ herd.bounds <- st_read(here::here("data/Spatial/herds/u_bc_herds_2021_CL.shp")) 
   filter(herd %in% c(herds, "Scott West"))
 ```
 
-    ## Reading layer `u_bc_herds_2021_CL' from data source `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/herds/u_bc_herds_2021_CL.shp' using driver `ESRI Shapefile'
+    ## Reading layer `u_bc_herds_2021_CL' from data source 
+    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/herds/u_bc_herds_2021_CL.shp' 
+    ##   using driver `ESRI Shapefile'
     ## Simple feature collection with 57 features and 19 fields
     ## Geometry type: MULTIPOLYGON
     ## Dimension:     XY
     ## Bounding box:  xmin: -165343.7 ymin: 5422045 xmax: 1031821 ymax: 6709569
     ## Projected CRS: NAD83 / UTM zone 10N
-    ## Reading layer `Caribou_Range' from data source `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/herds/Caribou_Range.shp' using driver `ESRI Shapefile'
+    ## Reading layer `Caribou_Range' from data source 
+    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/herds/Caribou_Range.shp' 
+    ##   using driver `ESRI Shapefile'
     ## Simple feature collection with 25 features and 9 fields
     ## Geometry type: MULTIPOLYGON
     ## Dimension:     XY
     ## Bounding box:  xmin: 170844.4 ymin: 5689840 xmax: 819119.1 ymax: 6659319
     ## Projected CRS: NAD83 / Alberta 10-TM (Forest)
-    ## Reading layer `BC_RRPC' from data source `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/herds/rrpc/BC_RRPC.shp' using driver `ESRI Shapefile'
+    ## Reading layer `BC_RRPC' from data source 
+    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/herds/rrpc/BC_RRPC.shp' 
+    ##   using driver `ESRI Shapefile'
     ## Simple feature collection with 1 feature and 17 fields
     ## Geometry type: POLYGON
     ## Dimension:     XY
@@ -1551,7 +1568,9 @@ cities <- st_read(here::here("data/Spatial/administrative/places.shp")) %>%
   st_transform(3005)
 ```
 
-    ## Reading layer `places' from data source `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/administrative/places.shp' using driver `ESRI Shapefile'
+    ## Reading layer `places' from data source 
+    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/administrative/places.shp' 
+    ##   using driver `ESRI Shapefile'
     ## Simple feature collection with 787 features and 3 fields
     ## Geometry type: POINT
     ## Dimension:     XY
@@ -1573,7 +1592,9 @@ pnw <- st_read(here::here("data/Spatial/administrative/North_America.shp")) %>%
   st_transform(3005)
 ```
 
-    ## Reading layer `North_America' from data source `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/administrative/North_America.shp' using driver `ESRI Shapefile'
+    ## Reading layer `North_America' from data source 
+    ##   `/Users/claytonlamb/Dropbox/Documents/University/Work/WSC/CaribouIPM_BCAB/data/Spatial/administrative/North_America.shp' 
+    ##   using driver `ESRI Shapefile'
     ## Simple feature collection with 70 features and 2 fields
     ## Geometry type: MULTIPOLYGON
     ## Dimension:     XY
@@ -1661,7 +1682,7 @@ map <- ggplot() +
     legend.box.margin = margin(0, 0, 0, 0),
     legend.position = "top"
   ) +
-  # ggsn::scalebar(x.min = 10E4, x.max = 105E4, y.min = -19E4, y.max = 85E4, dist = 150, height = 0.03, dist_unit = "km", transform = FALSE, location = "bottomleft", st.color = "white", st.bottom = FALSE) +
+  ggsn::scalebar(x.min = 10E4, x.max = 105E4, y.min = -19E4, y.max = 85E4, dist = 150, height = 0.03, dist_unit = "km", transform = FALSE, location = "bottomleft", st.color = "white", st.bottom = FALSE) +
   annotation_custom(ggplotGrob(inset), xmin = 65E4, xmax = 108E4, ymin = 52E4, ymax = 85E4) +
   scale_y_continuous(expand = c(0, 0), limits = c(-20E4, 85E4)) +
   scale_x_continuous(expand = c(0, 0), limits = c(5E4, 105E4)) +
@@ -1679,5 +1700,5 @@ map_combo
 ![](README_files/figure-gfm/map-1.png)<!-- -->
 
 ``` r
-ggsave(plot = map_combo, here::here("plots/map.together.png"), width = 12, height = 8, bg = "white")
+ggsave(plot = map_combo, here::here("plots/map.together.png"), width = 12, height = 8, bg = "white", dpi=600)
 ```

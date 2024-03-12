@@ -1,7 +1,7 @@
 BC AB Caribou IPM Appendix
 ================
 Clayton T. Lamb
-28 December, 2023
+12 March, 2024
 
 ## Load Data
 
@@ -133,7 +133,16 @@ ggplot(first.yr, aes(x = first.year, y = cumsum)) +
 ``` r
 first.yr %>%
   summarize(medianyr = median(first.year))
+```
 
+    ## # A tibble: 3 × 2
+    ##   ECCC           medianyr
+    ##   <chr>             <dbl>
+    ## 1 Central Group      1997
+    ## 2 Northern Group     1988
+    ## 3 Southern Group     1991
+
+``` r
 first.yr.summary <- first.yr %>%
   mutate(prop = cumsum / max(cumsum)) %>%
   filter(prop >= 0.5) %>%
