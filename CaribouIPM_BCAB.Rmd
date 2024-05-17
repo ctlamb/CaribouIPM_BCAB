@@ -352,16 +352,26 @@ for (i in 1:length(herds.export)) {
     a <- demog.export.raw %>%
       dplyr::filter(herd == !!herds[i])
   }
+  
+  ##denote years with demography data
+   yr.data <- first.yr %>%
+      dplyr::filter(herd == !!herds[i])
+  a <- a %>%
+      mutate(quality=case_when( year < yr.data$first.year ~ "low",
+                                year >= yr.data$first.year ~ "good"
+                                ))
 
-  demog.export.trim <- bind_rows(a, demog.export.trim)
+demog.export.trim <- bind_rows(a, demog.export.trim)
+rm(a)
+rm(yr)
+rm(yr.data)
 }
 
 demog.export.raw <- demog.export.trim
 rm(demog.export.trim)
-rm(a)
-rm(yr)
 
-write_csv(demog.raw, "tables/clean/SMC_IPM_Demography_posteriors.csv")
+
+write_csv(demog.export.raw, "tables/clean/SMC_IPM_Demography_posteriors.csv")
 ```
 ## Plot Abundance by Herd
 ```{r Plot herd abundance, fig.height=11, fig.width=15, message=FALSE}
