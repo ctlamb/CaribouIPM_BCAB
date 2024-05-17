@@ -286,7 +286,83 @@ ggplot(first.yr, aes(x = first.year)) +
   )
 ```
 
+## Data export for folks that want the raw data
+```{r data export, message=FALSE, warning=FALSE}
+## pull posterior draws, add in herd, year, and treatment to each herd-year
+demog.export.raw <- out %>%
+  spread_draws(
+    c(totNMF, totN, totAdults, totCalves, totAdultsMF, totCalvesMF, S, R_adj, lambda, SR)[i, j],
+    ndraws = ndraws
+  ) %>%
+  median_qi(.width = 0.9) %>%
+  left_join(yr_df %>% rename(j = yr_idx), by = "j") %>%
+  left_join(hd %>% dplyr::select(herd, i = herd_num), by = "i") %>%
+  left_join(treatment.combos, by = c("herd", "yrs")) %>%
+  mutate(trt = replace_na(trt, "Reference")) %>%
+  ungroup() %>%
+  rename_at(vars(contains("R_adj")), ~ str_replace_all(., "R_adj", "recruitment.per.adult")) %>%
+  rename_at(vars(contains("S")), ~ str_replace_all(., "S", "survival"))%>%
+  rename_at(vars(contains("totNMF")), ~ str_replace_all(., "totNMF", "totPopMF"))%>%
+  rename_at(vars("totAdults"), ~ str_replace_all(., "totAdults", "totAdultsF"))%>%
+rename_at(vars("totCalves"), ~ str_replace_all(., "totCalves", "totCalvesF"))%>%
+rename_at(vars("totN"), ~ str_replace_all(., "totN", "totPopF"))%>%
+rename_at(vars(contains("totAdults.")), ~ str_replace_all(., "totAdults.", "totAdultsF."))%>%
+rename_at(vars(contains("totCalves.")), ~ str_replace_all(., "totCalves.", "totCalvesF."))%>%
+rename_at(vars(contains("totN.")), ~ str_replace_all(., "totN.", "totPopF."))%>%
+  select(herd,
+  year = yrs, 
+  recovery.action.yrplus1 = trt,
+  lambda:.interval
+)
 
+
+## filter herds to a period where not fully extirpated
+extirpated.yr.export <- demog.export.raw %>%
+  filter(totPopMF <= 1) %>%
+  group_by(herd) %>%
+  filter(year == min(year)) %>%
+  ungroup() %>%
+  select(herd, year, totPopMF)
+
+write_csv(extirpated.yr.export, "tables/clean/extirpated.year.csv")
+
+
+fn.extirpated.yr.export <- demog.export.raw %>%
+  filter(round(totAdultsF, 0) < 10 | round(totPopMF, 0) < 20) %>%
+  group_by(herd) %>%
+  filter(year == min(year)) %>%
+  ungroup() %>%
+  select(herd, year, totAdultsF, totPopMF)
+
+write_csv(extirpated.yr.export, "tables/clean/fn.extirpated.year.csv")
+
+
+herds.export <- unique(demog.export.raw$herd)
+
+demog.export.trim <- tibble()
+for (i in 1:length(herds.export)) {
+  if (herds[i] %in% extirpated.yr.export$herd) {
+    yr <- extirpated.yr.export %>%
+      dplyr::filter(herd == !!herds[i])
+    a <- demog.export.raw %>%
+      dplyr::filter(herd == !!herds[i] & year <= yr$year)
+  }
+
+  if (!herds[i] %in% extirpated.yr.export$herd) {
+    a <- demog.export.raw %>%
+      dplyr::filter(herd == !!herds[i])
+  }
+
+  demog.export.trim <- bind_rows(a, demog.export.trim)
+}
+
+demog.export.raw <- demog.export.trim
+rm(demog.export.trim)
+rm(a)
+rm(yr)
+
+write_csv(demog.raw, "tables/clean/SMC_IPM_Demography_posteriors.csv")
+```
 ## Plot Abundance by Herd
 ```{r Plot herd abundance, fig.height=11, fig.width=15, message=FALSE}
 ## Prep data and layout for plot
@@ -487,7 +563,7 @@ ggplot() +
   coord_cartesian(clip = "off")
 
 
-ggsave(here::here("plots", "abundance.png"), width = 15, height = 11, bg = "white", dpi=600)
+ggsave(here::here("plots", "abundance.png"), width = 15, height = 11, bg = "white", dpi = 600)
 
 # #for Fuse
 # library(Cairo)
@@ -597,7 +673,7 @@ ggplot() +
   coord_cartesian(clip = "off")
 
 
-ggsave(here::here("plots", "abundance_top.png"), width = 15, height = 8, bg = "white", dpi=600)
+ggsave(here::here("plots", "abundance_top.png"), width = 15, height = 8, bg = "white", dpi = 600)
 
 
 
@@ -700,7 +776,7 @@ ggplot() +
   coord_cartesian(clip = "off")
 
 
-ggsave(here::here("plots", "abundance_bottom.png"), width = 9, height = 6, bg = "white", dpi=600)
+ggsave(here::here("plots", "abundance_bottom.png"), width = 9, height = 6, bg = "white", dpi = 600)
 
 
 
@@ -769,7 +845,7 @@ ggplot() +
   coord_cartesian(clip = "off")
 
 
-ggsave(here::here("plots", "abundance_legend.png"), width = 2.7, height = 3, bg = "transparent", dpi=600)
+ggsave(here::here("plots", "abundance_legend.png"), width = 2.7, height = 3, bg = "transparent", dpi = 600)
 ```
 
 ## Plot Abundance across Herds
@@ -901,7 +977,14 @@ abundance.all.plot <- ggplot(data = sims.plot %>%
   geom_text(data = raw.demog %>% group_by(year) %>% summarise(n = n_distinct(herd)) %>% filter(year %% 2 == 0), aes(x = year, y = 11800, label = n), size = 3.5)
 abundance.all.plot
 
-ggsave(plot = abundance.all.plot, here::here("plots", "abundance_all.png"), width = 6, height = 6, bg = "white", dpi=600)
+sims.plot %>%
+  mutate(.variable = case_when(
+    .variable == "totNMF" ~ "With recovery actions",
+    TRUE ~ "Status quo"
+  )) %>%
+  write_csv("tables/pop.ests.csv")
+
+ggsave(plot = abundance.all.plot, here::here("plots", "abundance_all.png"), width = 6, height = 6, bg = "white", dpi = 600)
 ```
 
 
@@ -910,7 +993,8 @@ ggsave(plot = abundance.all.plot, here::here("plots", "abundance_all.png"), widt
 ```{r trt eff- r, message=FALSE, warning=FALSE}
 ## Gather draws
 demog.draws <- out %>%
-  gather_draws(logla[i, j], S[i, j], R_adj[i, j], totNMF[i, j], ndraws = ndraws) %>%
+  gather_draws(logla[i, j], S[i, j], R_adj[i, j], totNMF[i, j], totN[i, j], sexratio[i, j], totAdults[i, j], totCalves[i, j], totAdultsMF[i, j], totCalvesMF[i, j], ndraws = ndraws) %>% ## for Tal
+  # gather_draws(logla[i, j], S[i, j], R_adj[i, j], totNMF[i, j], ndraws = ndraws) %>%
   mutate(
     .variable = case_when(
       .variable == "R_adj" ~ "R",
@@ -974,19 +1058,20 @@ demog.draws <- demog.draws %>%
     !(herd %in% "Purcell South" & yrs %in% c(2012:2013))
   )
 
-demog.draws %>% write_csv(here::here("tables", "draws", "demog.draws.csv"))
+demog.draws %>% write_csv(here::here("tables", "draws", "demog.draws_forTal.csv"))
 
 # ###how to calculate from draws
 # lambda.compare <- demog%>%
 #   ungroup%>%
-#   dplyr::select(herd,yrs,lambda)%>%
+#   mutate(r=log(lambda))%>%
+#   dplyr::select(herd,yrs,r)%>%
 #   left_join(demog.draws %>%
 #               group_by(herd,yrs)%>%
-#               summarise(median=median(lambda),
-#                         mean=mean(lambda)))
+#               summarise(median=median(r),
+#                         mean=mean(r)))
 #
-# lm(lambda~median, data=lambda.compare)%>%summary
-# lm(lambda~mean, data=lambda.compare)%>%summary
+# lm(r~median, data=lambda.compare)%>%summary
+# lm(r~mean, data=lambda.compare)%>%summary
 #
 # ##definitely median when calculating for each posterior. Geo mean likely more appropriate for summarizing pooled distributions (i.e., overall means)
 
@@ -1029,7 +1114,7 @@ demog.draws.combotreat %>%
       filter(trt != "transplant"),
     aes(y = fct_reorder(new, med), x = r),
     shape = "|",
-    size=0.8
+    size = 0.8
   ) +
   theme(
     axis.title.x = element_text(size = 7),
@@ -1042,10 +1127,10 @@ demog.draws.combotreat %>%
     legend.title = element_text(size = 7),
     legend.position = "none",
     plot.title = element_text(size = 7),
-    panel.grid.minor=element_line(linewidth = 0.1),
-    panel.grid.major=element_line(linewidth = 0.1),
+    panel.grid.minor = element_line(linewidth = 0.1),
+    panel.grid.major = element_line(linewidth = 0.1),
   ) +
-  geom_vline(xintercept = 0, linetype = "dashed", size=0.3, alpha=0.8) +
+  geom_vline(xintercept = 0, linetype = "dashed", size = 0.3, alpha = 0.8) +
   labs(
     x = "Instantaneous rate of increase (r)",
     y = "Recovery action(s)",
@@ -1055,8 +1140,8 @@ demog.draws.combotreat %>%
   scale_fill_manual(values = cols[c(3, 1)]) +
   xlim(-0.25, 0.3)
 
-#ggsave(here::here("plots", "lambda_treatments.png"), width = 8, height = 7, bg = "white", dpi=600)
-ggsave(here::here("plots", "final","Fig3.tiff"), width = 8.5, height = 8, bg = "white", units="cm", dpi=600)
+# ggsave(here::here("plots", "lambda_treatments.png"), width = 8, height = 7, bg = "white", dpi=600)
+ggsave(here::here("plots", "final", "Fig3.tiff"), width = 8.5, height = 8, bg = "white", units = "cm", dpi = 600)
 
 
 lambda.table <- demog.draws.combotreat %>%
@@ -1160,15 +1245,15 @@ ggplot() +
     strip.text.y = element_text(size = 10),
     legend.text = element_text(size = 10),
     legend.title = element_text(size = 10),
-     plot.title = element_text(size = 12),
+    plot.title = element_text(size = 12),
     legend.position = "none"
   ) +
   geom_vline(xintercept = 0, linetype = "dashed") +
   labs(x = "Change in value", y = "Recovery action(s)", title = "Before-After Assessment of Effectivness") +
   scale_fill_manual(values = cols[c(1:3)])
 
-#ggsave(here::here("plots", "ba_all.png"), width = 10, height = 7, bg = "white", dpi=600)
-ggsave(here::here("plots", "final","Fig4.tiff"), width = 18, height = 13, bg = "white", units="cm", dpi=600)
+# ggsave(here::here("plots", "ba_all.png"), width = 10, height = 7, bg = "white", dpi=600)
+ggsave(here::here("plots", "final", "Fig4.tiff"), width = 18, height = 13, bg = "white", units = "cm", dpi = 600)
 
 
 trt_eff_ba_table <- eff.draws %>%
@@ -1618,7 +1703,7 @@ recov.sims.plot
 
 ## plot individual treatments together
 recov.together <- ind.eff.plot + recov.sims.plot + plot_layout(widths = c(1.3, 1.6))
-ggsave(plot = recov.together, here::here("plots/recov.together.png"), width = 13, height = 6, bg = "white", dpi=600)
+ggsave(plot = recov.together, here::here("plots/recov.together.png"), width = 13, height = 6, bg = "white", dpi = 600)
 ```
 
 
@@ -1842,5 +1927,5 @@ map <- ggplot() +
 ## plot together
 map_combo <- map + abundance.all.plot + plot_layout(widths = c(1.7, 1.3))
 map_combo
-ggsave(plot = map_combo, here::here("plots/map.together.png"), width = 12, height = 8, bg = "white", dpi=600)
+ggsave(plot = map_combo, here::here("plots/map.together.png"), width = 12, height = 8, bg = "white", dpi = 600)
 ```

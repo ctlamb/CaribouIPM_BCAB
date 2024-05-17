@@ -474,7 +474,7 @@ eff.draws.app %>%
   filter(name == "r") %>%
   left_join(ecotype, by = "herd") %>%
   group_by(trt, application, ECCC, .draw) %>%
-  summarise(eff = mean(eff)) %>%
+  summarise(eff = mean(delta.r)) %>%
   group_by(trt, application, ECCC) %>%
   summarise(
     eff.median = median(eff) %>% round(2),
@@ -510,7 +510,7 @@ eff.draws.app %>%
   filter(name == "r") %>%
   left_join(ecotype, by = "herd") %>%
   group_by(trt, application, Heard_Vagt1998, .draw) %>%
-  summarise(eff = mean(eff)) %>%
+  summarise(eff = mean(delta.r)) %>%
   group_by(trt, application, Heard_Vagt1998) %>%
   summarise(
     eff.median = median(eff) %>% round(2),

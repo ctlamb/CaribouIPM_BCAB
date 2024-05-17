@@ -1654,37 +1654,44 @@ for (i in 1:length(herds)) {
 
 ## Sample Sizes
 ```{r ss, message=FALSE, warning=FALSE}
+##remove QT full for accurate accounting
+
 ## herds
-nherd
+nherd-1 ##remove Quintette full
 
 ## n abundance estimates
-nrow(counts)
-length(unique(counts$herd)) ## n herds with counts
-sum(counts$MinUsed == 1)
-sum(counts$MinUsed != 1)
+counts.ss <- counts%>%filter(herd!="Quintette Full")
+nrow(counts.ss)
+length(unique(counts.ss$herd)) ## n herds with counts
+sum(counts.ss$MinUsed == 1)
+sum(counts.ss$MinUsed != 1)
 
 ## n sightability estimates
-sight.count <- counts %>% filter(!is.na(Sightability) & MinUsed != 1 & !is.na(CollarsSeen))
+sight.count <- counts.ss %>% filter(!is.na(Sightability) & MinUsed != 1 & !is.na(CollarsSeen))
 nrow(sight.count)
 length(unique(sight.count$herd)) ## n herds with sightability
 
 ## n recruitment estimates
-nrow(recruitment)
-length(unique(recruitment$herd)) ## n herds with recruit
+recruitment.ss <-recruitment%>%filter(herd!="Quintette Full")
+nrow(recruitment.ss)
+length(unique(recruitment.ss$herd)) ## n herds with recruit
 
 ## n survival estimates
-nrow(surv.yr.est)
-length(unique(surv.yr.est$herd)) ## n herds with recruit
-sum(surv.yr$time) / 365 # n animal-years for survival
-sum(surv.yr$event) # n dead
-length(surv.yr$id %>% unique()) # n animals for survival
+surv.yr.est.ss <- surv.yr.est%>%filter(herd!="Quintette Full")
+surv.yr.ss <- surv.yr%>%filter(herd!="Quintette Full")
+nrow(surv.yr.est.ss)
+length(unique(surv.yr.est.ss$herd)) ## n herds with recruit
+sum(surv.yr.ss$time) / 365 # n animal-years for survival
+sum(surv.yr.ss$event) # n dead
+length(surv.yr.ss$id %>% unique()) # n animals for survival
 
 ## timeframe
-min(counts$year, recruitment$year, surv.yr$year)
+min(counts.ss$year, recruitment.ss$year, surv.yr.ss$year)
 
 ## treatments
 trt_long %>%
-  filter(applied == 1) %>%
+  filter(applied == 1,
+         herd!="Quintette Full") %>%
   summarise(
     n = n(),
     n.herds = n_distinct(herd),
@@ -1693,7 +1700,8 @@ trt_long %>%
   )
 
 trt_long %>%
-  filter(applied == 1, year > 2004) %>%
+  filter(applied == 1, year > 2004,
+         herd!="Quintette Full") %>%
   summarise(
     n = n(),
     n.herds = n_distinct(herd),
@@ -1702,16 +1710,19 @@ trt_long %>%
   )
 
 trt_long %>%
-  filter(applied == 1) %>%
+  filter(applied == 1,
+         herd!="Quintette Full") %>%
   group_by(herd, year) %>%
   count() %>%
   filter(n > 1)
 
 trt_long %>%
-  filter(intensity == "low")
+  filter(intensity == "low",
+         herd!="Quintette Full")
 
 trt_long %>%
-  filter(applied == 1) %>%
+  filter(applied == 1,
+         herd!="Quintette Full") %>%
   group_by(treatment) %>%
   summarise(
     n = n(),
@@ -1727,7 +1738,8 @@ trt_long %>%
 
 trt_long %>%
   left_join(read_csv(here::here("tables", "demog.csv")) %>% dplyr::select(year = yrs, herd, totNMF)) %>%
-  filter(applied == 1) %>%
+  filter(applied == 1,
+         herd!="Quintette Full") %>%
   mutate(application = case_when(intensity == "low" | totNMF < 30 ~ "low", TRUE ~ "standard")) %>%
   group_by(herd, treatment, application) %>%
   summarise(
@@ -1742,13 +1754,13 @@ trt_long %>%
 
 
 ## check timing
-count.timing <- counts %>%
+count.timing <- counts.ss %>%
   group_by(herd, timing) %>%
   count() %>%
   pivot_wider(values_from = n, names_from = timing)
 
 ## only herds that matter are fall.herds and spring.herds
-a <- counts %>%
+a <- counts.ss %>%
   mutate(season = case_when(
     timing %in% c("Winter", "March", "April", "February") ~ "winter",
     timing %in% c("August", "September", "October", "November") ~ "fall",
